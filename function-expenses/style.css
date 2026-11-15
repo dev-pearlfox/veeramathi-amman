@@ -273,15 +273,11 @@ main {
 }
 
 /* Master lock lives in the members.html banner as a single global guard
-   against accidental edits — when engaged, every per-cell 🔒 button is
-   hidden and every Avoid checkbox + the new-member row are inert. The
-   emoji is the only content, so the padding is tighter than the text
-   buttons next to it (which need room for a full Tamil word). */
+   against accidental edits — when engaged, every per-cell lock button is
+   hidden and every Avoid checkbox + the new-member row are inert. It is an icon + label (Edit / Save & Lock) like the
+   buttons next to it, so it takes their padding and size from .header-link-btn. */
 .totals-banner .master-lock-btn {
-  padding: 6px 10px;
-  line-height: 1;
-  font-size: 0.95rem;
-  white-space: nowrap;   /* icon + "Edit" / "Lock" stay on one line */
+  white-space: nowrap;   /* icon + "Edit" / "Save & Lock" stay on one line */
 }
 
 /* Edit mode (members.js adds body.editing while the page is unlocked): the page behind the table turns grey so it is
@@ -290,6 +286,9 @@ main {
 body.editing { background: #d4d4d8; }
 body.editing .sticky-top-stack { background: #d4d4d8; }
 body:not(.editing) #master-cancel-btn { display: none; }
+/* While editing (unlocked, the Save & Lock state) there is no Home button: leaving mid-edit would drop unsaved changes.
+   The id selector beats the badge rule's display:inline-flex. It comes back once the page is locked again (Save or Cancel). */
+body.editing #home-btn { display: none; }
 
 /* master-locked = read-only page mode. Cell inputs are set to readonly
    (see setCellsLocked in members.js) so no typing is possible; Avoid
@@ -1327,3 +1326,55 @@ header:has(.header-logo-main) h1 { position: relative; min-height: 90px; }
 header:has(.header-logo-main) .header-logo-container { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); margin: 0; }
 @media (max-width: 480px) { header:has(.header-logo-main) h1 { min-height: 75px; } }
 @media (max-width: 400px) { header:has(.header-logo-main) h1 { min-height: 80px; } }
+
+/* members.html only: its header logo is the inline people icon (an <svg>; index.html's is an <img>, so it is untouched).
+   Instead of being pinned to the left edge (far from the title), it sits in the title row right before the title, with a
+   14px gap, so icon + title read as one centred unit. Under 700px the icon is smaller (44px) and the row's fixed min-height
+   is dropped. The title's own centring/scale rules above are not touched. */
+header:has(svg.header-logo-main) .header-logo-container { position: static; transform: none; }
+header:has(svg.header-logo-main) h1 { gap: 14px; }
+@media (max-width: 700px) {
+  header:has(svg.header-logo-main) h1 { min-height: 0; gap: 10px; }
+  header:has(svg.header-logo-main) .header-logo-main { width: 44px; height: 44px; }
+}
+
+/* members.html: Logout lives at the right end of the header (it used to be in the footer bar). It is a sibling of the h1,
+   not inside it, so the title's scale() shrink never touches it; it is vertically centred in the header at any height.
+   The h1 gets equal side padding (symmetric, so the icon + title stay centred) to keep the title clear of the button.
+   Under 700px the label is hidden (icon only, aria-label stays) so it does not crowd a phone-width title. */
+/* the header is position:static inside the stack; relative (no layout change) makes it the button's positioning box */
+.sticky-top-stack header:has(.logout-btn) { position: relative; }
+header .header-link-btn.logout-btn {
+  position: absolute; top: 50%; right: 16px; transform: translateY(-50%); margin: 0;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 14px 6px 8px; min-height: 0;
+  cursor: pointer; font-family: inherit;
+}
+header .logout-btn .btn-icon { width: 24px; height: 24px; flex: none; }
+header:has(.logout-btn) h1 { padding: 0 130px; }
+@media (max-width: 700px) {
+  header .logout-btn span { display: none; }
+  header .header-link-btn.logout-btn { padding: 6px; right: 8px; }
+  header:has(.logout-btn) h1 { padding: 0 54px; }
+}
+
+/* Bottom banner buttons, shared by both footers (ledger page: members link, sign out, Dashboard; members page: Back, Edit,
+   Cancel, Sign out).
+   - A real <button> picks up the global min-height:44px (the links do not), which made it taller than the bar.
+   - The buttons did not fit a 360-390px phone, so they shrink a little there. */
+.totals-banner button.header-link-btn { min-height: 0; }
+@media (max-width: 420px) {
+  .totals-banner .header-link-btn { font-size: 0.68rem; padding: 6px 8px; }
+  .totals-banner .banner-left-group { gap: 4px; }
+}
+
+/* Colour badges on the footer buttons (inline SVG: a white disc with a coloured symbol, so each one reads at a glance on
+   the orange bar; the colours live in the SVG itself). ONE copy for both footers: the ledger page (.totals-banner-two,
+   index.html) and the members page (.totals-banner-simple, members.html). Kept at the END of this file so the narrower
+   `.totals-banner .header-link-btn` padding rules above do not override the left padding. */
+.totals-banner-two .header-link-btn, .totals-banner-simple .header-link-btn { display: inline-flex; align-items: center; gap: 7px; padding-left: 8px; }
+.totals-banner-two .btn-icon, .totals-banner-simple .btn-icon { width: 24px; height: 24px; flex: none; }
+@media (max-width: 420px) {
+  .totals-banner-two .header-link-btn, .totals-banner-simple .header-link-btn { gap: 4px; padding-left: 5px; }
+  .totals-banner-two .btn-icon, .totals-banner-simple .btn-icon { width: 18px; height: 18px; }
+}

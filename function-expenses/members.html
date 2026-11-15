@@ -16,8 +16,9 @@
 <link rel="icon" href="logo-emblem-only.png" type="image/png" />
 <link rel="apple-touch-icon" href="logo-emblem-only.png" />
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-<link rel="stylesheet" href="style.css?v=20261115a" />
-<link rel="stylesheet" href="member-address.css?v=20261114h" />
+<link rel="stylesheet" href="style.css?v=20261115j" />
+<link rel="stylesheet" href="date-picker.css?v=20261115a" />
+<link rel="stylesheet" href="member-address.css?v=20261115c" />
 </head>
 <!-- Heart Logic: see HEART_LOGIC.md before changing sticky/scale/cache-bust/deployment logic. -->
 <body>
@@ -30,7 +31,8 @@
 
 <div class="sticky-top-stack">
   <header>
-    <h1><span class="header-logo-container"><img src="logo-emblem-only.png" alt="" role="presentation" class="header-logo-main" width="128" height="128" /></span><span class="header-title-text">தலைக்கட்டு விவரம்</span></h1>
+    <h1><span class="header-logo-container"><svg class="header-logo-main" width="90" height="90" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#fff"/><g transform="translate(4.2 4.2) scale(0.65)"><circle cx="16.5" cy="8" r="3.4" fill="#f59e0b"/><path d="M11 20c0-3.2 2.4-5.6 5.5-5.6S22 16.8 22 20z" fill="#f59e0b"/><circle cx="8.5" cy="8.5" r="4" fill="#2563eb"/><path d="M1 21c0-4 3.3-7 7.5-7s7.5 3 7.5 7z" fill="#2563eb"/></g></svg></span><span class="header-title-text">தலைக்கட்டு விவரம்</span></h1>
+    <button type="button" id="logout-btn" class="header-link-btn logout-btn" aria-label="Sign out"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#fff"/><g transform="translate(4.2 4.2) scale(0.65)"><g fill="none" stroke="#dc2626" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></g></g></svg><span>Logout</span></button>
   </header>
 
   <div class="sticky-top-inner">
@@ -83,10 +85,9 @@
 
 <div class="totals-banner totals-banner-simple">
   <div class="banner-left-group">
-    <a href="index.html" class="header-link-btn">← Back</a>
-    <button type="button" id="master-lock-btn" class="header-link-btn master-lock-btn" aria-label="Unlock editing" aria-pressed="false" title="Unlock editing">&#9999;&#65039; Edit</button>
-    <button type="button" id="master-cancel-btn" class="header-link-btn master-lock-btn" aria-label="Cancel editing" title="Cancel: undo the changes made since unlocking">&#10006;&#65039; Cancel</button>
-    <button type="button" id="logout-btn" class="header-link-btn logout-btn" aria-label="Sign out">Logout</button>
+    <a href="index.html" id="home-btn" class="header-link-btn"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#fff"/><g transform="translate(4.2 4.2) scale(0.65)"><g fill="none" stroke="#2563eb" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></g></g></svg><span>Home</span></a>
+    <button type="button" id="master-lock-btn" class="header-link-btn master-lock-btn" aria-label="Unlock editing" aria-pressed="false" title="Unlock editing"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#fff"/><g transform="translate(4.2 4.2) scale(0.65)"><g fill="none" stroke="#f59e0b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></g></g></svg><span>Edit</span></button>
+    <button type="button" id="master-cancel-btn" class="header-link-btn master-lock-btn" aria-label="Cancel editing" title="Cancel: undo the changes made since unlocking"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#fff"/><g transform="translate(4.2 4.2) scale(0.65)"><g fill="none" stroke="#dc2626" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></g></g></svg><span>Cancel</span></button>
   </div>
 </div>
 
@@ -95,9 +96,11 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js" integrity="sha384-JBR+x8blGwjDRO63aHCGiZMD4VNiTR4ZUGA+N6ZKLf3zNt1fK8IBpcgPaMrxqWBp" defer crossorigin="anonymous"></script>
 <script src="supabase-config.js?v=20261105t" defer></script>
 <script src="shared.js?v=20261113f" defer></script>
+<script src="scroll-compact.js?v=20261115a" defer></script>
+<script src="date-picker.js?v=20261115a" defer></script>
 <script src="address-data.js?v=20261114c" defer></script>
-<script src="member-address.js?v=20261114m" defer></script>
-<script src="members.js?v=20261114h" defer></script>
+<script src="member-address.js?v=20261115e" defer></script>
+<script src="members.js?v=20261115b" defer></script>
 <script src="print-table.js?v=20261114a" defer></script>
 <script src="members-print.js?v=20261114a" defer></script>
 </body>

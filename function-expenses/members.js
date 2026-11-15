@@ -21,7 +21,7 @@ client.auth.onAuthStateChange((event) => {
   }
 });
 
-// Logout button in the totals-banner. signOutAndReload (shared.js)
+// Logout button in the header (right end). signOutAndReload (shared.js)
 // reloads after signOut so no stale in-memory state (open cells,
 // debounced timers) survives past a logout — the signOut also fires the
 // SIGNED_OUT event above, which redirects to index.html on the reloaded
@@ -71,21 +71,9 @@ syncPillsCardCollapse();
 // title's shrink) now lives in shared.js, since index.html needs the exact
 // same behavior — one copy so the two pages can't drift apart.
 
-let scrollTicking = false;
-function updateScrollCompactState() {
-  document.body.classList.toggle("is-scrolled", window.scrollY > 10);
-  scrollTicking = false;
-}
-window.addEventListener(
-  "scroll",
-  () => {
-    if (scrollTicking) return;
-    scrollTicking = true;
-    requestAnimationFrame(updateScrollCompactState);
-  },
-  { passive: true }
-);
-updateScrollCompactState();
+// Shrink on scroll, expand on wheel-up over the header, freeze while shrinking: the same code as the Accounts page
+// (scroll-compact.js). Heart Logic lives there, not here.
+initScrollCompact();
 
 function setStatus(message, isError) {
   const el = $("members-status");
@@ -270,6 +258,13 @@ $("master-cancel-btn").addEventListener("click", cancelEditing);
 // makes the whole table read-only again.
 // Page starts locked on every load so a fresh open never risks a stray
 // tap writing to the DB — the user must explicitly unlock first.
+// Coloured badges for the lock button (same white disc + coloured symbol as the other footer buttons, see style.css
+// .btn-icon). Both are swapped in by setMasterLocked together with the label.
+const footerBadge = (color, paths) =>
+  `<svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#fff"/><g transform="translate(4.2 4.2) scale(0.65)"><g fill="none" stroke="${color}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">${paths}</g></g></svg>`;
+const EDIT_BADGE = footerBadge("#f59e0b", '<path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/>');
+const LOCK_BADGE = footerBadge("#16a34a", '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>');
+
 function setMasterLocked(locked) {
   if (!locked) takeEditSnapshot();
   document.body.classList.toggle("editing", !locked);   // grey page + cancel button, see style.css
@@ -285,7 +280,7 @@ function setMasterLocked(locked) {
   // Action-preview: the icon shows what CLICKING will do next, not the
   // current state — 🔒 while editing is enabled means "tap to lock",
   // ✏️ while locked means "tap to enable editing".
-  btn.textContent = locked ? "\u270F\uFE0F Edit" : "\u{1F512} Save & Lock";
+  btn.innerHTML = locked ? `${EDIT_BADGE}<span>Edit</span>` : `${LOCK_BADGE}<span>Save &amp; Lock</span>`;
   btn.setAttribute("aria-label", locked ? "Unlock editing" : "Save and lock");
   btn.setAttribute("title", locked ? "Unlock editing" : "Save and lock");
   btn.setAttribute("aria-pressed", locked ? "false" : "true");

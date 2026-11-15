@@ -1,6 +1,6 @@
 # HEART LOGIC INDEX — function-expenses/
 
-**Applies to:** `index.html`, `members.html`, `style.css`, `app.js`, `members.js`, `shared.js` (and
+**Applies to:** `index.html`, `members.html`, `style.css`, `app.js`, `members.js`, `shared.js`, `scroll-compact.js` (and
 `income.js`, `expenses.css`, which sit on top of it)
 
 Do not change any of the following without asking first (warn **"Warning: Heart

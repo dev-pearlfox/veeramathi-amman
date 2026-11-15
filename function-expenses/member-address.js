@@ -1,6 +1,7 @@
 // The home icon at the front of each ஊர் cell on the Members page opens this popup: a labelled address form with
-// Save and Cancel. It is always typeable, even while the page is locked: nothing is written until Save is clicked, so a
-// stray tap cannot change anything. `people.address` is a jsonb object {door, street, area, town, country, state,
+// Save and Cancel. It follows the page lock (body.master-locked, members.js): while the page is LOCKED (view mode) the
+// popup only shows the saved address, read-only, with a Close button; once the page is UNLOCKED (edit mode) it can be
+// typed in, pasted into and saved. Nothing is written until Save is clicked, so a stray tap cannot change anything. `people.address` is a jsonb object {door, street, area, town, country, state,
 // district, pincode} (functions-dashboard/supabase/schema.sql). members.js draws the icon (addressButton) and keeps the
 // saved object in allPeople; this file only handles the popup. Dropdown lists live in address-data.js.
 //
@@ -14,11 +15,12 @@ const ADDRESS_FIELDS = [
   { key: "street", label: "தெரு / Street Name", max: 80 },
   { key: "area", label: "பகுதி / Area", max: 80 },
   { key: "town", label: "ஊர் / Town / City", max: 60 },
+  { key: "district", label: "மாவட்டம் / District", max: 60, choice: true },   // sits under Town / City; its list still depends on Country + State (see addrChoices)
   { key: "country", label: "நாடு / Country", max: 60, choice: true },
   { key: "state", label: "மாநிலம் / State", max: 60, choice: true },
-  { key: "district", label: "மாவட்டம் / District", max: 60, choice: true },
   { key: "pincode", label: "பின்கோடு / Pincode", max: 10 },
 ];
+const PASTE_ICON_SVG = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>';
 const ADDR_OTHER = "__other";   // the "Other…" option's value in the country dropdown
 
 let addrPersonId = null;
@@ -35,9 +37,11 @@ addrPop.innerHTML = `
   <div class="addr-pop-title"></div>
   <div class="addr-grid">${ADDRESS_FIELDS.map((f) => `
     <label class="addr-field"><span class="addr-lab">${f.label}</span>
+      <button type="button" class="addr-paste" data-key="${f.key}" title="Paste" aria-label="Paste into ${f.label}">${PASTE_ICON_SVG}</button>
       <span class="addr-ctl">${f.choice ? `<select data-key="${f.key}"></select>${textBox(f, true)}` : textBox(f, false)}</span>
     </label>`).join("")}
   </div>
+  <p class="addr-pop-note"></p>
   <p class="addr-pop-error" role="alert"></p>
   <div class="addr-pop-actions">
     <button type="button" class="addr-pop-save">Save</button>
@@ -51,6 +55,22 @@ ADDRESS_FIELDS.forEach((f) => {
   addrCtl[f.key] = { text: addrPop.querySelector(`input[data-key="${f.key}"]`), select: addrPop.querySelector(`select[data-key="${f.key}"]`) };
 });
 const addrError = addrPop.querySelector(".addr-pop-error");
+const addrNote = addrPop.querySelector(".addr-pop-note");
+const addrCancelBtn = addrPop.querySelector(".addr-pop-cancel");
+
+// View mode = the page is locked. Edit mode = the page is unlocked.
+const addrViewOnly = () => document.body.classList.contains("master-locked");
+
+// Locked: boxes are read-only, dropdowns disabled, paste/Save hidden (CSS .view-only) and Cancel becomes Close.
+function applyAddressMode(viewOnly) {
+  addrPop.classList.toggle("view-only", viewOnly);
+  addrPop.querySelectorAll("input[data-key]").forEach((input) => { input.readOnly = viewOnly; input.tabIndex = viewOnly ? -1 : 0; });
+  addrPop.querySelectorAll("select").forEach((select) => {
+    select.disabled = viewOnly;
+    select.classList.toggle("addr-empty", viewOnly && !select.value);   // an empty dropdown must show a bare line, not "— Select —"
+  });
+  addrCancelBtn.textContent = viewOnly ? "Close" : "Cancel";
+}
 
 const hasAddress = (address) => !!address && Object.values(address).some(Boolean);
 // The icon turns orange only when every box of the address is filled in; a part-filled address keeps the plain icon.
@@ -151,17 +171,22 @@ function openAddressPopup(button) {
   addrPersonId = person.id;
   addrButton = button;
   addrPop.querySelector(".addr-pop-title").textContent = `${person.name} - முகவரி`;
-  // Pre-filled from the ஊர் cell the icon sits in (what is on screen, even if just edited; see splitPlace). A saved
-  // address wins over these. They are only stored if something else is typed.
-  addrDefaults = splitPlace(button.closest("td").querySelector(".cell-input")?.value ?? "");
+  const viewOnly = addrViewOnly();
+  // Edit mode: pre-filled from the ஊர் cell the icon sits in (what is on screen, even if just edited; see splitPlace).
+  // A saved address wins over these. They are only stored if something else is typed.
+  // View mode: only what is really saved, never the guesses.
+  addrDefaults = viewOnly ? {} : splitPlace(button.closest("td").querySelector(".cell-input")?.value ?? "");
   fillAddressForm({ ...addrDefaults, ...(hasAddress(person.address) ? person.address : {}) });
+  applyAddressMode(viewOnly);
+  addrNote.textContent = viewOnly && !hasAddress(person.address) ? "No address saved yet. Click Edit to add one." : "";
   addrError.textContent = "";
   addrPop.classList.remove("hidden");
   placeAddressPopup();
-  addrCtl.door.text.focus();
+  if (!viewOnly) addrCtl.door.text.focus();
 }
 
 async function saveAddress() {
+  if (addrViewOnly()) return;   // Enter in a box must not save while the page is locked
   const person = allPeople.find((p) => p.id === addrPersonId);
   if (!person) return;
   const parts = {};
@@ -191,6 +216,51 @@ async function saveAddress() {
   closeAddressPopup();
 }
 
+// A new country re-decides what State, District and Pincode offer (shared by the dropdown and the paste buttons).
+function cascadeFromCountry() {
+  setAddrChoice("state", addrValue("country") === ADDR_INDIA ? ADDR_DEFAULT_STATE : "");
+  setAddrChoice("district", "");
+  updatePincodeRules();
+}
+
+// "Paste" button in front of each box: puts the clipboard text into that one field. For a dropdown field the text is
+// matched to its list ignoring case ("tamil nadu" -> "Tamil Nadu"); anything not on the list falls back to the same
+// "Other" / extra-option handling as a saved value (setAddrChoice).
+const addrMatch = (key, value) =>
+  key === "country" ? (addrCountryOf(value) ?? value) : ((addrChoices(key) ?? []).find((c) => c.toLowerCase() === value.toLowerCase()) ?? value);
+
+async function pasteIntoField(key) {
+  if (addrViewOnly()) return;
+  let clip;
+  try {
+    clip = await navigator.clipboard.readText();
+  } catch {
+    addrError.textContent = "Could not read the clipboard. Allow paste when the browser asks.";
+    return;
+  }
+  const value = clip.replace(/\s+/g, " ").trim();   // one line, no stray spaces
+  if (!value) {
+    addrError.textContent = "The clipboard is empty.";
+    return;
+  }
+  addrError.textContent = "";
+  const { text } = addrCtl[key];
+  if (!ADDRESS_FIELDS.find((f) => f.key === key).choice) {
+    const digitsOnly = key === "pincode" && addrValue("country") === ADDR_INDIA;
+    text.value = (digitsOnly ? value.replace(/\D/g, "") : value).slice(0, text.maxLength);
+    text.focus();
+    return;
+  }
+  setAddrChoice(key, addrMatch(key, value));
+  if (key === "country") cascadeFromCountry();
+  if (key === "state") setAddrChoice("district", "");
+}
+
+addrPop.addEventListener("click", (e) => {
+  const button = e.target.closest(".addr-paste");
+  if (button) pasteIntoField(button.dataset.key);
+});
+
 // Changing a dropdown re-decides what the ones after it offer.
 addrCtl.country.select.addEventListener("change", () => {
   const { text, select } = addrCtl.country;
@@ -198,9 +268,7 @@ addrCtl.country.select.addEventListener("change", () => {
   text.classList.toggle("addr-hide", !other);
   text.value = "";
   if (other) text.focus();
-  setAddrChoice("state", select.value === ADDR_INDIA ? ADDR_DEFAULT_STATE : "");
-  setAddrChoice("district", "");
-  updatePincodeRules();
+  cascadeFromCountry();
 });
 addrCtl.country.text.addEventListener("input", () => { updatePincodeRules(); });
 addrCtl.state.select.addEventListener("change", () => setAddrChoice("district", ""));
@@ -213,7 +281,9 @@ addrPop.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && e.target.matches("input[data-key]")) { e.preventDefault(); saveAddress(); }
 });
 
-$("members-body").addEventListener("click", (e) => {
+// document.getElementById, not members.js's `$`: this file loads BEFORE members.js, so `$` does not exist yet here and
+// using it threw at load, which silently killed every listener below (the home icon did nothing).
+document.getElementById("members-body").addEventListener("click", (e) => {
   const button = e.target.closest(".addr-btn");
   if (!button) return;
   if (addrPersonId === button.closest("tr").dataset.person && !addrPop.classList.contains("hidden")) closeAddressPopup();
@@ -227,3 +297,13 @@ document.addEventListener("mousedown", (e) => {
 });
 window.addEventListener("resize", placeAddressPopup);
 window.addEventListener("scroll", placeAddressPopup, { passive: true });
+
+// Locking or unlocking the page while the popup is open closes it, so a view popup never turns editable (or the other
+// way round) with half-typed text in it. Reopen it to get the new mode.
+let addrWasViewOnly = addrViewOnly();
+new MutationObserver(() => {
+  const now = addrViewOnly();
+  if (now === addrWasViewOnly) return;
+  addrWasViewOnly = now;
+  closeAddressPopup();
+}).observe(document.body, { attributes: true, attributeFilter: ["class"] });

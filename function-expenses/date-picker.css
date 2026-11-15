@@ -1,0 +1,59 @@
+/* Calendar popup for date inputs (date-picker.js). Uses the site's own colours: warm cream surface, orange accent. */
+
+/* On desktop the browser's own calendar icon (which opens its unstyled popup) goes; our popup opens on click instead.
+   Touch devices keep the native dialog, so this only applies where date-picker.js is active. */
+@media (hover: hover) and (pointer: fine) {
+  input[type="date"]::-webkit-calendar-picker-indicator { display: none; }
+}
+
+.dp-pop {
+  position: fixed; z-index: 1100; width: 296px; padding: 14px 12px 10px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: 0 2px 4px rgba(120, 53, 15, 0.06), 0 18px 40px -12px rgba(234, 88, 12, 0.35);
+  color: var(--text); font-size: 0.85rem; user-select: none; -webkit-user-select: none;
+}
+.dp-pop.hidden { display: none; }
+
+/* The site's global `button` rule is a big gradient button; every button in here starts from a clean slate. :where()
+   gives this reset zero extra weight, so the specific classes below (.dp-today, .dp-link, ...) always win over it. */
+:where(.dp-pop) button {
+  font: inherit; min-height: 0; padding: 0; margin: 0; border: 0; border-radius: 10px;
+  background: transparent; color: var(--text); box-shadow: none; cursor: pointer; font-weight: 500;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+:where(.dp-pop) button:hover, :where(.dp-pop) button:active { opacity: 1; transform: none; }
+:where(.dp-pop) button:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
+
+.dp-head { display: flex; align-items: center; justify-content: space-between; margin: 0 4px 10px; }
+.dp-title { display: inline-flex; align-items: center; gap: 6px; padding: 6px 8px; font-weight: 700; font-size: 0.95rem; }
+.dp-title svg { color: var(--accent); }
+.dp-title:hover { background: var(--accent-soft); }
+.dp-title-static { padding: 6px 8px; font-weight: 700; font-size: 0.95rem; }
+.dp-nav { display: flex; gap: 4px; }
+.dp-arrow { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; color: var(--muted); }
+.dp-arrow:hover { background: var(--accent-soft); color: var(--accent); }
+
+.dp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; justify-items: center; }
+.dp-grid-3 { grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 4px 0 6px; }
+.dp-week { margin-bottom: 2px; }
+.dp-week span { width: 36px; text-align: center; font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+.dp-day { width: 36px; height: 36px; border-radius: 50%; }
+.dp-day:hover { background: var(--accent-soft); }
+.dp-out { color: var(--muted); opacity: 0.55; }
+.dp-cell { width: 100%; height: 40px; }
+.dp-cell:hover { background: var(--accent-soft); }
+
+/* Today: an orange ring and orange text. Picked: the same orange gradient as the active year / function pills. */
+.dp-today { color: var(--accent); font-weight: 700; box-shadow: inset 0 0 0 1.5px var(--accent); }
+.dp-pop .dp-sel, .dp-pop .dp-sel:hover {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2)); color: var(--accent-text); opacity: 1; font-weight: 700;
+  box-shadow: 0 6px 16px -4px rgba(234, 88, 12, 0.55);
+}
+
+.dp-foot { display: flex; justify-content: space-between; margin-top: 8px; padding: 8px 4px 0; border-top: 1px solid var(--border); }
+.dp-link { padding: 6px 10px; font-weight: 700; color: var(--accent); }
+.dp-link:hover { background: var(--accent-soft); }
+.dp-clear { color: var(--muted); }
+
+@media print { .dp-pop { display: none; } }

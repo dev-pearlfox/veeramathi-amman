@@ -12,7 +12,7 @@
 .addr-btn.address-complete svg { fill: var(--accent); fill-opacity: 0.25; }
 
 .addr-pop {
-  position: fixed; z-index: 1000; width: 440px; max-width: calc(100vw - 16px); padding: 12px 14px;
+  position: fixed; z-index: 1000; width: 480px; max-width: calc(100vw - 16px); padding: 12px 14px;
   max-height: calc(100vh - 16px); overflow-y: auto;
   background: #fff; border: 1px solid var(--border); border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
@@ -20,7 +20,7 @@
 .addr-pop-title { font-weight: 700; font-size: 15px; color: var(--text); margin-bottom: 6px; }
 .addr-grid { display: grid; gap: 5px; }
 /* One field per row: label on the left, box on the right. */
-.addr-field { display: grid; grid-template-columns: 160px 1fr; align-items: center; column-gap: 8px; min-width: 0; font-size: 14px; font-weight: 600; line-height: 1.3; color: var(--muted); }
+.addr-field { display: grid; grid-template-columns: 160px 28px 1fr; align-items: center; column-gap: 8px; min-width: 0; font-size: 14px; font-weight: 600; line-height: 1.3; color: var(--muted); }
 .addr-ctl { display: flex; flex-direction: column; gap: 4px; min-width: 0; }   /* the country dropdown and its "Other" text box stack */
 /* The page-wide input rule (style.css) is 44px tall with 16px text; this form needs a slimmer box. */
 .addr-pop .addr-field input,
@@ -34,3 +34,31 @@
 .addr-pop-error:empty { display: none; }
 .addr-pop-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
 .addr-pop-actions button { min-height: 0; padding: 6px 16px; font-size: 14px; }
+
+/* Paste button in front of each box (member-address.js pasteIntoField). */
+.addr-pop .addr-paste {
+  display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; min-height: 0; padding: 0;
+  border: 1px solid var(--border); border-radius: 8px; background: #fff; color: var(--muted); cursor: pointer;
+}
+.addr-pop .addr-paste:hover { color: var(--accent); background: var(--accent-soft); border-color: var(--accent); }
+/* View mode (page locked): read-only look, no paste button, no Save. The grid drops the paste column. */
+.addr-pop.view-only .addr-paste, .addr-pop.view-only .addr-pop-save { display: none; }
+.addr-pop.view-only .addr-field { grid-template-columns: 160px 1fr; }
+/* ...and every box turns into a plain line with the value written above it (nothing there = the line alone). Not
+   clickable or focusable. Same specificity trick as the base rule: three classes beat `.addr-pop .addr-field input`. */
+.addr-pop.view-only .addr-field input,
+.addr-pop.view-only .addr-field select:disabled {
+  pointer-events: none;
+  background: transparent; border: 0; border-bottom: 1px solid var(--border); border-radius: 0; box-shadow: none;
+  padding: 0 2px; color: var(--text); opacity: 1; -webkit-text-fill-color: var(--text);
+  -webkit-appearance: none; appearance: none; background-image: none;   /* no dropdown arrow */
+}
+.addr-pop.view-only .addr-field select.addr-empty { -webkit-text-fill-color: transparent; }
+.addr-pop-note { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+.addr-pop-note:empty { display: none; }
+
+/* Narrow phones: a slimmer label column so the paste button does not squeeze the boxes. */
+@media (max-width: 480px) {
+  .addr-field { grid-template-columns: 110px 28px 1fr; }
+  .addr-pop.view-only .addr-field { grid-template-columns: 110px 1fr; }
+}

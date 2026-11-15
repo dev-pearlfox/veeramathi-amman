@@ -38,16 +38,6 @@ button.income-del:hover { background: var(--accent-soft); }
   button.income-del { padding: 4px 6px; }
 }
 
-/* Bottom banner buttons (members link, sign out, Dashboard).
-   - On the ledger page the group is always centred (.totals-banner-two, below).
-   - A real <button> picks up the global min-height:44px (the links do not), which made வெளியேறு taller than the bar.
-   - Three buttons did not fit a 360-390px phone (Dashboard was clipped), so they shrink a little there. */
-.totals-banner button.header-link-btn { min-height: 0; }
-@media (max-width: 420px) {
-  .totals-banner .header-link-btn { font-size: 0.68rem; padding: 6px 8px; }
-  .totals-banner .banner-left-group { gap: 4px; }
-}
-
 /* Ledger footer in two rows (index.html's banner carries .totals-banner-two). Top: a slim, darker strip holding the
    Collected / Need line, centred on the screen. Bottom: the buttons row, as before. --row-bottom follows the old
    single-bar heights (46 / 38 / 34px) so the buttons keep their size; style.css's `.totals-banner {height}` rules are
@@ -69,13 +59,4 @@ body main { padding-bottom: 96px; }   /* clears the taller footer (72px at most)
 }
 @media (max-width: 480px) {
   .totals-banner.totals-banner-two { --row-bottom: 34px; }
-}
-
-/* Colour badges on the ledger footer buttons (inline SVG in index.html: a white disc with a coloured symbol, so each
-   one reads at a glance on the orange bar). The colours live in the SVG itself. */
-.totals-banner-two .header-link-btn { display: inline-flex; align-items: center; gap: 7px; padding-left: 8px; }
-.totals-banner-two .btn-icon { width: 24px; height: 24px; flex: none; }
-@media (max-width: 420px) {
-  .totals-banner-two .header-link-btn { gap: 4px; padding-left: 5px; }
-  .totals-banner-two .btn-icon { width: 18px; height: 18px; }
 }

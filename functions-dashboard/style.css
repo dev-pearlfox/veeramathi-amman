@@ -75,6 +75,25 @@ header h1 { position: relative; }
 header h1 .header-logo { position: absolute; left: 0; top: 50%; transform: translateY(-50%); margin: 0; }
 header p { margin: 0; color: var(--muted); font-size: 0.9rem; }
 
+/* Logout lives at the right end of the header on every page (Accounts, Members, Dashboard). Same white-disc exit icon as the
+   other two; here it is a green pill with white text so it reads on this site's light header. It is a sibling of the h1, so
+   it never moves the title; the h1's equal side padding keeps the title centred and clear of it. Under 700px: icon only. */
+header { position: relative; }
+.header-logout {
+  position: absolute; top: 50%; right: 16px; transform: translateY(-50%);
+  display: inline-flex; align-items: center; gap: 7px; min-height: 0; padding: 6px 14px 6px 8px;
+  border-radius: 999px; border: 1px solid rgba(255,255,255,0.55); color: #fff; font-size: 0.85rem; font-weight: 700;
+  font-family: inherit; cursor: pointer;
+  background: linear-gradient(120deg, #34d399, #10b981 55%, #0d9488);
+}
+.header-logout .btn-icon { width: 24px; height: 24px; flex: none; }
+header h1 { padding: 0 130px; }
+@media (max-width: 700px) {
+  .header-logout span { display: none; }
+  .header-logout { padding: 6px; right: 8px; }
+  header h1 { padding: 0 54px; }
+}
+
 .page { max-width: 1180px; margin: 0 auto; padding: 18px 16px 60px; display: flex; flex-direction: column; gap: 20px; }
 .section { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
 
