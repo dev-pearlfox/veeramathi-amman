@@ -1,0 +1,93 @@
+// App shell: sign-in gate, the three sections (tabs), and the banner for load problems.
+// The sections themselves live in overview.js, explore.js and admin.js.
+
+// ---------- Sign-in gate (Supabase Auth) ----------
+// The Dashboard has its own login (DASHBOARD_EMAIL in supabase-config.js; users type only the password), separate
+// from the Accounts page's. The session lives under the dashboard's own storage key (core.js), so the two pages
+// never share a sign-in. The database only lets a signed-in user read anything, which is why the old password-only
+// gate (which never signed in) could not see any data.
+
+// The password is asked again when the Dashboard loads more than 5 minutes after it was last typed. The time of the
+// last password entry is kept next to the session; a load with no stamp (or a stamp from the future) counts as expired.
+// An already-open tab is never locked mid-use: the rule is only checked when the page loads.
+const UNLOCK_STAMP_KEY = "veeramathi-dashboard-unlocked-at";
+const UNLOCK_WINDOW_MS = 5 * 60 * 1000;
+function typedPasswordRecently() {
+  const age = Date.now() - Number(localStorage.getItem(UNLOCK_STAMP_KEY));
+  return age >= 0 && age <= UNLOCK_WINDOW_MS;
+}
+
+$("gate-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  setStatus("gate-status", "Signing in...", false);
+  const { error } = await client.auth.signInWithPassword({ email: DASHBOARD_EMAIL, password: $("gate-password").value });
+  if (error) {
+    setStatus("gate-status", error.message || "Sign-in failed.", true);
+    return;
+  }
+  localStorage.setItem(UNLOCK_STAMP_KEY, String(Date.now()));
+  unlockApp();
+});
+
+let unlocked = false;
+function unlockApp() {
+  if (unlocked) return;
+  unlocked = true;
+  $("gate-password").value = "";   // don't leave the password sitting in the page
+  $("gate").classList.add("hidden");
+  $("app").classList.remove("hidden");
+  showSection(location.hash.slice(1));
+  refreshAll();
+}
+
+client.auth.getSession().then(({ data }) => {
+  if (!data.session) return;
+  if (typedPasswordRecently()) unlockApp();
+  else client.auth.signOut({ scope: "local" });   // too long ago: forget this browser's sign-in, the gate comes back on reload
+});
+client.auth.onAuthStateChange((event) => {
+  if (event !== "SIGNED_OUT") return;
+  localStorage.removeItem(UNLOCK_STAMP_KEY);
+  location.reload();
+});
+
+// ---------- Sections ----------
+
+const SECTIONS = ["overview", "explore", "admin"];
+const RENDERERS = { overview: renderOverview, explore: renderExplore, admin: renderAdmin };
+let currentSection = "overview";
+let dataLoaded = false;
+
+// Charts need a visible canvas to size themselves, so a section is rendered when it is shown (and after a reload).
+function renderSection(name) {
+  if (!dataLoaded) return;
+  RENDERERS[name]();
+  syncSwipeHints();   // widgets.js
+}
+
+function showSection(name) {
+  currentSection = SECTIONS.includes(name) ? name : "overview";
+  SECTIONS.forEach((s) => {
+    $("section-" + s).classList.toggle("hidden", s !== currentSection);
+    $("tab-" + s).setAttribute("aria-selected", String(s === currentSection));
+  });
+  // replaceState keeps the URL shareable (#explore) without making the browser jump or pile up history entries.
+  if (location.hash !== "#" + currentSection) history.replaceState(null, "", "#" + currentSection);
+  renderSection(currentSection);
+}
+
+document.querySelector(".tabs").addEventListener("click", (e) => {
+  const tab = e.target.closest("[data-section]");
+  if (tab) showSection(tab.dataset.section);
+});
+window.addEventListener("hashchange", () => showSection(location.hash.slice(1)));
+
+// Reload everything from the database, then redraw the section on screen.
+async function refreshAll() {
+  const problems = await loadAll();
+  dataLoaded = true;
+  const banner = $("data-banner");
+  banner.textContent = problems.join(" ");
+  banner.classList.toggle("hidden", problems.length === 0);
+  renderSection(currentSection);
+}

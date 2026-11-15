@@ -1,0 +1,229 @@
+// The home icon at the front of each ஊர் cell on the Members page opens this popup: a labelled address form with
+// Save and Cancel. It is always typeable, even while the page is locked: nothing is written until Save is clicked, so a
+// stray tap cannot change anything. `people.address` is a jsonb object {door, street, area, town, country, state,
+// district, pincode} (functions-dashboard/supabase/schema.sql). members.js draws the icon (addressButton) and keeps the
+// saved object in allPeople; this file only handles the popup. Dropdown lists live in address-data.js.
+//
+// Country / State / District are dropdowns where we have a list (see address-data.js) and a plain text box where we
+// do not: any country outside India, any state outside India, any district outside Tamil Nadu. Country also has
+// "Other…" which opens a text box for a country that is not on the list.
+
+// One field per row, label on the left and the box on the right (see member-address.css), so the popup stays short.
+const ADDRESS_FIELDS = [
+  { key: "door", label: "கதவு எண் / Door No.", max: 40 },
+  { key: "street", label: "தெரு / Street Name", max: 80 },
+  { key: "area", label: "பகுதி / Area", max: 80 },
+  { key: "town", label: "ஊர் / Town / City", max: 60 },
+  { key: "country", label: "நாடு / Country", max: 60, choice: true },
+  { key: "state", label: "மாநிலம் / State", max: 60, choice: true },
+  { key: "district", label: "மாவட்டம் / District", max: 60, choice: true },
+  { key: "pincode", label: "பின்கோடு / Pincode", max: 10 },
+];
+const ADDR_OTHER = "__other";   // the "Other…" option's value in the country dropdown
+
+let addrPersonId = null;
+let addrButton = null;   // the icon the open popup hangs under
+let addrDefaults = {};   // what the open form was pre-filled with (not a real address until something else is typed)
+const addrPop = document.createElement("div");
+addrPop.className = "addr-pop hidden";
+addrPop.setAttribute("role", "dialog");
+addrPop.setAttribute("aria-label", "Address");
+
+const textBox = (f, hidden) =>
+  `<input type="text" data-key="${f.key}" maxlength="${f.max}" class="${hidden ? "addr-hide" : ""}" autocomplete="off" />`;
+addrPop.innerHTML = `
+  <div class="addr-pop-title"></div>
+  <div class="addr-grid">${ADDRESS_FIELDS.map((f) => `
+    <label class="addr-field"><span class="addr-lab">${f.label}</span>
+      <span class="addr-ctl">${f.choice ? `<select data-key="${f.key}"></select>${textBox(f, true)}` : textBox(f, false)}</span>
+    </label>`).join("")}
+  </div>
+  <p class="addr-pop-error" role="alert"></p>
+  <div class="addr-pop-actions">
+    <button type="button" class="addr-pop-save">Save</button>
+    <button type="button" class="addr-pop-cancel secondary">Cancel</button>
+  </div>`;
+document.body.appendChild(addrPop);
+
+// key -> its text box, and (for dropdown fields) its select.
+const addrCtl = {};
+ADDRESS_FIELDS.forEach((f) => {
+  addrCtl[f.key] = { text: addrPop.querySelector(`input[data-key="${f.key}"]`), select: addrPop.querySelector(`select[data-key="${f.key}"]`) };
+});
+const addrError = addrPop.querySelector(".addr-pop-error");
+
+const hasAddress = (address) => !!address && Object.values(address).some(Boolean);
+// The icon turns orange only when every box of the address is filled in; a part-filled address keeps the plain icon.
+const isAddressComplete = (address) => !!address && ADDRESS_FIELDS.every((f) => !!address[f.key]);
+
+// The current value of a field: the dropdown's pick when it is showing one, otherwise what is typed.
+function addrValue(key) {
+  const { text, select } = addrCtl[key];
+  if (select && !select.classList.contains("addr-hide") && select.value !== ADDR_OTHER) return select.value;
+  return text.value.trim();
+}
+
+// The list a dropdown field offers right now, or null when it should be a text box.
+function addrChoices(key) {
+  if (key === "country") return ADDR_COUNTRIES;
+  const india = addrValue("country") === ADDR_INDIA;
+  if (key === "state") return india ? ADDR_INDIA_STATES : null;
+  return india && addrValue("state") === ADDR_DEFAULT_STATE ? ADDR_TN_DISTRICTS : null;
+}
+
+function setAddrChoice(key, value) {
+  const { text, select } = addrCtl[key];
+  const choices = addrChoices(key);
+  text.value = "";
+  if (!choices) {   // no list for this one: a plain text box
+    select.classList.add("addr-hide");
+    text.classList.remove("addr-hide");
+    text.value = value;
+    return;
+  }
+  const known = !value || choices.includes(value);
+  // A saved value that is not on the list (state/district) is kept as an extra option so it is never lost on re-save.
+  const list = known || key === "country" ? choices : [...choices, value];
+  select.replaceChildren(new Option("— Select —", ""), ...list.map((c) => new Option(c, c)));
+  if (key === "country") select.append(new Option("Other…", ADDR_OTHER));
+  select.classList.remove("addr-hide");
+  if (key === "country" && !known) {   // a country that is not on the list
+    select.value = ADDR_OTHER;
+    text.value = value;
+    text.classList.remove("addr-hide");
+  } else {
+    select.value = value;
+    text.classList.add("addr-hide");
+  }
+}
+
+// Indian pincodes are 6 digits; abroad they vary, so only India is checked.
+function updatePincodeRules() {
+  addrCtl.pincode.text.maxLength = addrValue("country") === ADDR_INDIA ? 6 : 10;
+}
+
+function fillAddressForm(address) {
+  ADDRESS_FIELDS.filter((f) => !f.choice).forEach((f) => { addrCtl[f.key].text.value = address[f.key] ?? ""; });
+  setAddrChoice("country", address.country ?? "");
+  setAddrChoice("state", address.state ?? "");
+  setAddrChoice("district", address.district ?? "");
+  updatePincodeRules();
+}
+
+const addrCountryOf = (text) => {
+  const key = (text ?? "").toLowerCase();
+  return ADDR_COUNTRY_ALIASES[key] ?? ADDR_COUNTRIES.find((c) => c.toLowerCase() === key) ?? null;
+};
+
+// The ஊர் cell reads "Area, Town" (e.g. "குகை, சேலம்"): the first part is the area and anything after the first comma is
+// the town. A lone name is an area ("கன்னங்குறிச்சி") unless it is a known city in ADDR_CITIES ("ஈரோடு" is not, "சங்ககிரி"
+// is), which is the town and sets the state. If the last part names a country ("துபாய்", "USA") that is the country
+// instead, with the state left blank. With no country named the state is the city's, else Tamil Nadu.
+function splitPlace(place) {
+  const parts = place.split(",").map((s) => s.trim()).filter(Boolean);
+  const country = addrCountryOf(parts[parts.length - 1]);
+  if (country) parts.pop();
+  let [area = "", ...rest] = parts;
+  if (!rest.length && ADDR_CITIES[area]) [area, rest] = ["", [area]];
+  const india = !country || country === ADDR_INDIA;
+  const state = india ? (ADDR_CITIES[rest[rest.length - 1]] ?? ADDR_DEFAULT_STATE) : "";
+  return { country: country ?? ADDR_INDIA, state, area, town: rest.join(", ") };
+}
+
+function closeAddressPopup() {
+  addrPop.classList.add("hidden");
+  addrPersonId = null;
+  addrButton = null;
+}
+
+// Sits just under the icon, kept inside the screen. Also re-run on scroll/resize (a phone keyboard fires resize,
+// so closing there would throw the popup away mid-typing).
+function placeAddressPopup() {
+  if (!addrButton) return;
+  const r = addrButton.getBoundingClientRect();
+  addrPop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - addrPop.offsetWidth - 8)) + "px";
+  addrPop.style.top = Math.max(8, Math.min(r.bottom + 6, window.innerHeight - addrPop.offsetHeight - 8)) + "px";
+}
+
+function openAddressPopup(button) {
+  const person = allPeople.find((p) => p.id === button.closest("tr").dataset.person);
+  if (!person) return;
+  addrPersonId = person.id;
+  addrButton = button;
+  addrPop.querySelector(".addr-pop-title").textContent = `${person.name} - முகவரி`;
+  // Pre-filled from the ஊர் cell the icon sits in (what is on screen, even if just edited; see splitPlace). A saved
+  // address wins over these. They are only stored if something else is typed.
+  addrDefaults = splitPlace(button.closest("td").querySelector(".cell-input")?.value ?? "");
+  fillAddressForm({ ...addrDefaults, ...(hasAddress(person.address) ? person.address : {}) });
+  addrError.textContent = "";
+  addrPop.classList.remove("hidden");
+  placeAddressPopup();
+  addrCtl.door.text.focus();
+}
+
+async function saveAddress() {
+  const person = allPeople.find((p) => p.id === addrPersonId);
+  if (!person) return;
+  const parts = {};
+  ADDRESS_FIELDS.forEach((f) => {
+    const value = addrValue(f.key);
+    if (value) parts[f.key] = value;
+  });
+  if (parts.country === ADDR_INDIA && parts.pincode && !/^\d{6}$/.test(parts.pincode)) {
+    addrError.textContent = "Pincode must be exactly 6 digits.";
+    addrCtl.pincode.text.focus();
+    return;
+  }
+  // Only the pre-filled values (from the cell, plus India / Tamil Nadu) and nothing else typed means there is no address to store.
+  const onlyDefaults = Object.entries(parts).every(([k, v]) => v === addrDefaults[k]);
+  const address = Object.keys(parts).length && !onlyDefaults ? parts : null;
+  if (JSON.stringify(person.address ?? null) !== JSON.stringify(address)) {
+    const { error } = await client.from("people").update({ address }).eq("id", person.id);
+    if (error) {
+      addrError.textContent = "Error saving: " + error.message;
+      return;
+    }
+    person.address = address;
+    const icon = document.querySelector(`#members-body tr[data-person="${person.id}"] .addr-btn`);
+    if (icon) icon.classList.toggle("address-complete", isAddressComplete(address));
+    setStatus("Saved.", false);
+  }
+  closeAddressPopup();
+}
+
+// Changing a dropdown re-decides what the ones after it offer.
+addrCtl.country.select.addEventListener("change", () => {
+  const { text, select } = addrCtl.country;
+  const other = select.value === ADDR_OTHER;
+  text.classList.toggle("addr-hide", !other);
+  text.value = "";
+  if (other) text.focus();
+  setAddrChoice("state", select.value === ADDR_INDIA ? ADDR_DEFAULT_STATE : "");
+  setAddrChoice("district", "");
+  updatePincodeRules();
+});
+addrCtl.country.text.addEventListener("input", () => { updatePincodeRules(); });
+addrCtl.state.select.addEventListener("change", () => setAddrChoice("district", ""));
+
+// Pincode takes digits only in India.
+addrCtl.pincode.text.addEventListener("input", (e) => {
+  if (addrValue("country") === ADDR_INDIA) e.target.value = e.target.value.replace(/\D/g, "");
+});
+addrPop.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && e.target.matches("input[data-key]")) { e.preventDefault(); saveAddress(); }
+});
+
+$("members-body").addEventListener("click", (e) => {
+  const button = e.target.closest(".addr-btn");
+  if (!button) return;
+  if (addrPersonId === button.closest("tr").dataset.person && !addrPop.classList.contains("hidden")) closeAddressPopup();
+  else openAddressPopup(button);
+});
+addrPop.querySelector(".addr-pop-save").addEventListener("click", saveAddress);
+addrPop.querySelector(".addr-pop-cancel").addEventListener("click", closeAddressPopup);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeAddressPopup(); });
+document.addEventListener("mousedown", (e) => {
+  if (!addrPop.classList.contains("hidden") && !addrPop.contains(e.target) && !e.target.closest(".addr-btn")) closeAddressPopup();
+});
+window.addEventListener("resize", placeAddressPopup);
+window.addEventListener("scroll", placeAddressPopup, { passive: true });
