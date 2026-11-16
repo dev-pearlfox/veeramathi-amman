@@ -16,6 +16,16 @@ body.view-income .totals-col-line { display: flex; }
    the panel is wider because these tables have up to six columns (they scroll sideways on a phone, like the members
    sheet). Columns are styled by class (ic-<field>, set in income.js), so each kind can pick its own columns. */
 .income-card .expense-panel { max-width: none; }   /* the whole --sheet-w footprint; long Tamil names need the room */
+/* HEART LOGIC (owner-approved): the title's negative margin-bottom (style.css, the 0.7 scale collapse) used to leak out of the sticky
+   stack when the ledger header row is hidden, so <main> began 33px (laptop) to 65px (phone) ABOVE the stack's bottom edge and the stack
+   painted over the top of these tables, hiding their column header. flow-root keeps that margin inside the stack's own height. */
+body.view-income .sticky-top-stack { display: flow-root; }
+/* The column header (S.No, விவரம் ...) stays pinned while the rows scroll. A sticky header cannot work inside the sideways-scrolling
+   .table-wrap against the page, so the table scrolls INSIDE its own box instead, sized to the room left under the pinned stack
+   (--stack-h is set by app.js from the stack's real height; 280px covers the card padding, the add-row button and the footer). */
+.income-card .table-wrap { overflow: auto; max-height: max(220px, calc(100vh - var(--stack-h, 260px) - 280px)); max-height: max(220px, calc(100dvh - var(--stack-h, 260px) - 280px)); }
+.income-table thead th { position: sticky; top: 0; z-index: 2; background: var(--surface); box-shadow: inset 0 -1px 0 var(--border); }
+@media print { .income-card .table-wrap { max-height: none; overflow: visible; } }
 .income-table { width: 100%; border-collapse: collapse; }
 .income-table .ic-sno { width: 48px; text-align: center; }
 .income-table .ic-del { width: 44px; text-align: center; }

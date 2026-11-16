@@ -24,6 +24,12 @@ The `body.is-compact ...` rules in `style.css` (formerly `body.is-scrolled`, sam
 The scale constants in `app.js`, `members.js` and `shared.js` must still match the `scale()` values in those rules.
 Do not add the old scroll listener back: it only existed to toggle this class.
 
+## 0b. `body.view-income .sticky-top-stack { display: flow-root }` (expenses.css)
+On the வரவு/செலவு tabs the ledger header row is hidden, so the title's negative margin-bottom (the 0.7 scale collapse) leaked out of
+the stack and the stack painted over the top of the income tables, hiding their column header. flow-root keeps the margin inside the
+stack. Do not remove it. The income tables also scroll inside their own box (`.income-card .table-wrap`, height from `--stack-h`
+set in app.js) so their column header can stay pinned.
+
 ## 2. `transform:scale()` vs padding/font-size for shrink animations
 (header h1, `.members-filter-card` in style.css) — transform is
 compositor-only (no forced layout recalc every frame); padding/font-size

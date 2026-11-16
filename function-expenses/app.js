@@ -195,6 +195,9 @@ if (sheetTitleEl) new MutationObserver(syncSheetTitleCollapse).observe(sheetTitl
 // being the right one. margin-bottom (what this writes) doesn't affect
 // #sheet-title's own border-box size, so this can't retrigger itself.
 if (sheetTitleEl) new ResizeObserver(syncSheetTitleCollapse).observe(sheetTitleEl);
+// The வரவு / செலவு tables scroll inside a box sized to the room under the pinned stack (expenses.css reads --stack-h).
+const stackEl = document.querySelector(".sticky-top-stack");
+if (stackEl) new ResizeObserver(() => document.documentElement.style.setProperty("--stack-h", stackEl.offsetHeight + "px")).observe(stackEl);
 if (sheetTitleEl) new MutationObserver(syncPillRowOverflow).observe(sheetTitleEl, { childList: true, subtree: true, characterData: true });
 
 // ---------- Data loading ----------
