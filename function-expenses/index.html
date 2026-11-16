@@ -22,9 +22,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@700;800&family=Poppins:wght@400;500;600;700;800&display=swap" />
-<link rel="stylesheet" href="style.css?v=20261116n" />
+<link rel="stylesheet" href="style.css?v=20261116o" />
 <link rel="stylesheet" href="date-picker.css?v=20261115a" />
-<link rel="stylesheet" href="expenses.css?v=20261116j" />
+<link rel="stylesheet" href="expenses.css?v=20261116k" />
 <link rel="stylesheet" href="sheet-note.css?v=20261116b" />
 <link rel="stylesheet" href="../password-toggle.css?v=20261116a" />
 </head>
@@ -98,24 +98,30 @@
           </thead>
         </table>
       </div>
+
+      <!-- Column header of the typed-lines tables (வரவு tabs + செலவு): same pinned look as #sheet-thead-wrap above.
+           Its columns come from income.js (renderIncome) and line up with #income-body's table below. -->
+      <div class="sheet-thead-wrap hidden" id="income-thead-wrap">
+        <table class="sheet income-table">
+          <colgroup id="income-cols-head"></colgroup>
+          <thead id="income-head"></thead>
+        </table>
+      </div>
     </div>
   </div>
 
   <main>
 
     <section class="expense-card income-card hidden" id="income-card">
-      <div class="card expense-panel">
-        <p class="income-swipe-hint">Swipe sideways to see all columns &rarr;</p>
-        <div class="table-wrap">
-          <table class="income-table">
-            <thead id="income-head"></thead>
-            <tbody id="income-body"></tbody>
-            <tfoot id="income-foot"></tfoot>
-          </table>
-        </div>
-        <p class="income-add-row"><button type="button" class="secondary" id="income-add">+ புதிய வரி</button></p>
-        <p class="status" id="income-status" role="status" aria-live="polite"></p>
+      <div class="table-wrap sheet-tbody-wrap" id="income-tbody-wrap">
+        <table class="sheet income-table">
+          <colgroup id="income-cols-body"></colgroup>
+          <tbody id="income-body"></tbody>
+          <tfoot id="income-foot"></tfoot>
+        </table>
       </div>
+      <p class="income-add-row"><button type="button" class="secondary" id="income-add">+ புதிய வரி</button></p>
+      <p class="status" id="income-status" role="status" aria-live="polite"></p>
     </section>
 
     <section class="card sheet-table-card">
@@ -152,10 +158,10 @@
 <script src="../expense-lines.js?v=20261114a" defer></script>
 <script src="../income-categories.js?v=20261116e" defer></script>
 <script src="../function-rules.js?v=20261114a" defer></script>
-<script src="income.js?v=20261116g" defer></script>
+<script src="income.js?v=20261116h" defer></script>
 <script src="print-table.js?v=20261114a" defer></script>
 <script src="print.js?v=20261114g" defer></script>
 <script src="sheet-note.js?v=20261116a" defer></script>
-<script src="app.js?v=20261116h" defer></script>
+<script src="app.js?v=20261116i" defer></script>
 </body>
 </html>

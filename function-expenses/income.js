@@ -44,6 +44,7 @@ const expenseButtonHtml = () => lineButtonHtml(EXPENSE_KIND);                // 
 // Called by app.js after every title render, and by setIncomeView.
 function syncIncomeView() {
   document.getElementById("income-card").classList.toggle("hidden", !incomeView);
+  document.getElementById("income-thead-wrap").classList.toggle("hidden", !incomeView);
   document.body.classList.toggle("view-income", !!incomeView);
   document.querySelectorAll(".income-btn").forEach((b) => b.classList.toggle("active", b.dataset.income === incomeView));
   if (incomeView && incomeLoadedFor !== incomeKey()) loadIncome();
@@ -97,9 +98,26 @@ function incomeCell(col, row, rowNo) {
   return `<td class="ic-${col.field}"><input type="${t.type}" class="f-income" data-field="${col.field}" ${ariaLabelAttr(col.label, `row ${rowNo}`)} value="${escapeHtml(String(value))}"${extra}${placeholder} /></td>`;
 }
 
+// Literal pixel widths, like the members sheet (style.css, "Ledger Sheet table widths"): the header table (pinned in the stack) and
+// the body table are two separate tables, so both get the SAME <col> widths and the same total and can never drift apart.
+// The name column takes whatever is left of the 1070px the members sheet is wide; a kind with many columns just scrolls sideways.
+const COL_PX = { date: 160, amount: 130, receipt: 120, phone: 150, nameEn: 220, note: 240 };
+const SNO_PX = 70, DEL_PX = 50, TABLE_PX = 1070, NAME_MIN_PX = 240;
+function incomeColumnWidths(k) {
+  const others = SNO_PX + DEL_PX + k.columns.reduce((sum, c) => sum + (COL_PX[c.field] || 0), 0);
+  const name = Math.max(NAME_MIN_PX, TABLE_PX - others);
+  return [SNO_PX, ...k.columns.map((c) => COL_PX[c.field] || name), DEL_PX];
+}
+
 function renderIncome() {
   const k = incomeKind();
   if (!k) return;
+  const widths = incomeColumnWidths(k);
+  const cols = widths.map((w) => `<col style="width:${w}px">`).join("");
+  document.getElementById("income-cols-head").innerHTML = cols;
+  document.getElementById("income-cols-body").innerHTML = cols;
+  const total = widths.reduce((a, b) => a + b, 0) + "px";
+  document.querySelectorAll(".income-table").forEach((t) => { t.style.width = total; });
   document.getElementById("income-head").innerHTML =
     `<tr><th class="ic-sno">S.No</th>${k.columns.map((c) => `<th class="ic-${c.field}">${c.label}</th>`).join("")}<th class="ic-del"></th></tr>`;
   document.getElementById("income-body").innerHTML = incomeRows.map((r, i) => `<tr data-id="${r.id}">

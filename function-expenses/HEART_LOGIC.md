@@ -24,11 +24,13 @@ The `body.is-compact ...` rules in `style.css` (formerly `body.is-scrolled`, sam
 The scale constants in `app.js`, `members.js` and `shared.js` must still match the `scale()` values in those rules.
 Do not add the old scroll listener back: it only existed to toggle this class.
 
-## 0b. `body.view-income .sticky-top-stack { display: flow-root }` (expenses.css)
-On the வரவு/செலவு tabs the ledger header row is hidden, so the title's negative margin-bottom (the 0.7 scale collapse) leaked out of
-the stack and the stack painted over the top of the income tables, hiding their column header. flow-root keeps the margin inside the
-stack. Do not remove it. The income tables also scroll inside their own box (`.income-card .table-wrap`, height from `--stack-h`
-set in app.js) so their column header can stay pinned.
+## 0b. The வரவு / செலவு tables copy the members sheet's structure (index.html, expenses.css, income.js)
+`#income-thead-wrap` (a `.sheet-thead-wrap` with a `table.sheet`) lives INSIDE `.sticky-top-stack` after `#sheet-thead-wrap`, and the rows live in
+`#income-tbody-wrap` (a `.sheet-tbody-wrap`) in `<main>`. Same two-table design as the first tab, same scrollLeft sync (app.js). Do not go
+back to one table with a sticky `th`, or to a scrolling box inside the card: neither can pin under the stack while also scrolling sideways.
+Both tables get identical literal-px `<col>` widths from `incomeColumnWidths()` in income.js, so header and rows cannot drift apart.
+`body.view-income .sticky-top-stack { display: flow-root }` (expenses.css) keeps the title's negative margin (the 0.7 scale collapse) inside the
+stack; without it `<main>` began above the stack's bottom edge and the stack painted over the top of these tables.
 
 ## 2. `transform:scale()` vs padding/font-size for shrink animations
 (header h1, `.members-filter-card` in style.css) — transform is

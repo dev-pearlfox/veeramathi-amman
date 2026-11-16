@@ -983,6 +983,11 @@ body.is-compact .sheet-filter-card .pill-row.has-overflow {
    is drawn at 0.7 scale: these sizes are what stays readable after that. Scoped to .title-actions, so the Print button is untouched. */
 .title-actions .members-toggle { font-size: 1.1rem; padding: 9px 20px; min-height: 40px; }
 .title-actions .title-group-label { font-size: 1.2rem; }
+/* A little bigger (+15%, owner-approved Heart Logic change): the two function pills in the pinned card and the Print button, Accounts only
+   (the Members page uses .members-filter-card, not these). Sizes only: no sticky, scale or collapse rule is touched; syncPillsCardCollapse
+   measures the card's real height, so the taller pills are picked up by itself. */
+.card.sheet-filter-card .pill { padding: 7px 16px; min-height: 35px; font-size: 0.95rem; }
+.sheet-title-inner .print-btn { font-size: 1rem; padding: 7px 16px; min-height: 37px; }
 .title-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
 /* Print / save as PDF. Accounts (print.js): on the title's own line, at its right end. The title text takes the room
