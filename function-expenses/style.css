@@ -983,8 +983,13 @@ body.is-scrolled .sheet-filter-card .pill-row.has-overflow {
    group is too wide for the screen its buttons wrap inside the group, not across the other group. */
 .title-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
-/* Print / save as PDF. Accounts (print.js): last in the title row, pushed to its right end. */
-.sheet-title-inner .print-btn { margin-left: auto; }
+/* Print / save as PDF. Accounts (print.js): on the title's own line, at its right end. The title text takes the room
+   left over (flex-basis 0 + min-width 0), so Print always stays beside it and a long title wraps (or, once compact,
+   swipes sideways) instead of pushing Print down. The வரவு / செலவு buttons (.title-actions) start a new line. */
+.sheet-title-inner > span { flex: 1 1 0; min-width: 0; }
+.sheet-title-inner .print-btn { margin-left: auto; flex: none; }
+.title-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.sheet-title-inner > .print-btn ~ .title-actions { flex-basis: 100%; }
 /* Members (members-print.js): the filter card holds just the Print button, kept at the right edge. */
 /* .card.compact's own padding (more specific than .members-filter-card's) would otherwise pull the button 20px in from the
    table's right edge; only the sides are zeroed, the top and bottom keep the gap above the table. */

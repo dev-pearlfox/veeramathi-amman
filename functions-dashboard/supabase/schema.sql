@@ -75,10 +75,12 @@ create table if not exists income_entries (
   name_en     text not null default '',
   phone       text not null default '',
   amount      numeric not null default 0 check (amount >= 0),
+  receipt_no  text not null default '',        -- இரசீது எண் (receipt number); used by the donation tabs
   note        text not null default '',
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()
 );
+alter table income_entries add column if not exists receipt_no text not null default '';   -- for projects created before this column existed
 create index if not exists income_entries_function_kind_idx on income_entries (function_id, kind);
 
 -- ---------------------------------------------------------------- materials

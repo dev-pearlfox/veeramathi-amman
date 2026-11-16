@@ -17,7 +17,8 @@ body.view-income .totals-track { visibility: hidden; }
 .income-table { width: 100%; border-collapse: collapse; }
 .income-table .ic-sno { width: 48px; text-align: center; }
 .income-table .ic-del { width: 44px; text-align: center; }
-.income-table td input { width: 100%; }
+.income-table td input { width: 100%; height: 38px; min-height: 36px; padding: 6px 10px; border-radius: 10px; }   /* slimmer than the global 44px inputs: these tables have many rows */
+.income-table td { padding-top: 5px; padding-bottom: 5px; }
 .income-table .ic-date { min-width: 150px; }
 .income-table .ic-name, .income-table .ic-nameEn { min-width: 180px; }
 .income-table .ic-note { min-width: 150px; }

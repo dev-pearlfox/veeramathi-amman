@@ -299,17 +299,20 @@ function updateSheetTitle() {
   // once compact.
   $("sheet-title").querySelector(".sheet-title-inner").innerHTML =
     `<span>${escapeHtml(title)}</span>` +
-    // வரவு (income) is a label with its buttons in one group, so the label never wraps away from them. The
-    // group is a <div>/<strong>, not a direct-child <span>, on purpose: style.css and syncPillRowOverflow
-    // treat the title's direct-child <span> as the title TEXT.
-    `<div class="title-group"><strong class="title-group-label">வரவு:</strong>` +
-      `<button type="button" id="toggle-members-btn" class="members-toggle ${sheetCollapsed ? "" : "active"}">தலைக்கட்டு - ${peopleForCurrentFunction().length}</button>` +
-      incomeButtonsHtml() +   // income.js: the extra வரவு buttons (INCOME_KINDS)
-    `</div>` +
-    // செலவு (expense): one button; its table (income.js, EXPENSE_KIND) replaces the members sheet while it is open.
-    expenseButtonHtml() +
-    // Print / save as PDF: last in the row and pushed to its right end (style.css .print-btn); print.js.
-    (f ? printButtonHtml() : "");
+    // Print / save as PDF: on the title's own line, at its right end (style.css .print-btn); print.js.
+    (f ? printButtonHtml() : "") +
+    // The வரவு and செலவு buttons sit together on the line(s) below the title (style.css .title-actions).
+    `<div class="title-actions">` +
+      // வரவு (income) is a label with its buttons in one group, so the label never wraps away from them. The
+      // group is a <div>/<strong>, not a direct-child <span>, on purpose: style.css and syncPillRowOverflow
+      // treat the title's direct-child <span> as the title TEXT.
+      `<div class="title-group"><strong class="title-group-label">வரவு:</strong>` +
+        `<button type="button" id="toggle-members-btn" class="members-toggle ${sheetCollapsed ? "" : "active"}">தலைக்கட்டு - ${peopleForCurrentFunction().length}</button>` +
+        incomeButtonsHtml() +   // income.js: the extra வரவு buttons (INCOME_KINDS)
+      `</div>` +
+      // செலவு (expense): one button; its table (income.js, EXPENSE_KIND) replaces the members sheet while it is open.
+      expenseButtonHtml() +
+    `</div>`;
   // Respect the user's collapse toggle across re-renders — updateSheetTitle
   // is called after adding a row / switching function / saving, and used to
   // unconditionally un-hide the sheet, popping it back open behind the

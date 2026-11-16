@@ -11,7 +11,7 @@
 // functions run, never at load time. Do not redeclare any global.
 
 let incomeView = null;         // key of the kind on screen (null = none; the members sheet or செலவு shows instead)
-let incomeRows = [];           // [{ id, date, name, nameEn, phone, amount, note, saved }] for incomeLoadedFor
+let incomeRows = [];           // [{ id, date, name, nameEn, phone, amount, receipt, note, saved }] for incomeLoadedFor
 let incomeLoadedFor = null;    // "functionId|kind" the rows above belong to
 const incomeSaveTimers = {};   // row id -> { timer, row, funcId, kind }: the debounced save still waiting
 
@@ -22,6 +22,7 @@ const FIELD_TYPES = {
   nameEn: { type: "text",   db: "name_en",     read: (v) => v.trim(),               fromDb: (v) => v,                  toDb: (v) => v },
   phone:  { type: "text",   db: "phone",       read: (v) => v.trim(),               fromDb: (v) => v,                  toDb: (v) => v, mode: "numeric" },
   amount: { type: "text",   db: "amount",      read: parseMoney,                   fromDb: (v) => Number(v),          toDb: (v) => v, mode: "numeric" },
+  receipt:{ type: "text",   db: "receipt_no",   read: (v) => v.trim(),               fromDb: (v) => v || "",            toDb: (v) => v },   // இரசீது எண்; income_entries only
   note:   { type: "text",   db: "note",        read: (v) => v.trim(),               fromDb: (v) => v || "",            toDb: (v) => v },
 };
 const INCOME_FIELDS = Object.keys(FIELD_TYPES);
@@ -32,7 +33,7 @@ const lineTable = (k) => k.table || "income_entries";              // where a ki
 const incomeKey = () => `${selectedFunctionId}|${incomeView}`;
 const incomeKind = () => LINE_KINDS.find((k) => k.key === incomeView);
 const incomeRowIsEmpty = (r) => INCOME_FIELDS.every((f) => !r[f]);
-const newIncomeRow = () => ({ id: crypto.randomUUID(), date: "", name: "", nameEn: "", phone: "", amount: 0, note: "", saved: false });
+const newIncomeRow = () => ({ id: crypto.randomUUID(), date: "", name: "", nameEn: "", phone: "", amount: 0, receipt: "", note: "", saved: false });
 
 const lineButtonHtml = (k) =>
   `<button type="button" class="members-toggle income-btn ${incomeView === k.key ? "active" : ""}" data-income="${k.key}">${k.label}</button>`;

@@ -3,8 +3,8 @@
 // starts counting these.
 // `key` is what is stored in income_entries.kind (functions-dashboard/supabase/schema.sql); never rename a
 // key once data exists. Labels and placeholders are wording and can be changed freely.
-// `columns` is the table, left to right. `field` is one of: date, name (Tamil name), nameEn (English name), phone,
-// amount, note. Each kind lists only the columns it needs (see FIELD_TYPES in function-expenses/income.js).
+// `columns` is the table, left to right (the date comes after the amount). `field` is one of: date, name (Tamil name), nameEn (English name), phone,
+// amount, receipt (இரசீது எண், income_entries.receipt_no), note. Each kind lists only the columns it needs (see FIELD_TYPES in function-expenses/income.js).
 // `isCarryOver: true` marks last year's leftover money. The dashboard counts it in வரவு/மீதி only when a single
 // year is selected; across several years it would count the same rupees twice (once when earned, once carried).
 const INCOME_KINDS = [
@@ -12,41 +12,43 @@ const INCOME_KINDS = [
     isCarryOver: true,
     totalLabel: "மொத்த முந்தைய இருப்பு",
     columns: [
-      { field: "date", label: "தேதி" },
       { field: "name", label: "விவரம்", placeholder: "எ.கா. கடந்த ஆண்டு மீதி" },
       { field: "amount", label: "தொகை" },
+      { field: "date", label: "தேதி" },
       { field: "note", label: "குறிப்பு" },
     ] },
   { key: "hundi", label: "உண்டியல்",   // the temple hundi
     totalLabel: "மொத்த உண்டியல்",
     columns: [
-      { field: "date", label: "தேதி" },
       { field: "name", label: "விவரம்", placeholder: "எ.கா. உண்டியல் திறந்தது" },
       { field: "amount", label: "தொகை" },
+      { field: "date", label: "தேதி" },
       { field: "note", label: "குறிப்பு" },
     ] },
   { key: "thirupani", label: "திருப்பணி நன்கொடை",   // temple repair / painting donations
     totalLabel: "மொத்த திருப்பணி நன்கொடை",
     columns: [
-      { field: "date", label: "தேதி" },
       { field: "name", label: "பெயர்", placeholder: "பெயர்" },
       { field: "amount", label: "தொகை" },
+      { field: "date", label: "தேதி" },
+      { field: "receipt", label: "இரசீது எண்" },
       { field: "note", label: "குறிப்பு" },
     ] },
   { key: "donation", label: "நன்கொடை",   // festival gifts from people outside the house-head list
     totalLabel: "மொத்த நன்கொடை",
     columns: [
-      { field: "date", label: "தேதி" },
       { field: "name", label: "பெயர்", placeholder: "பெயர்" },
       { field: "amount", label: "தொகை" },
+      { field: "date", label: "தேதி" },
+      { field: "receipt", label: "இரசீது எண்" },
       { field: "note", label: "குறிப்பு" },
     ] },
   { key: "pournami", label: "பௌர்ணமி / முடி காணிக்கை",   // full-moon puja, upkeep, hair offering
     totalLabel: "மொத்தம்",
     columns: [
-      { field: "date", label: "தேதி" },
       { field: "name", label: "விவரம்", placeholder: "எ.கா. பூஜை, பராமரிப்பு" },
       { field: "amount", label: "தொகை" },
+      { field: "date", label: "தேதி" },
       { field: "note", label: "குறிப்பு" },
     ] },
 ];
