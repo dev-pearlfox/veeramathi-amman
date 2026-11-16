@@ -432,10 +432,11 @@ function updateTotalsBanner(rows) {
 $("sheet-tbody-wrap").addEventListener("scroll", () => {
   $("sheet-thead-wrap").scrollLeft = $("sheet-tbody-wrap").scrollLeft;
 });
-// Same for the வரவு / செலவு tables: their pinned header follows the rows sideways.
-$("income-tbody-wrap").addEventListener("scroll", () => {
-  $("income-thead-wrap").scrollLeft = $("income-tbody-wrap").scrollLeft;
-});
+// Same for the வரவு / செலவு tables, but both ways: their pinned header follows the rows sideways, and a swipe on the header
+// itself (it scrolls too, without a scrollbar: expenses.css) moves the rows. Assigning the same value fires no scroll event, so no loop.
+const linkSideScroll = (from, to) => from.addEventListener("scroll", () => { if (to.scrollLeft !== from.scrollLeft) to.scrollLeft = from.scrollLeft; });
+linkSideScroll($("income-tbody-wrap"), $("income-thead-wrap"));
+linkSideScroll($("income-thead-wrap"), $("income-tbody-wrap"));
 
 // Debounced re-render so fast typing in a filter doesn't force a full
 // re-render on every keystroke — and flushes any in-flight debounced

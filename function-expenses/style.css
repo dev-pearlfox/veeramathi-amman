@@ -778,6 +778,8 @@ body.is-compact .sheet-filter-card { margin-top: 0; padding: 4px 0; }
 body.is-compact .pills-inline {
   gap: 4px;   /* tighter than the expanded 10px (applies if the card ever holds more than one row) */
   transform: scale(0.75);   /* must match SHEET_FILTER_CARD_COMPACT_SCALE in app.js */
+  width: calc(100% / 0.75);   /* owner-approved: scale() shrinks the box too, so without this the pills got only 75% of the card and a scrolling row was cut mid-card; must match the scale above */
+  margin-left: calc(100% * (1 - 1 / 0.75) / 2);   /* the wider box is centred on the card again (the scale is taken from its centre) */
   transform-origin: top center;
   margin-bottom: var(--sheet-filter-card-margin-collapse, 0px);
 }
@@ -929,6 +931,11 @@ body.is-compact .sheet-filter-card .pill-row {
   scrollbar-width: none;
 }
 body.is-compact .sheet-filter-card .pill-row::-webkit-scrollbar { display: none; }
+/* An overflow-x:auto box also clips vertically, so the active pill's glow (and the hover lift) were cut off in a hard rectangle. Padding gives
+   the pills room to draw it; the equal negative margin hands that room back, so the row takes exactly the same space in the layout as before
+   (nothing the sticky stack / syncPillsCardCollapse measures moves). Top and bottom only while both pills fit (side padding would push them into scrolling on a phone); once the row does scroll, the pills get side room too, so the first and last never sit on the clipped edge. */
+body.is-compact .sheet-filter-card .pill-row { padding: 8px 0 20px; margin: -8px 0 -20px; }
+body.is-compact .sheet-filter-card .pill-row.has-overflow { padding-left: 14px; padding-right: 14px; }
 /* has-overflow set by syncPillRowOverflow (app.js) only when the row
    actually has more content than fits — fades the trailing edge into a
    "more content, scroll for it" cue instead of the last pill's rounded

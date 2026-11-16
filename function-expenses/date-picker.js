@@ -2,7 +2,7 @@
 // The browser's own date popup cannot be styled, so on desktop this replaces it. The input itself stays a real date
 // input: typing in its boxes still works, `input.value` is still "YYYY-MM-DD", and picking a day fires the same
 // `input` / `change` events a native pick does, so members.js and income.js need no changes. Touch devices keep their
-// native date dialog (it is already good there). Styles: date-picker.css.
+// native date dialog (it is already good there), opened by a tap anywhere on the field. Styles: date-picker.css.
 //
 // Opens on click (or Alt+Down / F4), closes on Esc, a click elsewhere, or moving to another field. Honours the
 // input's min / max. Three views: days; click the title for months; click that title for years (fast for old birth years).
@@ -163,7 +163,13 @@
   // Opening and closing.
   document.addEventListener("click", (e) => {
     const target = e.target.closest?.('input[type="date"]');
-    if (target) open(target);
+    if (!target) return;
+    if (DESKTOP.matches) open(target);
+    else if (!target.readOnly && !target.disabled) {
+      // Touch: a tap on the text of a narrow date cell (the calendar icon can be squeezed out of it) did not always open
+      // the phone's own date dialog, so ask for it. Older browsers without showPicker() keep their own tap behaviour.
+      try { target.showPicker(); } catch { /* already open, or not supported */ }
+    }
   });
   document.addEventListener("focusin", (e) => {   // tabbing to another field leaves this one
     if (input && e.target !== input && !pop.contains(e.target)) close();
