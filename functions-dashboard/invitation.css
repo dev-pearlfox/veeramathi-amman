@@ -17,7 +17,6 @@
 @media screen { body.inv-open { overflow: hidden; overscroll-behavior: none; } }   /* none: a swipe down must flip the page, not pull-to-refresh the browser */
 .inv-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 16px; background: #111827; color: #fff; }
 .inv-bar-title { font-weight: 700; margin-right: auto; }
-.inv-bar-hint { font-size: 0.8rem; color: #cbd5e1; }
 .inv-bar button { min-height: 38px; padding: 6px 16px; }
 .inv-bar .secondary { background: transparent; color: #fff; border: 1px solid #94a3b8; }
 .inv-bar .secondary:hover:not(:disabled) { background: rgba(255, 255, 255, 0.12); }
@@ -37,13 +36,13 @@
 .inv-editbar { display: none; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; padding: 10px 16px; background: #111827; color: #fff; border-top: 2px solid #10b981; }   /* centred, so on a phone the buttons sit in the middle under the text */
 #inv-overlay.editing .inv-editbar { display: flex; }
 #inv-overlay.editing { background: #7fae96; }   /* a mild green behind the page tells you that you are in edit mode */
-.inv-editbar-text { font-size: 0.85rem; color: #cbd5e1; text-align: center; }
+.inv-editbar-text { font-size: 1rem; font-weight: 700; color: #ef4444; text-align: center; }
 .inv-editbar button { min-height: 40px; padding: 6px 22px; }
 .inv-editbar .inv-cancel { background: #dc2626; box-shadow: 0 6px 14px -6px rgba(220, 38, 38, 0.6); }
 #inv-overlay.editing .inv-page.current { outline: 3px solid rgba(16, 185, 129, 0.6); }   /* the page is live */
 .inv-nav { display: flex; align-items: center; gap: 8px; }
 #inv-page-pos { min-width: 7.5em; text-align: center; font-weight: 600; }
-.inv-scroll { flex: 1; overflow: auto; overscroll-behavior: contain; padding: 14px 12px; display: flex; align-items: flex-start; }   /* the page centres itself with auto margins (below); justify-content: center would clip its left side when zoomed */
+.inv-scroll { flex: 1; overflow: auto; overscroll-behavior: contain; touch-action: pan-x pan-y; /* one finger scrolls; two fingers are the pinch in invitation.js, not the browser's page zoom */ padding: 14px 12px; display: flex; align-items: flex-start; }   /* the page centres itself with auto margins (below); justify-content: center would clip its left side when zoomed */
 
 /* on screen only the current page shows; the sheet wrappers are layout-less (they matter only for printing) */
 @media screen {

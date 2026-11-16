@@ -553,4 +553,5 @@ $("sheet-body").addEventListener("change", (e) => {
   const tr = e.target.closest("tr");
   tr.querySelector(".santha-amount").classList.toggle("faded", !e.target.checked);
   scheduleSave(tr.dataset.person, tr, true);
+  if (e.target.checked) openReceiptBox(tr);   // receipt.js: offers WhatsApp / SMS / a printed receipt; sends nothing by itself
 });

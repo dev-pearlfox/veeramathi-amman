@@ -1,0 +1,36 @@
+/* The "Send receipt" box (receipt.js) and the printed receipt. Site colours: cream surface, orange accent. */
+
+.receipt-box {
+  position: fixed; inset: 0; z-index: 1200; display: flex; align-items: center; justify-content: center;
+  padding: 12px; background: rgba(41, 21, 8, 0.45);
+}
+.receipt-box.hidden { display: none; }
+.receipt-card {
+  width: 460px; max-width: 100%; max-height: 100%; overflow-y: auto; box-sizing: border-box; padding: 18px 18px 14px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: 0 2px 4px rgba(120, 53, 15, 0.06), 0 24px 50px -12px rgba(234, 88, 12, 0.4); color: var(--text);
+}
+.receipt-card h3 { margin: 0; font-size: 1.1rem; overflow-wrap: anywhere; }
+.receipt-sub { margin: 4px 0 12px; font-size: 0.85rem; color: var(--muted); }
+.receipt-field { display: block; margin-bottom: 10px; font-size: 0.8rem; font-weight: 700; color: #9a3412; }
+.receipt-field input {
+  display: block; width: 100%; box-sizing: border-box; margin-top: 4px; padding: 8px 10px; font: inherit; font-size: 0.9rem; font-weight: 400;
+  color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+}
+.receipt-preview { display: flex; justify-content: center; margin-bottom: 10px; padding: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; }
+.receipt-preview img { display: block; height: min(46vh, 420px); width: auto; max-width: 100%; object-fit: contain; background: #fff; border-radius: 8px; }
+.receipt-status { margin: 0 0 8px; font-size: 0.8rem; color: #166534; }
+.receipt-status.error { color: #b91c1c; }
+.receipt-status:empty { display: none; }
+.receipt-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.receipt-actions button { flex: 1 1 auto; min-height: 42px; padding: 8px 14px; }
+.receipt-actions .receipt-wa { background: #16a34a; box-shadow: 0 6px 14px -6px rgba(22, 163, 74, 0.6); }
+.receipt-actions button:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+.receipt-note { margin: 10px 0 0; font-size: 0.72rem; color: var(--muted); }
+
+/* The printed receipt: the receipt picture on its own A5 portrait page (the browser's dialog can switch the paper size). */
+@media print {
+  @page receipt { size: A5 portrait; margin: 8mm; }
+  #print-sheet .print-receipt { page: receipt; }
+  #print-sheet .print-receipt img { display: block; width: 100%; max-height: 192mm; object-fit: contain; }
+}

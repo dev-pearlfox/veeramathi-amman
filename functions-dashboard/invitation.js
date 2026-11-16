@@ -73,21 +73,35 @@ async function invFitTitles() {
 }
 
 // A page is 9 x 12 in (864 x 1152 px); it is shrunk so the whole page fits the window (never enlarged).
-// The zoom buttons enlarge it from there (invZoomLevel times the fitted size, up to real size x 2); the box then scrolls.
+// The zoom buttons and a two-finger pinch enlarge it from there (invZoomLevel times the fitted size, up to real size x 2); the box
+// then scrolls. The level is any number from 1 (fitted) up: a pinch lands anywhere, the buttons step through INV_ZOOM_STEPS.
 const INV_ZOOM_STEPS = [1, 1.5, 2, 3, 4];
-let invZoomLevel = 1;
+let invZoomLevel = 1, invFit = 1;
+const invMaxLevel = () => Math.max(1, Math.min(INV_ZOOM_STEPS[INV_ZOOM_STEPS.length - 1], Math.max(invFit, 2) / invFit));
 function invFitPage() {
   const box = $("inv-sheets");
-  const fit = Math.max(0.2, Math.min(1, (box.clientWidth - 24) / (INV.pageW * 96), (box.clientHeight - 28) / (INV.pageH * 96)));
-  const zoom = Math.min(fit * invZoomLevel, Math.max(fit, 2));
-  document.documentElement.style.setProperty("--inv-zoom", String(zoom));
-  $("inv-zoom-out").disabled = invZoomLevel === INV_ZOOM_STEPS[0];
-  $("inv-zoom-in").disabled = zoom >= 2 || invZoomLevel === INV_ZOOM_STEPS[INV_ZOOM_STEPS.length - 1];
-  $("inv-zoom-fit").disabled = invZoomLevel === 1;
+  invFit = Math.max(0.2, Math.min(1, (box.clientWidth - 24) / (INV.pageW * 96), (box.clientHeight - 28) / (INV.pageH * 96)));
+  invZoomLevel = Math.min(Math.max(invZoomLevel, 1), invMaxLevel());
+  document.documentElement.style.setProperty("--inv-zoom", String(invFit * invZoomLevel));
+  $("inv-zoom-out").disabled = $("inv-zoom-fit").disabled = invZoomLevel < 1.001;
+  $("inv-zoom-in").disabled = invZoomLevel > invMaxLevel() - 0.001;
+}
+// Zoom to `level`, keeping the spot at (px, py) (in the box's own window; default its middle) where it is on the screen.
+function invSetZoom(level, px, py) {
+  const box = $("inv-sheets");
+  px ??= box.clientWidth / 2;
+  py ??= box.clientHeight / 2;
+  const fx = (box.scrollLeft + px) / box.scrollWidth, fy = (box.scrollTop + py) / box.scrollHeight;
+  invZoomLevel = level;
+  invFitPage();
+  box.scrollLeft = fx * box.scrollWidth - px;
+  box.scrollTop = fy * box.scrollHeight - py;
 }
 function invZoomBy(direction) {
-  invZoomLevel = INV_ZOOM_STEPS[Math.min(Math.max(INV_ZOOM_STEPS.indexOf(invZoomLevel) + direction, 0), INV_ZOOM_STEPS.length - 1)];
-  invFitPage();
+  const next = direction > 0
+    ? INV_ZOOM_STEPS.find((s) => s > invZoomLevel + 0.001) ?? invMaxLevel()
+    : [...INV_ZOOM_STEPS].reverse().find((s) => s < invZoomLevel - 0.001) ?? 1;
+  invSetZoom(next);
 }
 
 async function openInvitationPreview() {
@@ -226,8 +240,23 @@ $("inv-sheets").addEventListener("wheel", (e) => {
 // mostly vertical swipe with one finger counts (so pinch-zoom, taps and horizontal drags are left alone), and not while text is
 // selected. Like the wheel, a page too big for the window scrolls first: a swipe that started with more to scroll that way does not flip.
 let invTouch = null;
+// Pinch: two fingers zoom the page like any phone (touch-action in invitation.css hands those touches to this code instead of
+// the browser's own page zoom). The spot between the fingers stays under them. A pinch never counts as a page-flipping swipe.
+let invPinch = null;
+const invFingers = (e) => {
+  const [a, b] = e.touches, r = $("inv-sheets").getBoundingClientRect();
+  return { gap: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), x: (a.clientX + b.clientX) / 2 - r.left, y: (a.clientY + b.clientY) / 2 - r.top };
+};
+$("inv-sheets").addEventListener("touchmove", (e) => {
+  if (e.touches.length !== 2) { invPinch = null; return; }
+  const f = invFingers(e);
+  if (!invPinch) { invPinch = { gap: f.gap, level: invZoomLevel }; return; }
+  e.preventDefault();
+  invSetZoom(Math.min(Math.max(invPinch.level * (f.gap / invPinch.gap), 1), invMaxLevel()), f.x, f.y);
+}, { passive: false });
 $("inv-sheets").addEventListener("touchstart", (e) => {
   const box = $("inv-sheets"), t = e.touches[0];
+  invPinch = null;
   invTouch = e.touches.length === 1 && window.getSelection().isCollapsed
     ? { x: t.clientX, y: t.clientY, canDown: invCanScrollFurther(box, true), canUp: invCanScrollFurther(box, false) }
     : null;
