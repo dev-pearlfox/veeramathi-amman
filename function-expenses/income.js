@@ -13,7 +13,7 @@
 let incomeView = null;         // key of the kind on screen (null = none; the members sheet or செலவு shows instead)
 let incomeRows = [];           // [{ id, date, name, nameEn, phone, amount, note, saved }] for incomeLoadedFor
 let incomeLoadedFor = null;    // "functionId|kind" the rows above belong to
-const incomeSaveTimers = {};   // row id -> debounce timer
+const incomeSaveTimers = {};   // row id -> { timer, row, funcId, kind }: the debounced save still waiting
 
 // What each column `field` (see income-categories.js) is: its input, its income_entries column, and how to read it.
 const FIELD_TYPES = {
@@ -120,13 +120,13 @@ async function saveIncome(row, funcId, kindKey) {
   let error = null;
   if (incomeRowIsEmpty(row)) {
     if (!row.saved) return;          // nothing typed, nothing stored: nothing to do
-    ({ error } = await client.from(lineTable(k)).delete().eq("id", row.id));
+    ({ error } = await trackedSave(client.from(lineTable(k)).delete().eq("id", row.id)));
     if (!error) row.saved = false;   // the user cleared a stored row: it is gone, the empty row stays to type into
   } else {
     const payload = { id: row.id, function_id: funcId, updated_at: new Date().toISOString() };
     if (!k.table) payload.kind = k.key;
     k.columns.forEach((c) => { payload[FIELD_TYPES[c.field].db] = FIELD_TYPES[c.field].toDb(row[c.field]); });
-    ({ error } = await client.from(lineTable(k)).upsert(payload, { onConflict: "id" }));
+    ({ error } = await trackedSave(client.from(lineTable(k)).upsert(payload, { onConflict: "id" })));
     if (!error) row.saved = true;
   }
   setStatus("income-status", error ? "Error saving: " + error.message : "", !!error);
@@ -147,8 +147,18 @@ document.getElementById("income-body").addEventListener("input", (e) => {
   renderIncomeTotal();
   const funcId = selectedFunctionId;   // captured now: the save still goes to this function if the user switches
   const kind = incomeView;
-  clearTimeout(incomeSaveTimers[row.id]);
-  incomeSaveTimers[row.id] = setTimeout(() => { delete incomeSaveTimers[row.id]; saveIncome(row, funcId, kind); }, SAVE_DEBOUNCE_MS);
+  clearTimeout(incomeSaveTimers[row.id]?.timer);
+  const timer = setTimeout(() => { delete incomeSaveTimers[row.id]; saveIncome(row, funcId, kind); }, SAVE_DEBOUNCE_MS);
+  incomeSaveTimers[row.id] = { timer, row, funcId, kind };
+});
+
+// Tab hidden or closed with a line still waiting on its debounce: save it now (see shared.js).
+registerLeaveSaver(() => {
+  Object.values(incomeSaveTimers).forEach(({ timer, row, funcId, kind }) => {
+    clearTimeout(timer);
+    delete incomeSaveTimers[row.id];
+    saveIncome(row, funcId, kind);
+  });
 });
 
 // Like the members sheet: once the user leaves a phone box, show the number in groups (shared.js formatMobile).
@@ -168,7 +178,7 @@ document.getElementById("income-body").addEventListener("click", async (e) => {
   const row = incomeRows.find((r) => r.id === e.target.closest("tr").dataset.id);
   if (!row) return;
   if (!incomeRowIsEmpty(row) && !confirm("இந்த வரியை நீக்கவா? (Remove this row?)")) return;
-  clearTimeout(incomeSaveTimers[row.id]);
+  clearTimeout(incomeSaveTimers[row.id]?.timer);
   delete incomeSaveTimers[row.id];
   incomeRows = incomeRows.filter((r) => r !== row);
   if (!incomeRows.length) incomeRows.push(newIncomeRow());

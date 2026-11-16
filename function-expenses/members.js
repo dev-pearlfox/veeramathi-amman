@@ -470,7 +470,7 @@ async function commitCellNow(input) {
   const dbValue = value === "" && field === "dob" ? null : value;   // an emptied date is NULL, not an empty string
   if ((person[field] ?? "") === value) return;   // ?? "": an empty (null) cell left empty is not a change
 
-  const { error } = await client.from("people").update({ [field]: dbValue }).eq("id", personId);
+  const { error } = await trackedSave(client.from("people").update({ [field]: dbValue }).eq("id", personId));
   if (error) {
     setStatus("Error saving: " + error.message, true);
     return;
@@ -560,6 +560,12 @@ document.addEventListener("click", (e) => {
   if (!focused || !focused.classList?.contains("cell-input") || focused.readOnly) return;
   const wrapper = focused.closest(".cell-flex");
   if (wrapper && !wrapper.contains(e.target)) commitCell(focused);
+});
+
+// Tab hidden or closed while a cell is still being typed in: save it now (see shared.js). Cells normally save on blur.
+registerLeaveSaver(() => {
+  const focused = document.activeElement;
+  if (focused?.classList?.contains("cell-input") && !focused.readOnly) commitCell(focused);
 });
 
 loadMembers();

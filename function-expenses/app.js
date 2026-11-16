@@ -241,22 +241,29 @@ if (sheetTitleEl) new MutationObserver(syncPillRowOverflow).observe(sheetTitleEl
 // ---------- Data loading ----------
 
 async function loadAll() {
-  await loadPeople();
-  await loadFunctions();
+  // people and functions do not depend on each other: one round trip instead of two. The pills (whose title shows
+  // the member count) are drawn once both are in.
+  await Promise.all([loadPeople(), loadFunctions()]);
+  renderYearPills();
   await loadLedgerEntries();
 }
 
 async function loadPeople() {
   const { data, error } = await client.from("people").select("*").order("member_no", { ascending: true, nullsFirst: false }).order("name");
-  if (error) return;
+  if (error) {
+    setStatus("sheet-status", "Error loading members: " + error.message, true);
+    return;
+  }
   people = data;
 }
 
 async function loadFunctions() {
   const { data, error } = await client.from("functions").select("*").order("year", { ascending: false });
-  if (error) return;
+  if (error) {
+    setStatus("sheet-status", "Error loading functions: " + error.message, true);
+    return;
+  }
   functionsList = data;
-  renderYearPills();
 }
 
 function renderYearPills() {
@@ -329,9 +336,12 @@ $("sheet-title").addEventListener("click", (e) => {
   setIncomeView(null);     // income.js: leaves the செலவு / வரவு view and runs applySheetVisibility()
 });
 
+// Switching year/function: first finish saving what was typed (it belongs to the function being left, and the next
+// load must see it), then switch.
 $("year-pills").addEventListener("click", async (e) => {
   const btn = e.target.closest("button[data-year]");
   if (!btn) return;
+  await flushPendingCellSaves();
   selectedYear = parseInt(btn.dataset.year, 10);
   selectedFunctionId = null;
   renderYearPills();
@@ -341,18 +351,21 @@ $("year-pills").addEventListener("click", async (e) => {
 $("function-pills").addEventListener("click", async (e) => {
   const btn = e.target.closest("button[data-function]");
   if (!btn) return;
+  await flushPendingCellSaves();
   selectedFunctionId = btn.dataset.function;
   renderFunctionPills();
   await loadLedgerEntries();
 });
 
 async function loadLedgerEntries() {
-  if (!selectedFunctionId) {
+  const funcId = selectedFunctionId;
+  if (!funcId) {
     ledgerEntries = [];
     $("sheet-body").innerHTML = "";
     return;
   }
-  const { data, error } = await client.from("ledger_entries").select("*").eq("function_id", selectedFunctionId);
+  const { data, error } = await client.from("ledger_entries").select("*").eq("function_id", funcId);
+  if (funcId !== selectedFunctionId) return;   // the user clicked another pill while this was loading: that load wins
   if (error) {
     setStatus("sheet-status", "Error loading sheet: " + error.message, true);
     return;
@@ -475,16 +488,17 @@ $("sheet-tbody-wrap").addEventListener("scroll", () => {
 // cell saves first, so a value the user just typed into an f-receipt/
 // paid input isn't lost when innerHTML gets replaced. debounce()
 // itself lives in shared.js (used by both pages).
+// Returns a promise that settles when those saves are done (the pill handlers wait for it).
 function flushPendingCellSaves() {
-  Object.keys(saveTimers).forEach((personId) => {
-    const timerId = saveTimers[personId];
-    if (!timerId) return;
-    clearTimeout(timerId);
+  const saves = Object.keys(saveTimers).map((personId) => {
+    const { timer, funcId, tr } = saveTimers[personId];
+    clearTimeout(timer);
     delete saveTimers[personId];
-    const tr = $("sheet-body").querySelector(`tr[data-person="${personId}"]`);
-    if (tr) saveRow(personId, tr);
+    return saveRow(personId, tr, funcId);
   });
+  return Promise.allSettled(saves);   // a failed save already shows its own error; it must not stop the pill switch
 }
+registerLeaveSaver(flushPendingCellSaves);   // shared.js: also runs when the tab is hidden or closed
 function requestRenderSheet() {
   flushPendingCellSaves();
   renderSheet();
@@ -517,8 +531,9 @@ function rowValues(tr) {
   };
 }
 
-async function saveRow(personId, tr) {
-  const funcId = selectedFunctionId;
+// funcId is the function the row belonged to when it was edited (scheduleSave captures it), NOT whatever pill is
+// selected by the time a debounced save fires.
+async function saveRow(personId, tr, funcId) {
   const v = rowValues(tr);
   const total = rowTotal(v);
 
@@ -531,11 +546,12 @@ async function saveRow(personId, tr) {
     total,
     paid: v.paid,
   };
-  const { error } = await client.from("ledger_entries").upsert(payload, { onConflict: "function_id,person_id" });
+  const { error } = await trackedSave(client.from("ledger_entries").upsert(payload, { onConflict: "function_id,person_id" }));
   if (error) {
     setStatus("sheet-status", "Error saving row: " + error.message, true);
     return;
   }
+  if (funcId !== selectedFunctionId) return;   // saved, but another function is on screen now: nothing here to update
   setStatus("sheet-status", "", false);
   tr.classList.add("row-saved");
   setTimeout(() => tr.classList.remove("row-saved"), ROW_SAVE_BLINK_MS);
@@ -546,15 +562,17 @@ async function saveRow(personId, tr) {
 }
 
 function scheduleSave(personId, tr, immediate) {
-  clearTimeout(saveTimers[personId]);
+  const funcId = selectedFunctionId;   // captured now, see saveRow
+  clearTimeout(saveTimers[personId]?.timer);
   if (immediate) {
     delete saveTimers[personId];
-    saveRow(personId, tr);
+    saveRow(personId, tr, funcId);
   } else {
-    saveTimers[personId] = setTimeout(() => {
+    const timer = setTimeout(() => {
       delete saveTimers[personId];
-      saveRow(personId, tr);
+      saveRow(personId, tr, funcId);
     }, SAVE_DEBOUNCE_MS);
+    saveTimers[personId] = { timer, funcId, tr };
   }
 }
 

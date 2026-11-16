@@ -109,20 +109,21 @@ async function saveSanthaAmount(functionId, newAmount) {
     return;
   }
 
-  const { data: checkedRows, error: fetchError } = await client
+  // Every already-paid row of this function gets the new amount in ONE request (a ledger row's total is just its head
+  // tax). .select("id") makes the answer list the rows it changed, so the count below is the real one.
+  const { data: updatedRows, error: rowsError } = await client
     .from("ledger_entries")
-    .select("id")
+    .update({ santha: newAmount, total: newAmount })
     .eq("function_id", functionId)
-    .eq("santha_checked", true);
-  if (fetchError) {
-    setStatus("function-status", "Amount saved, but couldn't update existing entries: " + fetchError.message, true);
+    .eq("santha_checked", true)
+    .select("id");
+  if (rowsError) {
+    await refreshAll();   // the function's new amount IS saved: show it, not the old one
+    setStatus("function-status", "Amount saved, but the paid entries were NOT recalculated (" + rowsError.message + "). Press Save again to retry.", true);
     return;
   }
-  for (const row of checkedRows) {
-    await client.from("ledger_entries").update({ santha: newAmount, total: newAmount }).eq("id", row.id);   // a ledger row's total is just its head tax
-  }
 
-  setStatus("function-status", `தலைக்கட்டு வரி amount updated to ${newAmount} (${checkedRows.length} existing entries recalculated).`, false);
+  setStatus("function-status", `தலைக்கட்டு வரி amount updated to ${newAmount} (${updatedRows.length} existing entries recalculated).`, false);
   await refreshAll();
   markSaved(functionId);   // after the redraw, so the label lands on the new row
 }

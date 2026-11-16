@@ -159,3 +159,36 @@ function debounce(fn, wait) {
     timer = setTimeout(() => fn(...args), wait);
   };
 }
+
+// ---------- Saving before the page goes away ----------
+// A debounced save (SAVE_DEBOUNCE_MS) or a save-on-blur can still be waiting when the tab is closed, hidden or left.
+// Each page registers one function that starts those saves right now (registerLeaveSaver); this file runs them when the
+// tab is hidden or the page is going away. Every real network save is wrapped in trackedSave(), so we know when one is
+// still in flight: then the browser's own "Leave site?" box keeps the page alive until it finishes.
+let savesInFlight = 0;
+const leaveSavers = [];
+
+function trackedSave(request) {   // request = a Supabase query; calling .then() sends it at once (an await would wait a tick)
+  savesInFlight++;
+  const done = () => { savesInFlight--; };
+  return request.then((result) => { done(); return result; }, (error) => { done(); throw error; });
+}
+
+function registerLeaveSaver(fn) {
+  leaveSavers.push(fn);
+}
+
+function flushAllLeaveSavers() {
+  leaveSavers.forEach((fn) => fn());
+  return savesInFlight > 0;
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") flushAllLeaveSavers();
+});
+window.addEventListener("pagehide", flushAllLeaveSavers);
+window.addEventListener("beforeunload", (e) => {
+  if (!flushAllLeaveSavers()) return;
+  e.preventDefault();
+  e.returnValue = "";   // the browser shows its generic "Leave site?" message
+});
