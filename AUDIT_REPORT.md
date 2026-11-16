@@ -49,7 +49,9 @@ With 82 members the size-driven findings drop in priority. The three timing and 
 | M3 non-passive wheel/touch listeners (Heart Logic) | DOWNGRADED to Low | Cost is small with a DOM this size. Leave the protected code alone. |
 | M4 santha update loop | FIXED | `admin.js` now updates all paid rows of the function in ONE request and reports a failure ("paid entries were NOT recalculated, press Save again"). Verified with a fake database: 2 requests total instead of 61 for 60 paid rows, and the count shown is the real one. Not atomic with the function's own amount; a retry is safe. The `total = amount` overwrite (ignores `donation`) is unchanged on purpose: no screen writes donation. |
 | M6 serial startup, stale pill response | FIXED | people and functions load together; a stale ledger response is ignored. |
-| M1 fonts, M2 favicon, M5, M7, M8, M9, L-items | OPEN | Unchanged. |
+| M1 fonts | FIXED | The Google Fonts `@import` is gone from both `style.css` files; each page `<head>` now has `preconnect` to fonts.googleapis.com and fonts.gstatic.com plus the font `<link>` before `style.css`, so the downloads run in parallel. Same families and weights (all of 400 to 800 are used somewhere, and fonts only download when used). Verified in headless Chrome against the pushed version: same faces loaded, identical header, h1, sheet and pill sizes. `style.css` `?v=20261116a` on all three pages. |
+| Tamil text font (found while doing M1) | DECIDED: leave as is | Tried Noto Sans Tamil for ALL Tamil text so it looks the same on every device. It is about 28 percent wider than the Mac's built-in Tamil font (Tamil Sangam MN), which the fixed-px layout was built against. Result in headless Chrome: Accounts sticky title row wraps to 2 lines (96 px to 185 px tall), the receipt-number header goes to 3 lines (+25 px), the Home link and every toggle button grow 20 to 30 percent, and a 12-letter place name no longer fits the 121 px Members place box (108 px of text became 138 px). Even Noto's condensed width axis at 70 percent (hard to read) leaves the button row at 1095 px against 813 px today. Reverted. Doing it properly means a deliberate layout pass: wider Members columns and a re-flowed Accounts title row, which are Heart Logic items and need your explicit permission. Only the page title uses Noto Sans Tamil today. |
+| M2 favicon, M5, M7, M8, M9, L-items | OPEN | Unchanged. |
 
 Files changed in this round: `shared.js`, `app.js`, `income.js`, `members.js`, `functions-dashboard/admin.js`, and the `?v=20261116a` bump on the Accounts, Members and Dashboard `index.html` files. The wording of H1, H2 and H3 in section 4 below describes the problems as found, before the fix.
 
@@ -205,7 +207,7 @@ At your 82 members, scaling the 300-row figures down linearly: Members about 45 
 
 Done: H1, H2, H3 errors, M4, M6.
 
-1. M1 + M2: font `<link>`s with preconnect (remove the `@import`), and a real favicon (needs your emblem image).
+1. M2: a real favicon (needs your emblem image, or a stand-in from the orange people icon). M1 is done.
 2. M8: row-input `aria-label`s, `aria-live` on the Accounts status lines, `prefers-reduced-motion`.
 3. M7: decide whether the Dashboard login should be read-only (database policy change).
 4. M5: Dashboard column selection and a refresh on tab focus.
