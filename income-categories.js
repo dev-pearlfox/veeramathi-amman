@@ -20,7 +20,7 @@ const INCOME_KINDS = [
     ] },
   { key: "hundi", label: "உண்டியல்",   // the temple hundi
     colWidths: { name: 160, amount: 100, date: 140, note: 200 },
-    totalLabel: "மொத்த உண்டியல்",
+    totalLabel: "மொத்தம்",
     columns: [
       { field: "name", label: "விவரம்", placeholder: "எ.கா. உண்டியல் திறந்தது" },
       { field: "amount", label: "தொகை" },

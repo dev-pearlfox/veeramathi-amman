@@ -3,10 +3,11 @@
 //   - WhatsApp: sends the PICTURE only, no text. A phone/tablet opens its share sheet (pick WhatsApp, then the member);
 //     a laptop copies the picture and opens that member's WhatsApp chat: click the message box, Ctrl+V, Send.
 //     (A WhatsApp link can never attach a picture by itself; this is the closest a web page can get without a paid backend.)
-//   - Save image: downloads the PNG.
+//   - Save image: saves the PNG (into the chosen Receipt folder when there is one, see receipt-folder.js; else a normal download).
+//     WhatsApp, Print and SMS also put the picture in that folder first, when one was chosen.
 //   - Print receipt: the browser's print dialog, printing that same picture on an A5 page.
 //   - SMS: opens the messages app with a short text (a laptop has no SMS app).
-// Loaded BEFORE app.js, after receipt-image.js. It reads app.js globals (functionsList, selectedFunctionId) only when a tick
+// Loaded BEFORE app.js, after receipt-image.js and receipt-folder.js. It reads app.js globals (functionsList, selectedFunctionId) only when a tick
 // happens, never at load. Needs formatMoney (money-format.js). Styles: receipt.css.
 
 // What the receipt is about, read from the ticked row.
@@ -36,15 +37,34 @@ const receiptSms = (d) =>
 
 // ---------- the box ----------
 let receiptBox = null, receiptRow = null, receiptData = null;
+let receiptFolderNote = "";   // "Saved in the Receipt folder." shown with whatever else the status says
 let receiptBlobPromise = null, receiptImgUrl = "";   // the picture for the details in the box right now
 
 const receiptEl = (id) => receiptBox.querySelector(`#${id}`);
-const receiptFileName = () => `receipt-${(receiptData.receipt || receiptData.name).replace(/[^\w\u0B80-\u0BFF-]+/g, "_")}.png`;
+// 111_தலைக்கட்டு_இரசீது_Ramesh_Kumar.png: the receipt number (left out while empty), two fixed words and the member's full name;
+// spaces and odd characters become "_".
+const fileSafe = (text) => text.replace(/[^\w\u0B80-\u0BFF-]+/g, "_").replace(/^_+|_+$/g, "");
+const receiptFileName = () => `${[fileSafe(receiptData.receipt), "தலைக்கட்டு", "இரசீது", fileSafe(receiptData.name)].filter(Boolean).join("_")}.png`;
 const setReceiptStatus = (text, isError = false) => {
   const el = receiptEl("receipt-status");
-  el.textContent = text;
+  el.textContent = [text, isError ? "" : receiptFolderNote].filter(Boolean).join(" ");
   el.classList.toggle("error", isError);
 };
+
+// Files the picture in the chosen Receipt folder. True when it was saved there; false when no folder is set up (or it failed, which
+// is said in the status), so the caller can fall back to a normal download.
+async function filePictureInFolder() {
+  try {
+    const folder = await saveReceiptToFolder(await receiptBlobPromise, receiptFileName());
+    receiptFolderNote = folder ? `Saved in the "${folder}" folder.` : "";
+    if (folder) setReceiptStatus("");
+    return !!folder;
+  } catch (err) {
+    receiptFolderNote = "";
+    setReceiptStatus(`Could not save into the receipt folder (${err.message}). Open the gear at the top and choose the folder again.`, true);
+    return false;
+  }
+}
 
 // Draws the picture again for the current details (on open, and each time the receipt number changes).
 function refreshReceiptImage() {
@@ -60,6 +80,7 @@ function refreshReceiptImage() {
 // Phone/tablet: the share sheet. Laptop: copy the picture and open the member's chat. Either way the clerk presses Send.
 async function sendReceiptOnWhatsApp() {
   const blob = await receiptBlobPromise;
+  await filePictureInFolder();
   const file = new File([blob], receiptFileName(), { type: "image/png" });
   const touchDevice = window.matchMedia("(pointer: coarse)").matches;
   if (touchDevice && navigator.canShare?.({ files: [file] })) {
@@ -83,7 +104,8 @@ async function sendReceiptOnWhatsApp() {
   else setReceiptStatus("The browser blocked the WhatsApp tab. Allow pop-ups for this site, then press WhatsApp again.", true);
 }
 
-function saveReceiptImage() {
+async function saveReceiptImage() {
+  if (await filePictureInFolder()) return;
   const a = document.createElement("a");
   a.href = receiptImgUrl;
   a.download = receiptFileName();
@@ -93,6 +115,7 @@ function saveReceiptImage() {
 // The picture itself goes in the print-only block, on its own A5 page; the browser's dialog also has "Save as PDF".
 async function printReceipt() {
   await receiptBlobPromise;
+  await filePictureInFolder();
   document.getElementById("print-sheet").innerHTML = `<div class="print-receipt"><img src="${receiptImgUrl}" alt="Receipt" /></div>`;
   await document.querySelector("#print-sheet img").decode();
   const originalTitle = document.title;
@@ -138,6 +161,7 @@ function buildReceiptBox() {
   receiptEl("receipt-print").addEventListener("click", printReceipt);
   receiptEl("receipt-save").addEventListener("click", saveReceiptImage);
   receiptEl("receipt-sms").addEventListener("click", () => {
+    filePictureInFolder();   // not awaited: opening the messages app does not leave this page
     window.location.href = `sms:+${receiptPhone(receiptData.mobile)}?&body=${encodeURIComponent(receiptSms(receiptData))}`;
   });
 }
@@ -149,6 +173,7 @@ function openReceiptBox(tr) {
   const phone = receiptPhone(receiptData.mobile);
   receiptEl("receipt-title").textContent = receiptData.name;
   receiptEl("receipt-sub").textContent = `${receiptData.place ? `${receiptData.place} · ` : ""}${receiptData.mobile || "no mobile number"} · தலைக்கட்டு வரி ரூ.${formatMoney(receiptData.amount)}`;
+  receiptFolderNote = "";
   receiptEl("receipt-no").value = receiptData.receipt;
   receiptEl("receipt-img").removeAttribute("src");
   receiptEl("receipt-wa").disabled = receiptEl("receipt-sms").disabled = !phone;

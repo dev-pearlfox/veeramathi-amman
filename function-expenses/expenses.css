@@ -54,3 +54,9 @@ body main { padding-bottom: 96px; }   /* clears the taller footer (72px at most)
 @media (max-width: 480px) {
   .totals-banner.totals-banner-two { --row-bottom: 34px; }
 }
+
+/* The title box (#sheet-title) is taller than it looks: its text is scaled down with a transform, which does not shrink the box, so
+   about 55px of invisible box hung over the first row of a வரவு / செலவு table and swallowed taps on its cells (the தேதி cell
+   would not open its date picker). Touches now pass through the box; its own buttons still catch them. No size or position changes. */
+body.view-income #sheet-title { pointer-events: none; }
+body.view-income #sheet-title :is(button, a, input, select) { pointer-events: auto; }

@@ -34,3 +34,9 @@
   #print-sheet .print-receipt { page: receipt; }
   #print-sheet .print-receipt img { display: block; width: 100%; max-height: 192mm; object-fit: contain; }
 }
+
+/* the "Receipt folder" row in the gear box (receipt-settings.js) */
+.receipt-folder { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 0.8rem; color: var(--muted); }
+.receipt-folder span { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.receipt-folder button { flex: none; min-height: 36px; padding: 6px 12px; }
+.receipt-folder button[hidden] { display: none; }

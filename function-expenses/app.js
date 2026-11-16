@@ -268,6 +268,7 @@ function updateSheetTitle() {
       `</div>` +
       // செலவு (expense): one button; its table (income.js, EXPENSE_KIND) replaces the members sheet while it is open.
       expenseButtonHtml() +
+      settingsPillHtml() +   // receipt-settings.js: the round gear + "Next 107" pill, after செலவு
     `</div>`;
   // Respect the user's collapse toggle across re-renders — updateSheetTitle
   // is called after adding a row / switching function / saving, and used to
@@ -552,6 +553,8 @@ $("sheet-body").addEventListener("change", (e) => {
   if (!e.target.classList.contains("f-santha-check")) return;
   const tr = e.target.closest("tr");
   tr.querySelector(".santha-amount").classList.toggle("faded", !e.target.checked);
+  const receiptInput = tr.querySelector(".f-receipt");
+  if (e.target.checked && !receiptInput.value.trim()) receiptInput.value = takeReceiptNumber();   // receipt-settings.js: "" when not set up
   scheduleSave(tr.dataset.person, tr, true);
   if (e.target.checked) openReceiptBox(tr);   // receipt.js: offers WhatsApp / SMS / a printed receipt; sends nothing by itself
 });
