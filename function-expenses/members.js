@@ -86,7 +86,7 @@ function setStatus(message, isError) {
 // is the single source of truth. Rendered rows just have to match whatever the
 // current master state is at render time; setCellsLocked syncs later toggles.
 // Column names for the cells' accessible labels (same words as the table header in members.html).
-const MEMBER_LABELS = { name: "பெயர்", name_en: "Name", place: "ஊர்", mobile: "Mobile Number", dob: "பிறந்த தேதி", avoid: "Avoid" };
+const MEMBER_LABELS = { name: "பெயர்", place: "ஊர்", mobile: "Mobile Number", dob: "பிறந்த தேதி", avoid: "Avoid" };
 
 function cell(p, field, value, extraAttrs, inputType = "text", before = "") {
   const locked = document.body.classList.contains("master-locked");
@@ -121,7 +121,6 @@ function renderRows() {
   const snoQ = $("filter-sno").value.trim().toLowerCase();
   const rollQ = $("filter-roll").value.trim().toLowerCase();
   const nameQ = $("filter-name").value.trim().toLowerCase();
-  const nameEnQ = $("filter-name-en").value.trim().toLowerCase();
   const placeQ = $("filter-place").value.trim().toLowerCase();
   const dobQ = $("filter-dob").value.trim().replace(/[/.]/g, "-");   // 12/05 and 12.05 both mean 12-05
   const mobileQ = $("filter-mobile").value.trim().replace(/\s+/g, "").toLowerCase();
@@ -130,7 +129,6 @@ function renderRows() {
     if (snoQ && !String(p.member_no ?? "").toLowerCase().includes(snoQ)) return false;
     if (rollQ && !String(p.roll_number ?? "").toLowerCase().includes(rollQ)) return false;
     if (nameQ && !(p.name || "").toLowerCase().includes(nameQ)) return false;
-    if (nameEnQ && !(p.name_en || "").toLowerCase().includes(nameEnQ)) return false;
     if (placeQ && !(p.place || "").toLowerCase().includes(placeQ)) return false;
     if (dobQ && !(p.dob || "").split("-").reverse().join("-").includes(dobQ)) return false;   // matches the dd-mm-yyyy shown
     if (mobileQ && !formatMobile(p.mobile).replace(/\s+/g, "").toLowerCase().includes(mobileQ)) return false;
@@ -143,7 +141,6 @@ function renderRows() {
         <td>${p.member_no ?? ""}</td>
         <td>${p.roll_number ?? ""}</td>
         ${cell(p, "name", p.name)}
-        ${cell(p, "name_en", p.name_en ?? "")}
         ${cell(p, "place", p.place ?? "", "", "text", addressButton(p))}
         ${cell(p, "mobile", formatMobile(p.mobile), 'inputmode="numeric"')}
         ${cell(p, "dob", p.dob ?? "", 'min="1900-01-01"', "date")}
@@ -191,13 +188,12 @@ function prefillNewMemberRow() {
 
 // New row starts locked (only பெயர்/Name enterable) until a name is typed —
 // same pattern as the main Ledger Sheet's new row (see updateNewRowLock in app.js).
-// Master lock (see setMasterLocked below) further disables the pair of name
-// fields too, so nothing in this row is editable while the page is locked.
+// Master lock (see setMasterLocked below) further disables the name
+// field too, so nothing in this row is editable while the page is locked.
 function updateNewMemberLock() {
   const masterLocked = document.body.classList.contains("master-locked");
-  const hasName = $("new-m-name").value.trim().length > 0 || $("new-m-name-en").value.trim().length > 0;
+  const hasName = $("new-m-name").value.trim().length > 0;
   $("new-m-name").disabled = masterLocked;
-  $("new-m-name-en").disabled = masterLocked;
   $("new-m-place").disabled = masterLocked || !hasName;
   $("new-m-mobile").disabled = masterLocked || !hasName;
   $("new-m-dob").disabled = masterLocked || !hasName;
@@ -207,7 +203,7 @@ function updateNewMemberLock() {
 // Cells autosave the moment they lose focus, so "cancel" cannot just drop what is on screen: it writes the old values
 // back. editSnapshot is taken when the page is unlocked; members ADDED during the session are not in it, so they
 // are kept (their own "Added" save is already final).
-const EDITABLE_FIELDS = ["name", "name_en", "place", "address", "mobile", "dob", "avoid"];
+const EDITABLE_FIELDS = ["name", "place", "address", "mobile", "dob", "avoid"];
 let editSnapshot = null;
 const pendingCommits = new Set();   // saves in flight (see commitCell), so cancel can wait for them
 
@@ -247,7 +243,7 @@ async function cancelEditing() {
     setStatus(`Could not undo ${errors.length} change${errors.length === 1 ? "" : "s"}: ${errors[0].message}`, true);
     return;   // still in edit mode so nothing is left half-reverted without the user knowing
   }
-  ["new-m-name", "new-m-name-en", "new-m-place", "new-m-mobile", "new-m-dob"].forEach((id) => ($(id).value = ""));
+  ["new-m-name", "new-m-place", "new-m-mobile", "new-m-dob"].forEach((id) => ($(id).value = ""));
   setMasterLocked(true);
   setStatus(changes.length ? "Changes undone." : "Cancelled.", false);
 }
@@ -306,8 +302,7 @@ function rejectNewMember(message) {
 
 async function addNewMember() {
   const name = $("new-m-name").value.trim();
-  const nameEn = $("new-m-name-en").value.trim();
-  if (!name && !nameEn) return;   // an empty row is not an error: a click anywhere lands here too
+  if (!name) return;   // an empty row is not an error: a click anywhere lands here too
 
   const dup = allPeople.find((p) => p.name.trim().toLowerCase() === name.toLowerCase());
   if (dup) {
@@ -323,7 +318,7 @@ async function addNewMember() {
     return;
   }
 
-  const { data: person, error } = await insertPersonRaceSafe(client, { name, name_en: nameEn, place: $("new-m-place").value.trim(), mobile, dob: $("new-m-dob").value || null });
+  const { data: person, error } = await insertPersonRaceSafe(client, { name, place: $("new-m-place").value.trim(), mobile, dob: $("new-m-dob").value || null });
   if (error) {
     rejectNewMember("Error adding member: " + error.message);
     return;
@@ -332,7 +327,7 @@ async function addNewMember() {
   allPeople.push(person);
   allPeople.sort((a, b) => (a.member_no ?? 9999) - (b.member_no ?? 9999) || a.name.localeCompare(b.name));
 
-  ["new-m-name", "new-m-name-en", "new-m-place", "new-m-mobile", "new-m-dob"].forEach((id) => ($(id).value = ""));
+  ["new-m-name", "new-m-place", "new-m-mobile", "new-m-dob"].forEach((id) => ($(id).value = ""));
   updateNewMemberLock();
   setStatus("Added.", false);
   blinkRow($("new-member-row"), "ok");   // the add row confirms the save...
@@ -347,12 +342,11 @@ async function addNewMember() {
 }
 
 $("new-m-name").addEventListener("input", updateNewMemberLock);
-$("new-m-name-en").addEventListener("input", updateNewMemberLock);
 $("new-m-mobile").addEventListener("input", () => filterMobileInput($("new-m-mobile")));
 
 // Row stays unsaved while typing — Enter (on any field in the row) commits it,
 // and so does clicking/tabbing away to somewhere outside the row entirely.
-["new-m-name", "new-m-name-en", "new-m-place", "new-m-mobile", "new-m-dob"].forEach((id) => {
+["new-m-name", "new-m-place", "new-m-mobile", "new-m-dob"].forEach((id) => {
   $(id).addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -397,7 +391,7 @@ $("filter-sno").addEventListener("input", () => filterDigitsInput($("filter-sno"
 $("filter-roll").addEventListener("input", () => filterDigitsInput($("filter-roll")));
 $("filter-mobile").addEventListener("input", () => filterMobileInput($("filter-mobile")));
 
-["filter-sno", "filter-roll", "filter-name", "filter-name-en", "filter-place", "filter-dob", "filter-mobile"].forEach((id) => {
+["filter-sno", "filter-roll", "filter-name", "filter-place", "filter-dob", "filter-mobile"].forEach((id) => {
   $(id).addEventListener("input", debouncedRequestRenderRows);
 });
 
@@ -514,7 +508,7 @@ $("members-body").addEventListener("change", async (e) => {
   // Uncheck is confirmed too, since it changes their visibility across
   // every function's sheet.
   const person = allPeople.find((p) => p.id === personId);
-  const label = person?.name || person?.name_en || "this member";
+  const label = person?.name || "this member";
   const prompt = value
     ? `Mark "${label}" as no longer active?\n\nThey'll be hidden from every current and future function's Ledger Sheet (except sheets where they already have a saved row).`
     : `Restore "${label}" to the active member list?\n\nThey'll reappear on every function's Ledger Sheet.`;

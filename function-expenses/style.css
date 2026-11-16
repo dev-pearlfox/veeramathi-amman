@@ -570,8 +570,11 @@ th { color: var(--muted); font-weight: 600; }
   background: linear-gradient(160deg, #fb923c, #ea580c 45%, #7c2d12);
 }
 
-#gate .card { width: 100%; max-width: 460px; text-align: center; }
-.gate-logo { width: 400px; max-width: 100%; height: auto; display: block; margin: 0 auto 12px; }
+#gate .card { container-type: inline-size; width: 100%; max-width: 460px; text-align: center; }
+/* The photo is portrait (385x520), so it is capped by height: the password box stays on screen on a phone. */
+.gate-name { margin: 0 0 10px; font-family: 'Noto Sans Tamil', 'Poppins', sans-serif; font-size: 1.1rem; font-size: min(1.7rem, 5.6cqw); font-weight: 800; line-height: 1.3; white-space: nowrap; color: #9a3412; }   /* the society name above the gate photo: ONE row, its size follows the card width (cqw, see the .card rule below) */
+.gate-logo { height: 260px; width: auto; max-width: 100%; object-fit: contain; display: block; margin: 0 auto 12px; }
+@media (max-height: 680px) { .gate-logo { height: 170px; } }   /* short screens: keep the password box and button on screen */
 .gate-subtitle { color: var(--muted); margin: -6px 0 8px; font-size: 2rem; }
 /* #gate-status is a <p>, which carries a default browser margin — visible
    as extra space below the Unlock button even while the status text is
@@ -763,7 +766,7 @@ body.is-scrolled .sheet-filter-card { margin-top: 0; padding: 4px 0; }
    animating each pill's own padding/font-size — just scoped to this inner
    wrapper instead of .sheet-filter-card itself (see that rule's own
    comment for why). top left, not top center, since its content
-   (வருடம்/விழா rows) is left-aligned, not centered — EXCEPT once scrolled
+   (the function pills) are left-aligned, not centered — EXCEPT once scrolled
    (see body.is-scrolled override below), where the rows switch to
    centered and the scale origin switches with them; scaling centered
    content from a left origin would pull it visibly off-center (the right
@@ -773,7 +776,7 @@ body.is-scrolled .sheet-filter-card { margin-top: 0; padding: 4px 0; }
   transition: transform 0.2s ease, margin-bottom 0.2s ease;
 }
 body.is-scrolled .pills-inline {
-  gap: 4px;   /* tighter than the expanded 10px between the year row, divider and function row */
+  gap: 4px;   /* tighter than the expanded 10px (applies if the card ever holds more than one row) */
   transform: scale(0.75);   /* must match SHEET_FILTER_CARD_COMPACT_SCALE in app.js */
   transform-origin: top center;
   margin-bottom: var(--sheet-filter-card-margin-collapse, 0px);
@@ -781,10 +784,6 @@ body.is-scrolled .pills-inline {
 /* Rows center horizontally once compact, by explicit request — matches
    removing .sheet-filter-card's left/right padding above. */
 body.is-scrolled .pill-line { justify-content: center; }
-/* வருடம்:/விழா: labels — dropped once compact, by explicit request; the
-   pill buttons themselves already show the selected value, so the label
-   is redundant once space is at a premium. */
-body.is-scrolled .pill-label { display: none; }
 
 /* margin-top:0 overrides the base table rule's 4px (see that rule's own
    comment) — same fix already applied to table.members-table for the same
@@ -868,11 +867,11 @@ table.sheet td:nth-child(1) input { text-align: center; padding-left: 8px; paddi
 table.sheet:not(.members-table) { width: 1070px; margin-left: auto; margin-right: auto; } /* centers it on the rare wide screen where the container (up to 1288px) is actually wider than the table itself */
 table.sheet th:nth-child(1), table.sheet td:nth-child(1) { width: 70px; }
 table.sheet th:nth-child(2), table.sheet td:nth-child(2) { width: 80px; }
-table.sheet th:nth-child(3), table.sheet td:nth-child(3) { width: 310px; }
+table.sheet th:nth-child(3), table.sheet td:nth-child(3) { width: 450px; }
 table.sheet th:nth-child(4), table.sheet td:nth-child(4) { width: 170px; }
 table.sheet th:nth-child(5), table.sheet td:nth-child(5) { width: 150px; }
 table.sheet th:nth-child(6), table.sheet td:nth-child(6) { width: 120px; }
-table.sheet th:nth-child(7), table.sheet td:nth-child(7) { width: 170px; }
+table.sheet th:nth-child(7), table.sheet td:nth-child(7) { width: 30px; }   /* notes icon only (sheet-note.js); its 140px went to the name column. Still 1070px in total. */
 
 table.sheet td input:focus { outline: 2px solid var(--accent); outline-offset: -2px; background: var(--bg); }
 
@@ -916,7 +915,7 @@ table.sheet tr.row-blink-error td input, table.sheet tr.row-blink-error td selec
 
 .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .pill-row:first-of-type { margin-top: 4px; }
-/* index.html's year/function rows, scrolled/compact state only, by
+/* index.html's function-pill row, scrolled/compact state only, by
    explicit request — expanded state keeps the plain wrap behavior above.
    Same nowrap + horizontal swipe/scroll technique as members.html's
    .members-filter-card .pill-row (see its own HEART LOGIC comment there
@@ -976,9 +975,8 @@ body.is-scrolled .sheet-filter-card .pill-row.has-overflow {
 .card.compact .status:empty { display: none; }
 
 .pills-inline { display: flex; flex-direction: column; gap: 10px; }
-.pill-divider { width: 100%; height: 1px; background: var(--border); }
 .pill-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.pill-label, .title-group-label { font-weight: 700; color: #9a3412; font-size: 0.95rem; white-space: nowrap; }
+.title-group-label { font-weight: 700; color: #9a3412; font-size: 0.95rem; white-space: nowrap; }
 /* வரவு: / செலவு: groups in #sheet-title (app.js updateSheetTitle): வரவு stays with its own buttons; when a
    group is too wide for the screen its buttons wrap inside the group, not across the other group. */
 .title-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -1212,25 +1210,26 @@ body.is-scrolled .members-filter-card {
   margin-top: 0;
   margin-bottom: var(--pills-card-margin-collapse, 0px);
 }
-/* Eight columns, 1176px: S.No 70 + Roll 76 + பெயர் 230 + Name 230 + ஊர் 180 + Mobile 170 + பிறந்த தேதி 140 + Avoid 80. */
+/* Seven columns, 1176px: S.No 70 + Roll 76 + பெயர் 460 + ஊர் 180 + Mobile 170 + பிறந்த தேதி 140 + Avoid 80. பெயர் is wide because
+   it holds the whole family name ("husband - wife"); the English Name column that used to sit after it was removed, and its
+   230px went to பெயர். The total is unchanged. */
 table.members-table th:nth-child(1), table.members-table td:nth-child(1) { width: 70px; }
 table.members-table th:nth-child(2), table.members-table td:nth-child(2) { width: 76px; }
-table.members-table th:nth-child(3), table.members-table td:nth-child(3) { width: 230px; }
-table.members-table th:nth-child(4), table.members-table td:nth-child(4) { width: 230px; }
-table.members-table th:nth-child(5), table.members-table td:nth-child(5) { width: 180px; }
-table.members-table th:nth-child(6), table.members-table td:nth-child(6) { width: 170px; }
-table.members-table th:nth-child(7), table.members-table td:nth-child(7) { width: 140px; }
-table.members-table th:nth-child(8), table.members-table td:nth-child(8) { width: 80px; }
+table.members-table th:nth-child(3), table.members-table td:nth-child(3) { width: 460px; }
+table.members-table th:nth-child(4), table.members-table td:nth-child(4) { width: 180px; }
+table.members-table th:nth-child(5), table.members-table td:nth-child(5) { width: 170px; }
+table.members-table th:nth-child(6), table.members-table td:nth-child(6) { width: 140px; }
+table.members-table th:nth-child(7), table.members-table td:nth-child(7) { width: 80px; }
 table.members-table td:nth-child(2) { text-align: center; }
-table.members-table td:nth-child(8) { text-align: center; }
-/* பிறந்த தேதி (7th): a date box, left-aligned like the other text columns. */
-table.members-table td:nth-child(7) input { text-align: left; }
-/* ஊர் (5th): text, so left-aligned like the names (inputs are right-aligned by default). Also covers its filter and add-row boxes. */
-table.members-table td:nth-child(5) input { text-align: left; }
-/* Mobile column (6th): a fixed "+91" sits in front of the number, so people type only the 10 digits. Display only: the
+table.members-table td:nth-child(7) { text-align: center; }
+/* பிறந்த தேதி (6th): a date box, left-aligned like the other text columns. */
+table.members-table td:nth-child(6) input { text-align: left; }
+/* ஊர் (4th): text, so left-aligned like the names (inputs are right-aligned by default). Also covers its filter and add-row boxes. */
+table.members-table td:nth-child(4) input { text-align: left; }
+/* Mobile column (5th): a fixed "+91" sits in front of the number, so people type only the 10 digits. Display only: the
    saved value stays the plain 10 digits. Widths are untouched (HEART LOGIC: literal px columns). */
-table.members-table td:nth-child(6) { position: relative; }
-table.members-table td:nth-child(6)::before {
+table.members-table td:nth-child(5) { position: relative; }
+table.members-table td:nth-child(5)::before {
   content: "+91";
   position: absolute;
   left: 14px;
@@ -1241,7 +1240,7 @@ table.members-table td:nth-child(6)::before {
   pointer-events: none;
 }
 /* Inputs are right-aligned by default; left-align so the digits sit right after the +91. */
-table.members-table td:nth-child(6) input { padding-left: 49px; text-align: left; }
+table.members-table td:nth-child(5) input { padding-left: 49px; text-align: left; }
 table.members-table thead th:nth-child(3) { font-weight: 800; }
 table.members-table thead th { padding: 4px 3px; }
 
@@ -1287,8 +1286,7 @@ table.members-table thead th:nth-child(3),
 table.members-table thead th:nth-child(4),
 table.members-table thead th:nth-child(5),
 table.members-table thead th:nth-child(6),
-table.members-table thead th:nth-child(7),
-table.members-table thead th:nth-child(8) {
+table.members-table thead th:nth-child(7) {
   font-size: 1.05rem;
 }
 
@@ -1305,8 +1303,7 @@ body.is-scrolled table.members-table thead th:nth-child(3),
 body.is-scrolled table.members-table thead th:nth-child(4),
 body.is-scrolled table.members-table thead th:nth-child(5),
 body.is-scrolled table.members-table thead th:nth-child(6),
-body.is-scrolled table.members-table thead th:nth-child(7),
-body.is-scrolled table.members-table thead th:nth-child(8) {
+body.is-scrolled table.members-table thead th:nth-child(7) {
   font-size: 0.8rem;
 }
 body.is-scrolled table.sheet thead tr.filter-row th,

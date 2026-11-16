@@ -24,7 +24,7 @@ function renderExploreFilters() {
   // A function that no longer matches the chosen year (e.g. the year pill was changed) falls back to "all".
   if (exploreFn && !visibleFunctions().some((f) => f.id === exploreFn)) exploreFn = "";
 
-  const years = [...sortedYears()].reverse();
+  const years = sortedYears();   // oldest first: 2026, then 2027
   $("ex-year-pills").innerHTML =
     pill("year", "", "All years", exploreYear === "") + years.map((y) => pill("year", String(y), String(y), exploreYear === String(y))).join("");
   $("ex-fn-pills").innerHTML =

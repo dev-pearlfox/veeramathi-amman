@@ -19,9 +19,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@700;800&family=Poppins:wght@400;500;600;700;800&display=swap" />
-<link rel="stylesheet" href="style.css?v=20261116c" />
+<link rel="stylesheet" href="style.css?v=20261116k" />
 <link rel="stylesheet" href="date-picker.css?v=20261115a" />
-<link rel="stylesheet" href="expenses.css?v=20261116d" />
+<link rel="stylesheet" href="expenses.css?v=20261116g" />
+<link rel="stylesheet" href="sheet-note.css?v=20261116a" />
+<link rel="stylesheet" href="../password-toggle.css?v=20261116a" />
 </head>
 <body>
 
@@ -33,8 +35,9 @@
 
 <div id="gate">
   <div class="card">
-    <img src="logo-gate.png" alt="ஸ்ரீ வீரமாத்தி அம்மன் துணை" class="gate-logo" width="512" height="410" fetchpriority="high" />
-    <p class="gate-subtitle">Functions List</p>
+    <h1 class="gate-name">ஸ்ரீ வீரமாத்தி அம்மன் துணை</h1>
+    <img src="../logo-gate.jpg" alt="ஸ்ரீ வீரமாத்தி அம்மன் துணை" class="gate-logo" width="385" height="520" fetchpriority="high" />
+    <p class="gate-subtitle">Accounts Entry</p>
     <form id="gate-form">
       <label>Password
         <input type="password" id="gate-password" required autofocus autocomplete="current-password" />
@@ -56,12 +59,6 @@
       <section class="card compact sheet-filter-card">
         <div class="pills-inline">
           <div class="pill-line">
-            <span class="pill-label">வருடம்:</span>
-            <div id="year-pills" class="pill-row"></div>
-          </div>
-          <span class="pill-divider"></span>
-          <div class="pill-line">
-            <span class="pill-label">விழா:</span>
             <div id="function-pills" class="pill-row"></div>
           </div>
         </div>
@@ -73,7 +70,7 @@
       <div class="sheet-thead-wrap" id="sheet-thead-wrap">
         <table class="sheet wide">
           <thead>
-            <tr><th>S.No</th><th>இரசீது எண்</th><th>பெயர்</th><th>ஊர்</th><th>மொபைல் எண்</th><th>தலைக்கட்டு வரி</th><th>குறிப்பு</th></tr>
+            <tr><th>S.No</th><th>இரசீது எண்</th><th>பெயர்</th><th>ஊர்</th><th>மொபைல் எண்</th><th>தலைக்கட்டு வரி</th><th class="note-th" title="குறிப்பு (notes)"><span class="sr-only">குறிப்பு</span></th></tr>
             <tr class="filter-row">
               <td><input type="text" id="filter-sno" class="filter-input" placeholder="Filter" aria-label="Filter by S.No" /></td>
               <td><input type="text" id="filter-receipt" class="filter-input" placeholder="Filter" aria-label="Filter by இரசீது எண் (receipt number)" /></td>
@@ -93,7 +90,7 @@
                   <option value="unpaid">செலுத்தாதவர்</option>
                 </select>
               </td>
-              <td><input type="text" id="filter-paid" class="filter-input" placeholder="Filter" aria-label="Filter by குறிப்பு (note)" /></td>
+              <td></td>   <!-- the notes column is 30px wide: an icon only, no filter box -->
             </tr>
           </thead>
         </table>
@@ -131,10 +128,11 @@
   <div class="totals-banner totals-banner-two" id="totals-banner">
     <div class="banner-left-group" id="banner-left-group">
       <a href="members.html" class="header-link-btn"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#fff"/><g transform="translate(4.2 4.2) scale(0.65)"><circle cx="16.5" cy="8" r="3.4" fill="#f59e0b"/><path d="M11 20c0-3.2 2.4-5.6 5.5-5.6S22 16.8 22 20z" fill="#f59e0b"/><circle cx="8.5" cy="8.5" r="4" fill="#2563eb"/><path d="M1 21c0-4 3.3-7 7.5-7s7.5 3 7.5 7z" fill="#2563eb"/></g></svg><span>தலைக்கட்டு விவரம்</span></a>
-      <a href="../functions-dashboard/index.html" class="header-link-btn"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#fff"/><g transform="translate(4.2 4.2) scale(0.65)"><rect x="2" y="12" width="5.5" height="9" rx="1.6" fill="#2563eb"/><rect x="9.2" y="3" width="5.5" height="18" rx="1.6" fill="#16a34a"/><rect x="16.5" y="8" width="5.5" height="13" rx="1.6" fill="#f59e0b"/></g></svg><span>Dashboard &rarr;</span></a>
+      <a href="../functions-dashboard/index.html" class="header-link-btn"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#fff"/><g transform="translate(4.2 4.2) scale(0.65)"><rect x="2" y="12" width="5.5" height="9" rx="1.6" fill="#2563eb"/><rect x="9.2" y="3" width="5.5" height="18" rx="1.6" fill="#16a34a"/><rect x="16.5" y="8" width="5.5" height="13" rx="1.6" fill="#f59e0b"/></g></svg><span>Admin &rarr;</span></a>
     </div>
     <div class="totals-track" id="totals-track">
-      <div class="totals-col totals-col-grand" data-col="6"><span class="totals-value totals-grand totals-shine">Collected = <span id="totals-total">0</span> / <span id="totals-expected">0</span>&emsp;Need = <span id="totals-need">0</span></span></div>
+      <div class="totals-col totals-col-grand totals-col-members" data-col="6"><span class="totals-value totals-grand totals-shine">Collected = <span id="totals-total">0</span> / <span id="totals-expected">0</span>&emsp;Need = <span id="totals-need">0</span></span></div>
+      <div class="totals-col totals-col-grand totals-col-line" data-col="6"><span class="totals-value totals-grand totals-shine"><span id="line-strip-label">மொத்தம்</span> = <span id="line-strip-total">0</span></span></div>
     </div>
   </div>
 
@@ -148,12 +146,14 @@
 <script src="scroll-compact.js?v=20261115a" defer></script>
 <script src="date-picker.js?v=20261115a" defer></script>
 <script src="../money-format.js?v=20261113b" defer></script>
+<script src="../password-toggle.js?v=20261116a" defer></script>
 <script src="../expense-lines.js?v=20261114a" defer></script>
 <script src="../income-categories.js?v=20261116e" defer></script>
 <script src="../function-rules.js?v=20261114a" defer></script>
-<script src="income.js?v=20261116e" defer></script>
+<script src="income.js?v=20261116g" defer></script>
 <script src="print-table.js?v=20261114a" defer></script>
 <script src="print.js?v=20261114g" defer></script>
-<script src="app.js?v=20261116c" defer></script>
+<script src="sheet-note.js?v=20261116a" defer></script>
+<script src="app.js?v=20261116f" defer></script>
 </body>
 </html>

@@ -18,8 +18,10 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
-<link rel="stylesheet" href="style.css?v=20261116b" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400&family=Noto+Sans+Tamil:wght@500;600;700;800&display=swap" />
+<link rel="stylesheet" href="style.css?v=20261116k" />
+<link rel="stylesheet" href="invitation.css?v=20261116u" />
+<link rel="stylesheet" href="../password-toggle.css?v=20261116a" />
 </head>
 <body>
 
@@ -31,8 +33,9 @@
 
 <div id="gate">
   <div class="card">
-    <h2>Sri Veeramathi Amman Thunai Functions Dashboard</h2>
-    <p class="gate-subtitle">Enter the Dashboard password. (The Accounts page has a different one.)</p>
+    <h1 class="gate-name">ஸ்ரீ வீரமாத்தி அம்மன் துணை</h1>
+    <img src="../logo-gate.jpg" alt="ஸ்ரீ வீரமாத்தி அம்மன் துணை" class="gate-logo" width="385" height="520" fetchpriority="high" />
+    <h2 class="gate-subtitle">Admin Page</h2>
     <form id="gate-form">
       <label>Password
         <input type="password" id="gate-password" required autofocus autocomplete="current-password" />
@@ -237,10 +240,13 @@
           </form>
         </div>
 
-        <div class="card">
-          <h2>Session</h2>
-          <p class="note">You are signed in to the <strong>Dashboard</strong>. Signing out here does not sign you out of the Accounts page.</p>
-          <button type="button" class="secondary" id="signout-btn">Sign out of Dashboard</button>
+        <div class="card" id="invitation-card">
+          <h2>Invitation</h2>
+          <div id="inv-pills" class="pills" role="group" aria-label="Function to print the invitation for"></div>
+          <div class="inv-actions">
+            <button type="button" id="inv-preview" disabled>Preview</button>
+          </div>
+          <p class="status" id="inv-hint" role="status" aria-live="polite"></p>
         </div>
       </div>
 
@@ -266,6 +272,22 @@
   </div>
 
   <div id="print-summary" aria-hidden="true"></div>
+
+  <!-- The invitation booklet: full-screen preview, also what gets printed (invitation.js, invitation-pages.js). -->
+  <div id="inv-overlay" role="dialog" aria-modal="true" aria-label="Invitation preview">
+    <div class="inv-bar">
+      <span class="inv-bar-title" id="inv-bar-title"></span>
+      <span class="inv-bar-hint">Click any text to edit it. Edits are for this print only.</span>
+      <div class="inv-nav">
+        <button type="button" class="secondary" id="inv-prev" aria-label="Previous page">Prev</button>
+        <span id="inv-page-pos" aria-live="polite"></span>
+        <button type="button" class="secondary" id="inv-next" aria-label="Next page">Next</button>
+      </div>
+      <button type="button" id="inv-bar-print">Print</button>
+      <button type="button" class="secondary" id="inv-bar-close">Close</button>
+    </div>
+    <div class="inv-scroll" id="inv-sheets"></div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js" integrity="sha384-JBR+x8blGwjDRO63aHCGiZMD4VNiTR4ZUGA+N6ZKLf3zNt1fK8IBpcgPaMrxqWBp" defer crossorigin="anonymous"></script>
@@ -275,16 +297,21 @@
 <script src="../income-categories.js?v=20261116e" defer></script>
 <script src="../function-rules.js?v=20261114a" defer></script>
 <script src="../money-format.js?v=20261113b" defer></script>
+<script src="../password-toggle.js?v=20261116a" defer></script>
 <script src="core.js?v=20261113a" defer></script>
-<script src="data.js?v=20261116b" defer></script>
+<script src="data.js?v=20261116c" defer></script>
 <script src="charts.js?v=20261105s" defer></script>
 <script src="widgets.js?v=20261114a" defer></script>
 <script src="overview.js?v=20261114b" defer></script>
 <script src="compare.js?v=20261105s" defer></script>
-<script src="explore.js?v=20261114b" defer></script>
+<script src="explore.js?v=20261116a" defer></script>
 <script src="unpaid.js?v=20261105s" defer></script>
-<script src="admin.js?v=20261116b" defer></script>
+<script src="admin.js?v=20261116e" defer></script>
 <script src="print.js?v=20261114a" defer></script>
+<script src="invitation-text.js?v=20261116d" defer></script>
+<script src="invitation-pages.js?v=20261116k" defer></script>
+<script src="invitation-cover.js?v=20261116b" defer></script>
+<script src="invitation.js?v=20261116e" defer></script>
 <script src="app.js?v=20261116b" defer></script>
 </body>
 </html>

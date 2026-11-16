@@ -11,12 +11,12 @@ let incomeEntries = [];   // extra வரவு typed on the Accounts page (INCO
 // The columns the Dashboard actually reads, per table. Selecting only these keeps each load small (the people table's
 // `address` JSON, for one, is never shown here). If a screen ever needs another column, add it HERE or it will show blank.
 const COLUMNS = {
-  people: "id,name,name_en,member_no,mobile,avoid",
+  people: "id,name,name_en,member_no,mobile,avoid,place",
   functions: "id,name,year,santha_amount",
-  ledger_entries: "id,function_id,person_id,santha,santha_checked,total,paid",
+  ledger_entries: "id,function_id,person_id,receipt_no,santha,santha_checked,total,paid",
   materials: "id,function_id,item_name,quantity,unit,cost,created_at",
-  expense_entries: "id,function_id,name,amount",
-  income_entries: "id,function_id,kind,amount",
+  expense_entries: "id,function_id,name,amount,created_at",
+  income_entries: "id,function_id,kind,amount,name,receipt_no",   // name + receipt_no: the printed invitation booklet (invitation-pages.js)
 };
 
 // Supabase returns at most 1000 rows per request, so a plain select would SILENTLY drop rows once a table grows

@@ -3,7 +3,6 @@ const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let people = [];
 let functionsList = [];
 let ledgerEntries = [];
-let selectedYear = null;
 let selectedFunctionId = null;
 // Whether the user has toggled the ledger table closed via the members
 // count button — preserved across re-renders so a follow-up render
@@ -141,14 +140,14 @@ window.addEventListener("resize", syncSheetFilterCardCollapse);
 window.addEventListener("load", syncSheetFilterCardCollapse);
 if (document.fonts) document.fonts.ready.then(syncSheetFilterCardCollapse);
 syncSheetFilterCardCollapse();
-// Year/function pill counts (and thus how many lines they wrap onto) change
-// every time the user picks a different year/function — re-measuring only
+// The number of function pills (and thus how many lines they wrap onto) changes
+// whenever functions are added or the user picks a different one — re-measuring only
 // on load/resize left the card's real height uncorrected after that, the
 // same undershoot bug fixed for members.html's pills card.
 const sheetFilterCard = document.querySelector(".pills-inline");
 if (sheetFilterCard) new MutationObserver(syncSheetFilterCardCollapse).observe(sheetFilterCard, { childList: true, subtree: true, characterData: true });
 
-// #year-pills/#function-pills and #sheet-title's own text span all use
+// #function-pills and #sheet-title's own text span both use
 // nowrap + horizontal scroll once compact (style.css) so their content
 // never wraps mid-line — but that means an overflowing one's tail end
 // gets sliced off flat at the card's edge instead of ending cleanly.
@@ -171,6 +170,10 @@ if (sheetFilterCard) new MutationObserver(syncPillRowOverflow).observe(sheetFilt
 // switched to nowrap, so this needs re-checking on every is-scrolled
 // toggle too, not just on load/resize/content-change.
 new MutationObserver(syncPillRowOverflow).observe(document.body, { attributes: true, attributeFilter: ["class"] });
+// The collapse margin above is only applied once scrolled, but the pills can be taller wrapped (expanded) than they are
+// in the single nowrap line used when scrolled. Measured while expanded it came out too big, and on a phone the pills
+// then overlapped the title below. So it is measured again on every is-scrolled toggle, in the layout it will be used in.
+new MutationObserver(syncSheetFilterCardCollapse).observe(document.body, { attributes: true, attributeFilter: ["class"] });
 
 // Same transform:scale() + margin-collapse technique as
 // syncSheetFilterCardCollapse above, for #sheet-title (the function
@@ -244,7 +247,7 @@ async function loadAll() {
   // people and functions do not depend on each other: one round trip instead of two. The pills (whose title shows
   // the member count) are drawn once both are in.
   await Promise.all([loadPeople(), loadFunctions()]);
-  renderYearPills();
+  renderFunctionPills();
   await loadLedgerEntries();
 }
 
@@ -266,25 +269,21 @@ async function loadFunctions() {
   functionsList = data;
 }
 
-function renderYearPills() {
-  const years = [...new Set(functionsList.map((f) => f.year))].sort((a, b) => a - b);
-  if (!years.includes(selectedYear)) {
-    const currentYear = new Date().getFullYear();
-    selectedYear = years.includes(currentYear) ? currentYear : years[years.length - 1] ?? null;
-  }
-  $("year-pills").innerHTML = years
-    .map((y) => `<button type="button" class="pill ${y === selectedYear ? "active" : ""}" data-year="${y}">${y}</button>`)
-    .join("");
-  renderFunctionPills();
-}
+// One pill per function, oldest year first ("தை திருவிழா (2026)", "தை திருவிழா (2027)"): a single tap picks the year and
+// the function together. (The database hands them back newest first, so they are sorted here.)
+const functionPillLabel = (f) => `${f.name} (${f.year})`;
+const pillOrder = () => [...functionsList].sort((a, b) => a.year - b.year || a.name.localeCompare(b.name));
 
 function renderFunctionPills() {
-  const funcs = functionsList.filter((f) => f.year === selectedYear);
+  const funcs = pillOrder();
   if (!funcs.some((f) => f.id === selectedFunctionId)) {
-    selectedFunctionId = funcs[0]?.id ?? null;   // the first function of the year is the default
+    // Nothing (valid) picked yet: this year's first function, or the newest year's if this year has none.
+    const thisYear = new Date().getFullYear();
+    const year = funcs.some((f) => f.year === thisYear) ? thisYear : funcs.at(-1)?.year;
+    selectedFunctionId = funcs.find((f) => f.year === year)?.id ?? null;
   }
   $("function-pills").innerHTML = funcs
-    .map((f) => `<button type="button" class="pill ${f.id === selectedFunctionId ? "active" : ""}" data-function="${f.id}">${escapeHtml(f.name)}</button>`)
+    .map((f) => `<button type="button" class="pill ${f.id === selectedFunctionId ? "active" : ""}" data-function="${f.id}">${escapeHtml(functionPillLabel(f))}</button>`)
     .join("");
   updateSheetTitle();
 }
@@ -339,18 +338,8 @@ $("sheet-title").addEventListener("click", (e) => {
   setIncomeView(null);     // income.js: leaves the செலவு / வரவு view and runs applySheetVisibility()
 });
 
-// Switching year/function: first finish saving what was typed (it belongs to the function being left, and the next
+// Switching function: first finish saving what was typed (it belongs to the function being left, and the next
 // load must see it), then switch.
-$("year-pills").addEventListener("click", async (e) => {
-  const btn = e.target.closest("button[data-year]");
-  if (!btn) return;
-  await flushPendingCellSaves();
-  selectedYear = parseInt(btn.dataset.year, 10);
-  selectedFunctionId = null;
-  renderYearPills();
-  await loadLedgerEntries();
-});
-
 $("function-pills").addEventListener("click", async (e) => {
   const btn = e.target.closest("button[data-function]");
   if (!btn) return;
@@ -435,7 +424,6 @@ function renderSheet() {
   const receiptQ = $("filter-receipt").value.trim().toLowerCase();
   const mobileQ = $("filter-mobile").value.replace(/\s+/g, "");
   const santhaQ = $("filter-santha").value;
-  const paidQ = $("filter-paid").value.trim().toLowerCase();
 
   const visible = rows.filter(({ p, seq, e }) => {
     if (snoQ && !String(seq).includes(snoQ)) return false;
@@ -445,7 +433,6 @@ function renderSheet() {
     if (receiptQ && !String(e.receipt_no || "").toLowerCase().includes(receiptQ)) return false;
     if (santhaQ === "paid" && !e.santha_checked) return false;
     if (santhaQ === "unpaid" && e.santha_checked) return false;
-    if (paidQ && !String(e.paid || "").toLowerCase().includes(paidQ)) return false;
     return true;
   });
 
@@ -462,7 +449,7 @@ function renderSheet() {
             <span class="santha-amount ${e.santha_checked ? "" : "faded"}">${formatMoney(santhaAmount)}</span>
           </div>
         </td>
-        <td><input type="text" class="f-paid" ${ariaLabelAttr(SHEET_LABELS.paid, who)} value="${escapeHtml(e.paid || "")}" /></td>
+        <td class="note-cell"><input type="hidden" class="f-paid" value="${escapeHtml(e.paid || "")}" />${noteButton(e.paid || "", who)}</td>
       </tr>`; })
     .join("");
 
@@ -470,7 +457,7 @@ function renderSheet() {
 }
 
 // Column names for the row controls' accessible labels (same words as the table header in index.html).
-const SHEET_LABELS = { receipt: "இரசீது எண்", name: "பெயர்", place: "ஊர்", mobile: "மொபைல் எண்", santha: "தலைக்கட்டு வரி", paid: "குறிப்பு" };
+const SHEET_LABELS = { receipt: "இரசீது எண்", name: "பெயர்", place: "ஊர்", mobile: "மொபைல் எண்", santha: "தலைக்கட்டு வரி" };
 
 function updateTotalsBanner(rows) {
   // Collected = what is ticked so far; / total = every head on this sheet paying the head tax; Need = the part still to collect
@@ -516,7 +503,6 @@ const debouncedRequestRenderSheet = debounce(requestRenderSheet, FILTER_DEBOUNCE
   "filter-name",
   "filter-mobile",
   "filter-receipt",
-  "filter-paid",
 ].forEach((id) => $(id).addEventListener("input", debouncedRequestRenderSheet));
 // The santha filter is a <select> — change fires once per commit, no need
 // to debounce or flush (its transition is intentional, not typing).

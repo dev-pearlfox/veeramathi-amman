@@ -1,0 +1,32 @@
+/* The notes column of the Ledger Sheet (sheet-note.js): a 30px column with one icon per row, and the popup it opens. */
+
+/* The column is only 30px wide, so its title cell drops the usual side padding (resting and while scrolled). */
+table.sheet:not(.members-table) thead th.note-th,
+body.is-scrolled table.sheet:not(.members-table) thead th.note-th { padding-left: 0; padding-right: 0; }
+.note-th svg { display: block; width: 18px; height: 18px; margin: 0 auto; }
+
+.note-cell { text-align: center; }
+.note-btn {
+  display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; min-height: 0; padding: 0;
+  border: 0; border-radius: 6px; background: transparent; cursor: pointer;
+  color: var(--muted); opacity: 0.35;   /* faded: no note yet */
+  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.note-btn svg { display: block; width: 18px; height: 18px; }
+.note-btn:hover, .note-btn:focus-visible { opacity: 1; color: var(--accent); background: var(--accent-soft); }
+.note-btn.has-note { opacity: 1; color: var(--accent); }               /* bright: the row has a note */
+.note-btn.has-note svg { fill: var(--accent); fill-opacity: 0.25; }
+
+.note-pop {
+  position: fixed; z-index: 1000; width: 340px; max-width: calc(100vw - 16px); box-sizing: border-box; padding: 12px 14px;
+  background: #fff; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+}
+.note-pop-title { margin-bottom: 6px; font-weight: 700; font-size: 15px; color: var(--text); overflow-wrap: anywhere; }
+/* The page-wide input rule is 44px tall; the note box is a plain multi-line box. */
+.note-pop textarea {
+  display: block; width: 100%; box-sizing: border-box; min-height: 110px; margin: 0; padding: 8px 10px; resize: vertical;
+  border: 1px solid var(--border); border-radius: 8px; font: inherit; font-size: 15px; font-weight: 400; line-height: 1.4; color: var(--text);
+}
+.note-pop textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.note-pop-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+.note-pop-actions button { min-height: 0; padding: 6px 16px; font-size: 14px; }

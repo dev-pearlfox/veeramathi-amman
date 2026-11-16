@@ -51,8 +51,16 @@ intermittently rendered flush-left on a real device, fixed by reload.
 
 ## 7. `table.members-table` column widths are literal fixed px
 (style.css, already marked HEART LOGIC there) — do not stretch to fill wide
-screens. A percentage-based stretch version was built and tested, then
+screens. (Now 7 columns, still 1176px in total: the English Name column was removed
+with the owner's permission and its 230px went to பெயர், which is 460px, so the whole
+"husband - wife" name shows. The nth-child rules were renumbered to match.) A percentage-based stretch version was built and tested, then
 explicitly reverted.
+
+The Accounts Ledger Sheet (`table.sheet:not(.members-table)`, index.html) has the same rule, also
+fixed px and 1070px in total. Its குறிப்பு column was cut from 170px to 30px (an icon only,
+sheet-note.js) and the freed 140px went to பெயர், now 450px, with the owner's permission. Only the
+widths changed: the sticky header/filter stack and the scroll shrink animations are untouched. The
+filter box for that column was dropped.
 
 ## 8. `table.sheet tbody` odd/even row backgrounds are explicit
 `var(--surface)` / `var(--surface-2)` (style.css), not left transparent —
@@ -65,7 +73,8 @@ nowrap `.pill-row`. It was not clickable and the page has a single list, so the
 owner asked for it to be removed completely (pill, count and its CSS). The
 filter card now holds only the Print button. The `.members-filter-card` scroll
 shrink (item on `syncPillsCardCollapse`) still applies to that card. The
-`.pill-row` rules on index.html (year / function pills) are unchanged.
+`.pill-row` rules on index.html are unchanged. (The வருடம்/விழா rows were later merged by the owner into ONE row of
+"function (year)" pills, oldest year first; the shrink scale, `syncSheetFilterCardCollapse` and the sticky stack were left as they were.)
 
 ## 10. Cache-busting `?v=...` on style.css / shared.js / members.js / app.js / income.js / expenses.css
 (both `members.html` and `index.html`, and the dashboard's files in its `index.html`) — browsers repeatedly served a stale

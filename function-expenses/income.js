@@ -86,6 +86,7 @@ async function loadIncome() {
 function renderIncomeTotal() {
   const total = incomeRows.reduce((sum, r) => sum + (r.amount || 0), 0);
   document.getElementById("income-total").textContent = formatMoney(total);
+  document.getElementById("line-strip-total").textContent = formatMoney(total);   // the bottom strip, same number
 }
 
 function incomeCell(col, row, rowNo) {
@@ -111,6 +112,7 @@ function renderIncome() {
   const labelAt = k.columns.findIndex((c) => c.field !== "date");
   document.getElementById("income-foot").innerHTML = `<tr><td class="ic-sno"></td>${k.columns.map((c, i) =>
     i === labelAt ? `<td>${k.totalLabel}</td>` : i === amountAt ? `<td id="income-total">0</td>` : "<td></td>").join("")}<td></td></tr>`;
+  document.getElementById("line-strip-label").textContent = k.totalLabel;   // "மொத்த உண்டியல்" ... in the bottom strip
   renderIncomeTotal();
 }
 

@@ -1,0 +1,176 @@
+/* The Invitation card (Admin tab), its full-screen preview, and the invitation booklet itself (built by
+   invitation-pages.js). The booklet is a physical print, so its sizes are in inches and points: a page is 9 x 12 in,
+   two pages make an 18 x 12 in sheet. Row heights set here (--rh per table) must match invitation-pages.js (INV). */
+
+@page inv { size: 18in 12in; margin: 0; }
+
+/* ---------- the card ---------- */
+.inv-actions { display: flex; gap: 10px; margin-top: 16px; }
+#inv-hint { margin: 10px 0 0; }
+
+/* ---------- the preview (full screen) ---------- */
+#inv-overlay { display: none; position: fixed; inset: 0; z-index: 100; flex-direction: column; background: #374151; }
+#inv-overlay.open { display: flex; }
+@media screen { body.inv-open { overflow: hidden; } }
+.inv-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 16px; background: #111827; color: #fff; }
+.inv-bar-title { font-weight: 700; margin-right: auto; }
+.inv-bar-hint { font-size: 0.8rem; color: #cbd5e1; }
+.inv-bar button { min-height: 38px; padding: 6px 16px; }
+.inv-bar .secondary { background: transparent; color: #fff; border: 1px solid #94a3b8; }
+.inv-bar .secondary:hover:not(:disabled) { background: rgba(255, 255, 255, 0.12); }
+.inv-bar button:disabled { opacity: 0.4; cursor: default; }
+.inv-nav { display: flex; align-items: center; gap: 8px; }
+#inv-page-pos { min-width: 7.5em; text-align: center; font-weight: 600; }
+.inv-scroll { flex: 1; overflow: auto; padding: 14px 12px; display: flex; justify-content: center; align-items: flex-start; }
+
+/* on screen only the current page shows; the sheet wrappers are layout-less (they matter only for printing) */
+@media screen {
+  .inv-sheet-wrap, .inv-sheet { display: contents; }
+  .inv-page { display: none; zoom: var(--inv-zoom, 1); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); }
+  .inv-page.current { display: block; }
+  .inv-measuring .inv-page { display: block; }   /* every page laid out for a moment, so the titles can be measured (invFitTitles) */
+}
+
+/* ---------- a page ---------- */
+.inv-page {
+  position: relative; flex: none; box-sizing: border-box; width: 9in; height: 12in; background: #fff; color: #000; outline: none;
+  font-family: "Noto Sans Tamil", "Inter", sans-serif; font-weight: 600; line-height: 1.3;
+}
+.inv-page:focus-within .inv-frame { box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.35); }   /* where typing goes (screen only: print overrides) */
+
+/* the frame: a thick outer line, a gap, a thin inner line (the printed booklet's border) */
+.inv-frame { position: absolute; left: 0.545in; right: 0.545in; top: 0.75in; bottom: 0.85in; box-sizing: border-box; border: 0.06in solid #000; }
+.inv-frame::before { content: ""; position: absolute; inset: 0.035in; border: 0.015in solid #000; pointer-events: none; }
+.inv-body { position: absolute; inset: 0.17in 0.2in 0.2in; }
+
+/* ornate corners (cover, letter, donors, summary): the same flourish, mirrored into each corner */
+.inv-corner { position: absolute; width: 0.72in; height: 0.74in; pointer-events: none; user-select: none; }
+.inv-corner-tl { left: 0.04in; top: 0.01in; }
+.inv-corner-tr { right: 0.04in; top: 0.01in; transform: scaleX(-1); }
+.inv-corner-bl { left: 0.04in; bottom: 0.01in; transform: scaleY(-1); }
+.inv-corner-br { right: 0.04in; bottom: 0.01in; transform: scale(-1, -1); }
+
+/* the page number, sitting on the bottom edge of the frame */
+.inv-badge {
+  position: absolute; left: 50%; bottom: -0.2in; transform: translateX(-50%); box-sizing: border-box; min-width: 0.62in; height: 0.32in;
+  border: 0.04in solid #000; border-radius: 0.2in; background: #fff; display: flex; align-items: center; justify-content: center; padding: 0.066in 0 0; line-height: 1;   /* the digits' ink sits high in the line box, so the top padding nudges it to the true middle */ font-size: 14pt; font-weight: 800; user-select: none;
+}
+
+/* ---------- title boxes ---------- */
+.inv-title-wrap { height: 0.62in; padding-top: 0.04in; box-sizing: border-box; }
+.inv-title {
+  width: max-content; max-width: 100%; margin: 0 auto; padding: 0.04in 1.35em;   /* side padding in em: it shrinks with the text when invFitTitles() makes a long title fit one row */
+  box-sizing: border-box; border: 0.02in solid #000; background: #fff;
+  box-shadow: 0.045in 0.045in 0 #000; text-align: center; font-size: 15pt; font-weight: 800; line-height: 1.3;
+}
+.inv-blk + .inv-blk { margin-top: 0.2in; }
+
+/* ---------- the tables ---------- */
+.inv-t { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: var(--fs, 10pt); font-weight: 800; }
+.inv-t th, .inv-t td { height: var(--rh); padding: 0 0.07in; border: 1px solid #000; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; line-height: 1.1; }
+/* lists with a header row: the number, receipt and amount columns are only as wide as their headers, so they get less side padding */
+.inv-tight th, .inv-tight td:not(.name) { padding: 0 0.04in; }
+.inv-tight th:last-child, .inv-tight td.amt { padding: 0 0.025in; }
+.inv-t.inv-tight td.amt { text-align: center; }   /* amounts (and the total) sit in the middle of the தொகை column */
+.inv-t th { height: 0.44in; font-size: 9pt; font-weight: 600; white-space: normal; text-align: center; color: #000; background: none; text-transform: none; letter-spacing: 0; }
+.inv-t td.n, .inv-t td.r { text-align: center; }
+.inv-t td.amt { text-align: right; font-weight: 800; }
+.inv-t td small { font-size: 0.68em; font-weight: 600; }
+.inv-total td { height: 0.3in; text-align: center; font-size: 11pt; }
+.inv-total td.amt { font-size: 10pt; }   /* so a total like 1,74,455 fits the narrow amount column */
+.inv-total td.amt { text-align: right; }
+
+/* page 3: names and amounts without gridlines */
+/* Page 10, gifts in kind: a boxed two-column table whose rows grow with their text (the others are fixed-height). */
+.inv-gifts { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 8.5pt; line-height: 1.2; }
+.inv-gifts td { padding: 0.03in 0.06in; border: 1px solid #000; vertical-align: middle; overflow-wrap: anywhere; }
+.inv-gifts td.item { font-weight: 500; }
+.inv-gifts td.who { font-weight: 800; }
+.inv-plain td { border: 0; padding: 0 0.1in; font-weight: 700; }
+.inv-plain td.name { text-align: left; }
+.inv-plain td small, .inv-center small { font-size: 0.78em; font-weight: 600; }
+.inv-center { text-align: center; font-size: 11pt; font-weight: 700; }
+.inv-center p { margin: 0.03in 0; }
+.inv-rule { border: 0; border-top: 0.015in solid #000; margin: 0.12in 0; }
+.inv-total-line { display: flex; justify-content: space-between; margin: 0.1in 0 0.1in 0.25in; width: 82%; font-size: 11pt; font-weight: 800; }
+.inv-total-line span { margin-left: 2in; }
+.inv-appeal { text-align: center; font-size: 9.5pt; font-weight: 800; line-height: 1.3; }
+.inv-appeal p { margin: 0.01in 0; }
+.inv-signoff { margin: 0.08in 0 0.03in; text-align: center; font-size: 10pt; font-weight: 800; text-decoration: underline; }
+.inv-contacts { margin: 0 auto; border-collapse: collapse; font-size: 10pt; font-weight: 800; }
+.inv-contacts td { padding: 0.01in 0.1in; }
+.inv-contacts td:nth-child(2) { border-right: 1px solid #000; }
+
+/* page 12: the summary */
+.inv-sum { width: 100%; margin-bottom: 0.1in; border-collapse: collapse; border: 1px solid #000; table-layout: fixed; }
+.inv-sum td { padding: 0.035in 0.1in; border: 1px solid #000; font-size: 10.5pt; font-weight: 800; line-height: 1.3; }
+.inv-sum td.amt { text-align: right; font-size: 12pt; }
+.inv-sum tr.ctr td.name { text-align: center; }
+.inv-sub { margin: 0.1in 0 0.06in; text-align: center; font-size: 11pt; font-weight: 800; color: #444; }
+.inv-request-title { width: max-content; margin: 0.06in auto 0.1in; padding: 0.03in 0.2in; border: 1px solid #555; background: #eee; font-size: 11pt; font-weight: 800; box-shadow: 0.03in 0.03in 0 #777; }
+.inv-requests p { margin: 0.05in 0; font-size: 10pt; font-weight: 600; line-height: 1.4; }
+.inv-requests p span { display: inline-block; width: 0.3in; font-weight: 800; }
+
+/* page 11: the closing note */
+.inv-note { margin-top: 0.15in; text-align: center; font-size: 13pt; font-weight: 800; line-height: 1.55; padding: 0 0.3in; }
+.inv-note p { margin: 0; }
+
+
+/* ---------- printing: only the booklet, one sheet per paper ---------- */
+/* ---------- cover (page 1) ---------- */
+.inv-toran { display: block; width: 5.7in; margin: -0.12in auto 0; }
+.inv-cover-head { display: flex; align-items: center; justify-content: center; gap: 0.35in; margin-top: 0.12in; }
+.inv-dancer { width: 0.7in; height: auto; }
+.inv-flip { transform: scaleX(-1); }
+.inv-cover-title { margin: 0; text-align: center; font-size: 22pt; font-weight: 800; line-height: 1.25; }
+.inv-cover-motto { margin: 0; text-align: center; font-size: 10.5pt; font-weight: 700; }
+.inv-cover-invite { margin-top: 0.1in; border-top: 0.015in solid #000; text-align: center; }
+.inv-cover-invite p { margin: 0; }
+.inv-cover-year { margin-top: 0.1in; font-size: 14pt; font-weight: 600; }
+.inv-cover-name { font-size: 15.5pt; font-weight: 800; line-height: 1.3; }
+.inv-cover-date { position: relative; height: 0.3in; margin-top: 0.06in; }
+.inv-cover-date::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; border-top: 0.015in solid #000; }
+.inv-cover-date span { position: relative; display: inline-block; padding: 0 0.15in; border: 0.015in solid #000; border-radius: 0.06in; background: #fff; font-size: 10.5pt; font-weight: 800; line-height: 0.27in; }
+.inv-cover-art { display: flex; align-items: center; justify-content: space-between; margin-top: 0.25in; height: 5.2in; }
+.inv-cover-art > img:not(.inv-peacock) { width: 6.3in; height: auto; }
+.inv-peacock { width: 0.47in; height: 3in; }
+.inv-verse { width: max-content; max-width: 100%; margin: 0.2in auto 0; }
+.inv-verse p { margin: 0; font-size: 12.5pt; font-weight: 700; line-height: 1.5; }
+
+/* ---------- letter (page 2) ---------- */
+.inv-greet { margin: 0 0 0.04in 0.75in; font-size: 11pt; font-weight: 600; }
+.inv-letter p { margin: 0; text-align: center; font-size: 10pt; font-weight: 600; line-height: 1.38; }
+.inv-letter b { font-weight: 800; }
+.inv-signoff-block { margin-top: 0.1in; }
+.inv-signoff-block p { font-size: 13pt; font-weight: 800; line-height: 1.5; }
+.inv-contact-row { display: flex; align-items: center; justify-content: center; gap: 0.35in; margin: 0.14in 0 0.1in; border-top: 0.015in solid #000; border-bottom: 0.015in solid #000; padding: 0.08in 0; }
+.inv-contact-label { background: #000; color: #fff; padding: 0.04in 0.14in; border-radius: 0.05in; font-size: 11pt; font-weight: 800; }
+.inv-contact-row > div { display: flex; flex-direction: column; align-items: center; font-size: 13pt; font-weight: 800; line-height: 1.35; }
+.inv-contact-row > div + div { padding-left: 0.35in; border-left: 0.02in solid #000; }
+.inv-people p { margin: 0; text-align: center; font-size: 11pt; font-weight: 800; line-height: 1.55; }
+.inv-people small { font-size: 8pt; }
+.inv-headtax { margin: 0.1in 0 0.05in; border-top: 0.015in solid #000; border-bottom: 0.015in solid #000; padding: 0.05in 0; text-align: center; font-size: 22pt; font-weight: 800; line-height: 1.3; }
+.inv-headtax-text p { font-size: 10.5pt; line-height: 1.35; }
+.inv-program-title { margin-top: 0.12in; text-align: center; }
+.inv-program-title span { display: inline-block; padding: 0.03in 0.3in; border: 0.02in solid #000; border-radius: 0.07in; font-size: 12pt; font-weight: 800; }
+.inv-program-date { margin: 0.08in 0 0.06in; border-top: 0.015in solid #000; padding-top: 0.06in; text-align: center; font-size: 14pt; font-weight: 800; }
+.inv-program { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.inv-program td { border: 1px solid #000; padding: 0.03in 0.08in; font-size: 10pt; font-weight: 600; line-height: 1.3; vertical-align: middle; }
+.inv-program td.when { width: 2.1in; font-size: 9.5pt; }
+.inv-program b { font-weight: 800; font-size: 11pt; }
+.inv-program small { font-size: 8.5pt; font-weight: 700; }
+.inv-program-note { margin: 0; border: 1px solid #000; border-top: 0; padding: 0.04in 0; text-align: center; font-size: 10pt; font-weight: 600; }
+
+@media print {
+  body.inv-printing #inv-overlay, #inv-overlay.open { display: block; position: static; background: none; }
+  body.inv-printing #print-summary { display: none; }
+  body.inv-printing, body.inv-printing #app { margin: 0; padding: 0; min-height: 0; }   /* the page padding would spill onto a blank extra page */
+  .inv-bar { display: none; }
+  .inv-scroll { display: block; overflow: visible; padding: 0; }
+  .inv-sheet-wrap { page: inv; break-after: page; height: 12in; overflow: hidden; }   /* exactly one sheet, so no blank page can spill after it */
+  .inv-sheet-wrap:last-child { break-after: auto; }
+  .inv-sheet { display: flex; width: 18in; height: 12in; background: #fff; }
+  .inv-page { display: block; zoom: 1; box-shadow: none; }
+  .inv-page:focus-within .inv-frame { box-shadow: none; }
+  .inv-page { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

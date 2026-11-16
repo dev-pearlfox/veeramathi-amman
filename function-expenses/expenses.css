@@ -6,9 +6,11 @@
 .expense-panel { max-width: 760px; margin: 0 auto; }
 @media (max-width: 640px) { .expense-panel { padding: 12px; } }
 
-/* The members sheet is hidden in these views, so its column totals in the bottom banner would float over nothing.
-   The buttons in the banner (members, sign out, dashboard) stay. */
-body.view-income .totals-track { visibility: hidden; }
+/* The members sheet is hidden in these views, so the banner swaps its "Collected / Need" line for the open table's own
+   total ("மொத்த உண்டியல் = 5,000", filled in by income.js). The buttons in the banner (members, sign out, dashboard) stay. */
+.totals-col-line { display: none; }
+body.view-income .totals-col-members { display: none; }
+body.view-income .totals-col-line { display: flex; }
 
 /* The typed-lines tables (the வரவு extras and செலவு) — see income.js. Same centred footprint as above (.expense-card);
    the panel is wider because these tables have up to six columns (they scroll sideways on a phone, like the members
@@ -24,6 +26,7 @@ body.view-income .totals-track { visibility: hidden; }
 .income-table .ic-note { min-width: 150px; }
 .income-table .ic-phone { min-width: 140px; }
 .income-table .ic-amount { min-width: 110px; width: 120px; }
+.income-table .ic-receipt { min-width: 100px; width: 110px; }   /* a receipt number is short */
 .income-table tfoot td { font-weight: 800; border-top: 2px solid var(--border); border-bottom: 0; white-space: nowrap; }
 .income-table tr.row-saved td { background: var(--accent-soft); }
 button.income-del { background: transparent; box-shadow: none; color: #9a3412; min-height: 0; padding: 4px 10px; font-size: 1.3rem; line-height: 1; border-radius: 8px; }

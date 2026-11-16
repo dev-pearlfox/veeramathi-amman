@@ -17,6 +17,7 @@ function markSaved(functionId) {
 }
 
 function renderAdmin() {
+  renderInvitationCard();   // invitation.js
   $("functions-list").innerHTML = functionsList
     .slice()
     .sort((a, b) => b.year - a.year || a.name.localeCompare(b.name))
@@ -130,12 +131,12 @@ async function saveSanthaAmount(functionId, newAmount) {
 
 // ---------- Change passwords ----------
 // There are TWO logins: the Dashboard's and the Accounts page's. Each gets its own clearly named card, built from
-// this one list so the two can never drift apart. Changing either one needs that login's CURRENT password.
+// this one list so the two can never drift apart (cards show in list order: Accounts on the left, Dashboard on the right). Changing either one needs that login's CURRENT password.
 const PASSWORD_CARDS = [
-  { key: "dash", name: "Dashboard", email: DASHBOARD_EMAIL, title: "Change Dashboard password",
-    about: "Signs you in to this Dashboard (Overview, Explore, Admin). The Accounts page has its own password." },
   { key: "acc", name: "Accounts", email: ACCOUNTS_EMAIL, title: "Change Accounts page password",
     about: "Signs you in to the Accounts page (members, வரவு, செலவு). You need the current Accounts password to change it." },
+  { key: "dash", name: "Dashboard", email: DASHBOARD_EMAIL, title: "Change Dashboard password",
+    about: "Signs you in to this Dashboard (Overview, Explore, Admin). The Accounts page has its own password." },
 ];
 
 // Verifies the current password and sets the new one for `email`, using a throwaway client that keeps nothing in
@@ -197,10 +198,8 @@ PASSWORD_CARDS.forEach((c) => {
   });
 });
 
-// Two sign-out buttons (the Admin card and the bottom banner) share one handler.
-for (const id of ["signout-btn", "banner-signout-btn"]) {
-  $(id).addEventListener("click", async () => {
-    await client.auth.signOut();
-    location.reload();
-  });
-}
+// The sign-out button in the bottom banner.
+$("banner-signout-btn").addEventListener("click", async () => {
+  await client.auth.signOut();
+  location.reload();
+});
