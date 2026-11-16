@@ -13,10 +13,6 @@ const saveTimers = {};
 
 const $ = (id) => document.getElementById(id);
 
-// Scroll shrink / expand / freeze (scroll-compact.js, shared with members.html). Created here, at the top, so unlockApp()
-// can call scrollCompact.rearmFreeze() safely even if the getSession() auto-unlock resolves early.
-const scrollCompact = initScrollCompact();
-
 function setStatus(id, message, isError) {
   const el = $(id);
   el.textContent = message || "";
@@ -65,24 +61,8 @@ function unlockApp() {
   // the (now correctly measured) title instead of just visually scaling
   // without reclaiming the freed space.
   syncHeaderTitleCollapse();
-  // #gate-password's autofocus scrolls the page to bring it into view
-  // during the initial render (its card is taller than a lot of real
-  // viewports — on mobile heights specifically, since desktop viewports
-  // are almost always tall enough that the gate never needs to scroll at
-  // all, which is why this only ever showed up on mobile) — that residual
-  // scroll position doesn't reset on its own once #gate is hidden and
-  // #app appears. scrollTo(0,0) alone isn't enough to fix it: the passive
-  // scrollY>10 shrink listener (further below) is active unconditionally
-  // from page load, watching window.scrollY regardless of whether #gate
-  // or #app is visible, so the autofocus-scroll itself (well before the
-  // user ever touches #app) can already have set is-scrolled — and since
-  // that shrink is a one-way latch that never auto-removes (see its own
-  // HEART LOGIC comment), resetting the scroll POSITION here doesn't
-  // undo a CLASS that was already added. Removing it explicitly, and
-  // re-arming the freeze so the very first real scroll inside the app
-  // still gets the intended freeze-then-release treatment.
-  document.body.classList.remove("is-scrolled");
-  scrollCompact.rearmFreeze();
+  // #gate-password's autofocus can scroll the page on short (mobile) viewports, and that residual scroll position does not
+  // reset by itself once #gate is hidden and #app appears, so put it back at the top.
   window.scrollTo(0, 0);
   loadAll();
 }
@@ -128,7 +108,7 @@ $("logout-btn").addEventListener("click", () => {
 // that outer card's own width must stay fixed at all times to keep
 // matching the spreadsheet's width below it (see .sheet-filter-card's own
 // comment in style.css), so it can't be the thing that scales. SCALE here
-// must match body.is-scrolled .pills-inline's scale() in style.css.
+// must match body.is-compact .pills-inline's scale() in style.css.
 const SHEET_FILTER_CARD_COMPACT_SCALE = 0.75;
 function syncSheetFilterCardCollapse() {
   const pillsInline = document.querySelector(".pills-inline");
@@ -165,20 +145,11 @@ window.addEventListener("load", syncPillRowOverflow);
 if (document.fonts) document.fonts.ready.then(syncPillRowOverflow);
 syncPillRowOverflow();
 if (sheetFilterCard) new MutationObserver(syncPillRowOverflow).observe(sheetFilterCard, { childList: true, subtree: true, characterData: true });
-// nowrap only applies once body.is-scrolled (style.css) — a row that
-// fits fine while wrapped in the expanded state can still overflow once
-// switched to nowrap, so this needs re-checking on every is-scrolled
-// toggle too, not just on load/resize/content-change.
-new MutationObserver(syncPillRowOverflow).observe(document.body, { attributes: true, attributeFilter: ["class"] });
-// The collapse margin above is only applied once scrolled, but the pills can be taller wrapped (expanded) than they are
-// in the single nowrap line used when scrolled. Measured while expanded it came out too big, and on a phone the pills
-// then overlapped the title below. So it is measured again on every is-scrolled toggle, in the layout it will be used in.
-new MutationObserver(syncSheetFilterCardCollapse).observe(document.body, { attributes: true, attributeFilter: ["class"] });
 
 // Same transform:scale() + margin-collapse technique as
 // syncSheetFilterCardCollapse above, for #sheet-title (the function
 // name/year heading + குடும்பத் தலைவர்கள் toggle button). SCALE here must match
-// body.is-scrolled #sheet-title's scale() in style.css.
+// body.is-compact #sheet-title's scale() in style.css.
 const SHEET_TITLE_COMPACT_SCALE = 0.7;
 function syncSheetTitleCollapse() {
   // Deferred one frame: .sheet-title-inner's width is calc(100%/0.7) of
@@ -191,25 +162,12 @@ function syncSheetTitleCollapse() {
   // at 44px/-13.2px once layout has genuinely settled, calling it again
   // moments later). Waiting a frame lets the browser finish laying out
   // the new content before measuring it, same fix in spirit as the
-  // is-scrolled toggle immediately below being synchronous.
+  // is-compact toggle immediately below being synchronous.
   requestAnimationFrame(() => {
     const title = document.getElementById("sheet-title");
     if (!title) return;
-    // Must measure the SCROLLED-state layout height here, not the rest
-    // state's — this formula assumes scrolled is just a scaled-down copy
-    // of rest's own layout, which broke once body.is-scrolled #sheet-title
-    // (style.css) got its own flex-wrap:nowrap: rest can wrap to 2+ lines
-    // for a long function name, but scrolled is always forced to exactly
-    // one line, a structurally different (usually much shorter) box, not a
-    // simple 0.7x scale of the multi-line one. Using rest's height there
-    // over-subtracted the margin and pulled the table header up over the
-    // title. Toggling is-scrolled here (synchronously, no repaint happens
-    // between the two calls) measures the real scrolled-state height
-    // directly instead of assuming the ratio.
-    const wasScrolled = document.body.classList.contains("is-scrolled");
-    if (!wasScrolled) document.body.classList.add("is-scrolled");
+    // The page is always in the compact state (body.is-compact), so this is simply the real height of the title as shown.
     const scrolledHeight = title.offsetHeight;
-    if (!wasScrolled) document.body.classList.remove("is-scrolled");
     const collapse = -(scrolledHeight * (1 - SHEET_TITLE_COMPACT_SCALE));
     document.documentElement.style.setProperty("--sheet-title-margin-collapse", collapse + "px");
   });
@@ -238,8 +196,6 @@ if (sheetTitleEl) new MutationObserver(syncSheetTitleCollapse).observe(sheetTitl
 // #sheet-title's own border-box size, so this can't retrigger itself.
 if (sheetTitleEl) new ResizeObserver(syncSheetTitleCollapse).observe(sheetTitleEl);
 if (sheetTitleEl) new MutationObserver(syncPillRowOverflow).observe(sheetTitleEl, { childList: true, subtree: true, characterData: true });
-
-// Scroll-compact shrink / expand / freeze: see scroll-compact.js (shared with members.html).
 
 // ---------- Data loading ----------
 

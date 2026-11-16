@@ -2,7 +2,7 @@
 
 /* The column is only 30px wide, so its title cell drops the usual side padding (resting and while scrolled). */
 table.sheet:not(.members-table) thead th.note-th,
-body.is-scrolled table.sheet:not(.members-table) thead th.note-th { padding-left: 0; padding-right: 0; }
+body.is-compact table.sheet:not(.members-table) thead th.note-th { padding-left: 0; padding-right: 0; }
 .note-th svg { display: block; width: 18px; height: 18px; margin: 0 auto; }
 
 .note-cell { text-align: center; }

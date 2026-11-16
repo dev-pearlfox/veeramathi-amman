@@ -71,13 +71,13 @@ function filterDigitsInput(el) {
 // the full reasoning: animating font-size on wrapping text causes a
 // discrete, unsmoothable jump exactly when it collapses from 2 lines to 1).
 // Shared by index.html and members.html — both use the same
-// body.is-scrolled header h1 transform:scale() rule in style.css. Scaling
+// body.is-compact header h1 transform:scale() rule in style.css. Scaling
 // alone doesn't shrink the space the title reserves in the page (transform
 // is purely visual, not layout), so a negative margin pulls that freed
 // space closed — computed from the title's actual rendered height
 // (h1.offsetHeight, which transform doesn't affect) rather than guessed,
 // since the Tamil text's wrap/height varies by screen width.
-// SCALE here must match the `scale(0.6)` in body.is-scrolled header h1.
+// SCALE here must match the `scale(0.6)` in body.is-compact header h1.
 const HEADER_TITLE_COMPACT_SCALE = 0.6;
 function syncHeaderTitleCollapse() {
   const h1 = document.querySelector("header h1");

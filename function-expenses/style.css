@@ -56,7 +56,7 @@ header {
   transition: padding 0.2s ease;
   /* Without this, the browser's scroll anchoring "compensates" for this
      element shrinking by silently reducing scrollY to match — which drops
-     it below the is-scrolled threshold, un-triggers the shrink, and the
+     it below the is-compact threshold, un-triggers the shrink, and the
      element snaps back to full size while scroll position stays stuck near
      0. Confirmed by logging scrollY alongside the shrink: they fell in
      lockstep until scrollY bottomed out. This animation is intentional, not
@@ -64,12 +64,12 @@ header {
   overflow-anchor: none;
 }
 /* index.html only (.header-logo-main marks its header, same scoping
-   technique as the is-scrolled override below) — no left/right padding,
+   technique as the is-compact override below) — no left/right padding,
    top/bottom 30px unchanged, by explicit request. */
 header:has(.header-logo-main) { padding-left: 0; padding-right: 0; }
 
 /* Shared by index.html and members.html — each page's own JS toggles
-   body.is-scrolled once the page is scrolled a bit, shrinking the pinned
+   body.is-compact once the page is scrolled a bit, shrinking the pinned
    header/pills/table-header stack so more of the sheet is visible while
    browsing. 30px vertical padding is a fixed value regardless of how many
    lines the title wraps to — the banner's total height isn't set directly
@@ -78,14 +78,14 @@ header:has(.header-logo-main) { padding-left: 0; padding-right: 0; }
    count (h1's own negative margin-bottom, computed live in JS from its
    actual rendered height, already accounts for however tall the title
    ends up being — see syncHeaderTitleCollapse in shared.js). */
-body.is-scrolled header { padding: 30px 16px; }
+body.is-compact header { padding: 30px 16px; }
 /* index.html only — its header has a logo image (.header-logo-main;
    members.html's header is text-only), used here to scope this override
    without needing a body/page-level class. Tighter vertical padding once
    scrolled than the shared 30px above, by explicit request — independent
    of the title's own height-driven shrink (h1's transform:scale() +
    negative margin-bottom above), which still applies on top of this. */
-body.is-scrolled header:has(.header-logo-main) { padding: 5px 0; }
+body.is-compact header:has(.header-logo-main) { padding: 5px 0; }
 /* HEART LOGIC — do not change without asking (transform, not font-size).
    Deliberately NOT font-size here — shrinking font-size continuously changes
    how many words fit per line, and the exact moment the title's text
@@ -99,7 +99,7 @@ body.is-scrolled header:has(.header-logo-main) { padding: 5px 0; }
    --header-h1-margin-collapse (set in members.js from a one-time real
    measurement of the title's rendered height) pulls the freed-up space
    closed to actually shrink the header, not just the text inside it. */
-body.is-scrolled header h1 {
+body.is-compact header h1 {
   transform: scale(0.6);
   margin-bottom: var(--header-h1-margin-collapse, 0px);
 }
@@ -123,7 +123,7 @@ header h1 {
 /* HEART LOGIC — do not change without asking (one shared sticky container).
    members.html only — header, the type-filter pills, and the spreadsheet's
    own column-title/filter row all need to scroll-pin and shrink together as
-   one visual unit (see body.is-scrolled rules below). Giving them one shared
+   one visual unit (see body.is-compact rules below). Giving them one shared
    sticky container instead of each being independently sticky (with the
    pills bar's/table header's own `top` computed via JS from the elements
    above them) avoids a real, measured two-stage stutter: a plain CSS class
@@ -416,7 +416,7 @@ body.master-locked #new-member-row select {
   letter-spacing: -0.01em;
   transition: margin-top 0.2s ease, margin-bottom 0.2s ease;
 }
-body.is-scrolled #sheet-title {
+body.is-compact #sheet-title {
   margin-top: 0;
   margin-bottom: var(--sheet-title-margin-collapse, 0px);
 }
@@ -437,7 +437,7 @@ body.is-scrolled #sheet-title {
   transform-origin: top left;
   transition: transform 0.2s ease;
 }
-body.is-scrolled .sheet-title-inner {
+body.is-compact .sheet-title-inner {
   transform: scale(0.7);
   /* transform:scale(0.7) shrinks what's RENDERED, but the box still
      reserves its full pre-scale width in the layout — leaving real,
@@ -462,15 +462,15 @@ body.is-scrolled .sheet-title-inner {
    scoped to just the text instead of the whole row, for the rare case a
    function name alone is too long for one line even with the button out
    of the way. */
-body.is-scrolled .sheet-title-inner > span {
+body.is-compact .sheet-title-inner > span {
   white-space: nowrap;
   overflow-x: auto;
   max-width: 100%;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
-body.is-scrolled .sheet-title-inner > span::-webkit-scrollbar { display: none; }
-body.is-scrolled .sheet-title-inner > span.has-overflow {
+body.is-compact .sheet-title-inner > span::-webkit-scrollbar { display: none; }
+body.is-compact .sheet-title-inner > span.has-overflow {
   mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
   -webkit-mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
 }
@@ -632,7 +632,7 @@ th { color: var(--muted); font-weight: 600; }
      (expand) state's mobile size, scoped by this same media query, so
      desktop's own 90px (base rule above) is untouched. The shrunk/
      scrolled state's mobile logo size isn't set independently — it's
-     derived from this value via body.is-scrolled header h1's own
+     derived from this value via body.is-compact header h1's own
      transform:scale(0.6) — so it gets proportionally bigger too as a
      side effect of this change, not a separate decision. */
   .header-logo-main { height: 75px; }
@@ -716,7 +716,7 @@ th { color: var(--muted); font-weight: 600; }
   margin: 22px auto 0;
   transition: margin-top 0.2s ease;
 }
-body.is-scrolled .sheet-thead-wrap { margin-top: 0; }
+body.is-compact .sheet-thead-wrap { margin-top: 0; }
 
 .sheet-tbody-wrap {
   overflow-x: auto;
@@ -759,7 +759,7 @@ body.is-scrolled .sheet-thead-wrap { margin-top: 0; }
   margin: 22px auto 0;
   transition: margin-top 0.2s ease, padding 0.2s ease;
 }
-body.is-scrolled .sheet-filter-card { margin-top: 0; padding: 4px 0; }
+body.is-compact .sheet-filter-card { margin-top: 0; padding: 4px 0; }
 
 /* Same transform:scale() technique as .members-filter-card (see its own
    HEART LOGIC comment) — shrinks as one compositor-only unit instead of
@@ -767,7 +767,7 @@ body.is-scrolled .sheet-filter-card { margin-top: 0; padding: 4px 0; }
    wrapper instead of .sheet-filter-card itself (see that rule's own
    comment for why). top left, not top center, since its content
    (the function pills) are left-aligned, not centered — EXCEPT once scrolled
-   (see body.is-scrolled override below), where the rows switch to
+   (see body.is-compact override below), where the rows switch to
    centered and the scale origin switches with them; scaling centered
    content from a left origin would pull it visibly off-center (the right
    side shrinks toward the left corner more than the left side does). */
@@ -775,7 +775,7 @@ body.is-scrolled .sheet-filter-card { margin-top: 0; padding: 4px 0; }
   transform-origin: top left;
   transition: transform 0.2s ease, margin-bottom 0.2s ease;
 }
-body.is-scrolled .pills-inline {
+body.is-compact .pills-inline {
   gap: 4px;   /* tighter than the expanded 10px (applies if the card ever holds more than one row) */
   transform: scale(0.75);   /* must match SHEET_FILTER_CARD_COMPACT_SCALE in app.js */
   transform-origin: top center;
@@ -783,7 +783,7 @@ body.is-scrolled .pills-inline {
 }
 /* Rows center horizontally once compact, by explicit request — matches
    removing .sheet-filter-card's left/right padding above. */
-body.is-scrolled .pill-line { justify-content: center; }
+body.is-compact .pill-line { justify-content: center; }
 
 /* margin-top:0 overrides the base table rule's 4px (see that rule's own
    comment) — same fix already applied to table.members-table for the same
@@ -921,22 +921,22 @@ table.sheet tr.row-blink-error td input, table.sheet tr.row-blink-error td selec
    .members-filter-card .pill-row (see its own HEART LOGIC comment there
    for the reasoning: wrapping splits a long pill onto its own line
    unevenly on narrow screens). */
-body.is-scrolled .sheet-filter-card .pill-row {
+body.is-compact .sheet-filter-card .pill-row {
   flex-wrap: nowrap;
   max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
-body.is-scrolled .sheet-filter-card .pill-row::-webkit-scrollbar { display: none; }
+body.is-compact .sheet-filter-card .pill-row::-webkit-scrollbar { display: none; }
 /* has-overflow set by syncPillRowOverflow (app.js) only when the row
    actually has more content than fits — fades the trailing edge into a
    "more content, scroll for it" cue instead of the last pill's rounded
    shape getting sliced off flat at the card's edge. Scrolled state only,
    same as the nowrap rule above — the JS sets/clears the class in both
    states, but it's inert in the expanded state since no CSS here matches
-   without body.is-scrolled. */
-body.is-scrolled .sheet-filter-card .pill-row.has-overflow {
+   without body.is-compact. */
+body.is-compact .sheet-filter-card .pill-row.has-overflow {
   mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
   -webkit-mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
 }
@@ -979,6 +979,10 @@ body.is-scrolled .sheet-filter-card .pill-row.has-overflow {
 .title-group-label { font-weight: 700; color: #9a3412; font-size: 0.95rem; white-space: nowrap; }
 /* வரவு: / செலவு: groups in #sheet-title (app.js updateSheetTitle): வரவு stays with its own buttons; when a
    group is too wide for the screen its buttons wrap inside the group, not across the other group. */
+/* Bigger வரவு / செலவு buttons and label (owner-approved Heart Logic change). The page is always compact now, so the whole title block
+   is drawn at 0.7 scale: these sizes are what stays readable after that. Scoped to .title-actions, so the Print button is untouched. */
+.title-actions .members-toggle { font-size: 1.1rem; padding: 9px 20px; min-height: 40px; }
+.title-actions .title-group-label { font-size: 1.2rem; }
 .title-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
 /* Print / save as PDF. Accounts (print.js): on the title's own line, at its right end. The title text takes the room
@@ -1125,7 +1129,7 @@ table.members-table { width: 1176px; margin-top: 0; }
   margin: 22px auto 0; /* top value is breathing room from the pills bar above; closes to 0 once scrolled, just like the pills bar's own margin does */
   transition: margin-top 0.2s ease;
 }
-body.is-scrolled .members-thead-wrap { margin-top: 0; }
+body.is-compact .members-thead-wrap { margin-top: 0; }
 
 /* contain:layout closes a real gap: overflow-x alone visually clips a
    wide table fine, but doesn't stop its true width from still counting
@@ -1205,7 +1209,7 @@ body.is-scrolled .members-thead-wrap { margin-top: 0; }
    shrink the space the card reserves in the page, so a negative
    margin-bottom (computed in members.js from the card's actual rendered
    height, which transform doesn't affect) pulls that freed space closed. */
-body.is-scrolled .members-filter-card {
+body.is-compact .members-filter-card {
   transform: scale(0.72);
   margin-top: 0;
   margin-bottom: var(--pills-card-margin-collapse, 0px);
@@ -1292,32 +1296,32 @@ table.members-table thead th:nth-child(7) {
 
 table.members-table thead th { padding: 10px; transition: padding 0.2s ease, font-size 0.2s ease; }
 
-/* Scroll-compact state (see body.is-scrolled header/.members-filter-card
+/* Scroll-compact state (see body.is-compact header/.members-filter-card
    above) — shrinks the column-title row and the Filter inputs row too, once
    the user is actually scrolling. Doesn't touch their resting-state sizes
    (the 1.05rem heart logic above), only what applies while scrolled. */
-body.is-scrolled table.members-table thead th { padding: 3px 6px; }
-body.is-scrolled table.members-table thead th:nth-child(1),
-body.is-scrolled table.members-table thead th:nth-child(2),
-body.is-scrolled table.members-table thead th:nth-child(3),
-body.is-scrolled table.members-table thead th:nth-child(4),
-body.is-scrolled table.members-table thead th:nth-child(5),
-body.is-scrolled table.members-table thead th:nth-child(6),
-body.is-scrolled table.members-table thead th:nth-child(7) {
+body.is-compact table.members-table thead th { padding: 3px 6px; }
+body.is-compact table.members-table thead th:nth-child(1),
+body.is-compact table.members-table thead th:nth-child(2),
+body.is-compact table.members-table thead th:nth-child(3),
+body.is-compact table.members-table thead th:nth-child(4),
+body.is-compact table.members-table thead th:nth-child(5),
+body.is-compact table.members-table thead th:nth-child(6),
+body.is-compact table.members-table thead th:nth-child(7) {
   font-size: 0.8rem;
 }
-body.is-scrolled table.sheet thead tr.filter-row th,
-body.is-scrolled table.sheet thead tr.filter-row td {
+body.is-compact table.sheet thead tr.filter-row th,
+body.is-compact table.sheet thead tr.filter-row td {
   padding: 1px 6px;
 }
-body.is-scrolled .filter-input { min-height: 14px; padding: 1px 6px; font-size: 0.72rem; }
+body.is-compact .filter-input { min-height: 14px; padding: 1px 6px; font-size: 0.72rem; }
 
 /* index.html's own Ledger Sheet column-title row — same shrink treatment
    as table.members-table's above, just missed when the scroll-compact
    architecture was first ported to this page (the filter-row rule above,
    and .filter-input, already applied here since those are shared
    table.sheet selectors, not members-table-specific — this one wasn't). */
-body.is-scrolled table.sheet:not(.members-table) thead th { padding: 3px 6px; font-size: 0.78rem; }
+body.is-compact table.sheet:not(.members-table) thead th { padding: 3px 6px; font-size: 0.78rem; }
 
 /* Centred title, logo at the left edge. The logo box is taken out of the row (absolute) so its width never pushes the title
    off-centre or steals line width on a phone; the title gets the full header width. min-height keeps the header as tall

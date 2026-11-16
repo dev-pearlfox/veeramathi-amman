@@ -1,6 +1,6 @@
 # HEART LOGIC INDEX — function-expenses/
 
-**Applies to:** `index.html`, `members.html`, `style.css`, `app.js`, `members.js`, `shared.js`, `scroll-compact.js` (and
+**Applies to:** `index.html`, `members.html`, `style.css`, `app.js`, `members.js`, `shared.js` (and
 `income.js`, `expenses.css`, which sit on top of it)
 
 Do not change any of the following without asking first (warn **"Warning: Heart
@@ -16,6 +16,13 @@ Header + `.members-filter-card` + `.members-thead-wrap` share ONE sticky
 container instead of each being independently sticky. Independent sticky +
 JS-measured offsets caused a real two-stage stutter (one piece shrank a frame
 before its neighbor's position updated).
+
+## 0. The header stack is ALWAYS in the compact (shrunk) state
+Owner decision (permission given): `<body class="is-compact">` is set in `index.html` and `members.html`, and never removed.
+There is no scroll-triggered shrink, no expand-on-wheel-up and no scroll freeze any more, so `scroll-compact.js` was deleted.
+The `body.is-compact ...` rules in `style.css` (formerly `body.is-scrolled`, same rules, renamed) are the one and only layout.
+The scale constants in `app.js`, `members.js` and `shared.js` must still match the `scale()` values in those rules.
+Do not add the old scroll listener back: it only existed to toggle this class.
 
 ## 2. `transform:scale()` vs padding/font-size for shrink animations
 (header h1, `.members-filter-card` in style.css) — transform is

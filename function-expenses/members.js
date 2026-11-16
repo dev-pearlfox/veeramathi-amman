@@ -49,13 +49,13 @@ $("members-tbody-wrap").addEventListener("scroll", () => {
 // .sticky-top-stack now (see style.css), so only the pills bar itself needs
 // a JS-computed value: its scroll-compact state uses transform:scale()
 // rather than animating each pill's own padding/font-size (see the
-// body.is-scrolled .members-filter-card comment in style.css for why), and
+// body.is-compact .members-filter-card comment in style.css for why), and
 // scaling alone doesn't shrink the space the card reserves in the page
 // (transform is purely visual, not layout) — a negative margin pulls that
 // freed space closed, computed from the card's actual rendered height
 // (offsetHeight, which transform doesn't affect) rather than guessed, since
 // it varies by screen width and by how many pills wrap onto their own line.
-// SCALE here must match the `scale(0.72)` in body.is-scrolled .members-filter-card.
+// SCALE here must match the `scale(0.72)` in body.is-compact .members-filter-card.
 const PILLS_CARD_COMPACT_SCALE = 0.72;
 function syncPillsCardCollapse() {
   const card = document.querySelector(".members-filter-card");
@@ -70,10 +70,6 @@ syncPillsCardCollapse();
 // syncHeaderTitleCollapse (HEART LOGIC — transform, not font-size, for the
 // title's shrink) now lives in shared.js, since index.html needs the exact
 // same behavior — one copy so the two pages can't drift apart.
-
-// Shrink on scroll, expand on wheel-up over the header, freeze while shrinking: the same code as the Accounts page
-// (scroll-compact.js). Heart Logic lives there, not here.
-initScrollCompact();
 
 function setStatus(message, isError) {
   const el = $("members-status");
