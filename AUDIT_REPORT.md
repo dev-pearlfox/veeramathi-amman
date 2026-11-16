@@ -51,7 +51,10 @@ With 82 members the size-driven findings drop in priority. The three timing and 
 | M6 serial startup, stale pill response | FIXED | people and functions load together; a stale ledger response is ignored. |
 | M1 fonts | FIXED | The Google Fonts `@import` is gone from both `style.css` files; each page `<head>` now has `preconnect` to fonts.googleapis.com and fonts.gstatic.com plus the font `<link>` before `style.css`, so the downloads run in parallel. Same families and weights (all of 400 to 800 are used somewhere, and fonts only download when used). Verified in headless Chrome against the pushed version: same faces loaded, identical header, h1, sheet and pill sizes. `style.css` `?v=20261116a` on all three pages. |
 | Tamil text font (found while doing M1) | DECIDED: leave as is | Tried Noto Sans Tamil for ALL Tamil text so it looks the same on every device. It is about 28 percent wider than the Mac's built-in Tamil font (Tamil Sangam MN), which the fixed-px layout was built against. Result in headless Chrome: Accounts sticky title row wraps to 2 lines (96 px to 185 px tall), the receipt-number header goes to 3 lines (+25 px), the Home link and every toggle button grow 20 to 30 percent, and a 12-letter place name no longer fits the 121 px Members place box (108 px of text became 138 px). Even Noto's condensed width axis at 70 percent (hard to read) leaves the button row at 1095 px against 813 px today. Reverted. Doing it properly means a deliberate layout pass: wider Members columns and a re-flowed Accounts title row, which are Heart Logic items and need your explicit permission. Only the page title uses Noto Sans Tamil today. |
-| M2 favicon, M5, M7, M8, M9, L-items | OPEN | Unchanged. |
+| M8 accessibility | PARTLY FIXED | Done: (1) every row control on Accounts, Members and the income/expense tables has an `aria-label` of the form "column - member name" (or "column - row N"), built by `ariaLabelAttr()` in `shared.js`; (2) `sheet-status` and `income-status` are `role="status" aria-live="polite"`, so save errors are announced; (3) `prefers-reduced-motion`: the totals shine pulse, the row-saved fade and the Dashboard saved-label pop are switched off, and the save flash holds a steady green or red tint instead of blinking (the signal is kept). The sticky/shrink transitions are untouched (Heart Logic). Verified in headless Chrome: 0 unlabelled controls on all three tables, animations on in normal mode and off with the reduced-motion flag, layout identical to the deployed version, H1/H2 save tests still pass. NOT done: date-picker arrow-key navigation and focus handling (desktop only; typing the date works) and styled confirm dialogs in place of `confirm()`. Contrast not measured. Not tested with a real screen reader. |
+| M7 Dashboard read-only | DECIDED: no | The Dashboard login is NOT read-only by design (its Admin tab adds functions, changes the santha amount and changes passwords), so it keeps write access. No database change. The wide-open policy for any logged-in user remains a known, accepted trade-off; the one cheap safeguard still open is not allowing `delete` on `people` (use `avoid = true`). |
+| M5 Dashboard loading and staleness | FIXED | (1) `data.js` `COLUMNS` lists the columns each screen really reads, so the `people` address JSON and other unused columns are no longer downloaded (a column a screen starts to need must be added there). (2) Coming back to the tab reloads the numbers when the last load is over 30 seconds old, except on the Admin tab (a reload would wipe an amount being typed; admin saves already reload). (3) Safety rules for that auto-refresh: a table that fails to load keeps the numbers already on screen and the red banner explains why; only one load runs at a time, and a call that arrives meanwhile waits and loads once more, so an old answer never lands after a newer one (this also covers an admin save overlapping a refresh). Verified in headless Chrome with a fake database whose answers contain only the asked-for columns: the text of Overview, Explore and Admin is identical to the deployed version (637, 1008 and 808 characters), refresh happens on return, not when fresh, not on Admin, a failed table is kept, overlapping calls do not run side by side. Not done on purpose: updating only the changed row after an admin save (a full reload is cheap at this size) and a Refresh button. |
+| M2 favicon, M9, L-items | OPEN | Unchanged. |
 
 Files changed in this round: `shared.js`, `app.js`, `income.js`, `members.js`, `functions-dashboard/admin.js`, and the `?v=20261116a` bump on the Accounts, Members and Dashboard `index.html` files. The wording of H1, H2 and H3 in section 4 below describes the problems as found, before the fix.
 
@@ -208,9 +211,9 @@ At your 82 members, scaling the 300-row figures down linearly: Members about 45 
 Done: H1, H2, H3 errors, M4, M6.
 
 1. M2: a real favicon (needs your emblem image, or a stand-in from the orange people icon). M1 is done.
-2. M8: row-input `aria-label`s, `aria-live` on the Accounts status lines, `prefers-reduced-motion`.
-3. M7: decide whether the Dashboard login should be read-only (database policy change).
-4. M5: Dashboard column selection and a refresh on tab focus.
+2. M8 remainder: date-picker keyboard navigation, optional styled confirm (labels, live regions and reduced motion are done).
+3. M7: decided, Dashboard stays writable (nothing to do).
+4. M5: done.
 5. L-items (cache-buster drift, duplicate `syncPillsCardCollapse`, `style.css` split) as time allows.
 6. M3 and M9 only with your explicit Heart Logic permission, and probably not needed at 82 members.
 
@@ -218,7 +221,7 @@ Every item above that changes a CSS/JS file needs the `?v=` bump on every page t
 
 ## 7. Questions for you
 
-1. Is the Dashboard password meant to be read-only? (decides M7)
+1. (Answered: the Dashboard login is not read-only.)
 2. Do you have the real emblem image for the favicon (M2)?
 3. Should the fixes from 2026-11-16 be committed and pushed?
 

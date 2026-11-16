@@ -87,12 +87,12 @@ function renderIncomeTotal() {
   document.getElementById("income-total").textContent = formatMoney(total);
 }
 
-function incomeCell(col, row) {
+function incomeCell(col, row, rowNo) {
   const t = FIELD_TYPES[col.field];
   const value = col.field === "amount" ? (row.amount ? formatMoney(row.amount) : "") : row[col.field];   // an empty amount shows blank, not 0
   const extra = t.mode ? ` inputmode="${t.mode}"` : "";
   const placeholder = col.placeholder ? ` placeholder="${escapeHtml(col.placeholder)}"` : "";
-  return `<td class="ic-${col.field}"><input type="${t.type}" class="f-income" data-field="${col.field}" value="${escapeHtml(String(value))}"${extra}${placeholder} /></td>`;
+  return `<td class="ic-${col.field}"><input type="${t.type}" class="f-income" data-field="${col.field}" ${ariaLabelAttr(col.label, `row ${rowNo}`)} value="${escapeHtml(String(value))}"${extra}${placeholder} /></td>`;
 }
 
 function renderIncome() {
@@ -102,7 +102,7 @@ function renderIncome() {
     `<tr><th class="ic-sno">S.No</th>${k.columns.map((c) => `<th class="ic-${c.field}">${c.label}</th>`).join("")}<th class="ic-del"></th></tr>`;
   document.getElementById("income-body").innerHTML = incomeRows.map((r, i) => `<tr data-id="${r.id}">
       <td class="ic-sno">${i + 1}</td>
-      ${k.columns.map((c) => incomeCell(c, r)).join("")}
+      ${k.columns.map((c) => incomeCell(c, r, i + 1)).join("")}
       <td class="ic-del"><button type="button" class="income-del" title="நீக்கு" aria-label="Remove this row">&times;</button></td>
     </tr>`).join("");
   // The label sits under the first column that is not the date; the total sits under the தொகை column.

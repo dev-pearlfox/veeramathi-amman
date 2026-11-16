@@ -447,24 +447,27 @@ function renderSheet() {
   });
 
   $("sheet-body").innerHTML = visible
-    .map(({ p, seq, e }) => `<tr data-person="${p.id}">
+    .map(({ p, seq, e }) => { const who = p.name; return `<tr data-person="${p.id}">
         <td>${seq}</td>
-        <td><input type="text" class="f-receipt" value="${escapeHtml(e.receipt_no || "")}" inputmode="numeric" /></td>
-        <td><input type="text" class="f-name" value="${escapeHtml(p.name)}" readonly /></td>
-        <td><input type="text" class="f-place" value="${escapeHtml(p.place ?? "")}" readonly /></td>
-        <td><input type="text" class="f-mobile" value="${escapeHtml(formatMobile(p.mobile))}" readonly /></td>
+        <td><input type="text" class="f-receipt" ${ariaLabelAttr(SHEET_LABELS.receipt, who)} value="${escapeHtml(e.receipt_no || "")}" inputmode="numeric" /></td>
+        <td><input type="text" class="f-name" ${ariaLabelAttr(SHEET_LABELS.name, who)} value="${escapeHtml(p.name)}" readonly /></td>
+        <td><input type="text" class="f-place" ${ariaLabelAttr(SHEET_LABELS.place, who)} value="${escapeHtml(p.place ?? "")}" readonly /></td>
+        <td><input type="text" class="f-mobile" ${ariaLabelAttr(SHEET_LABELS.mobile, who)} value="${escapeHtml(formatMobile(p.mobile))}" readonly /></td>
         <td>
           <div class="santha-cell">
-            <input type="checkbox" class="f-santha-check" data-amount="${santhaAmount}" ${e.santha_checked ? "checked" : ""} />
+            <input type="checkbox" class="f-santha-check" ${ariaLabelAttr(SHEET_LABELS.santha, who)} data-amount="${santhaAmount}" ${e.santha_checked ? "checked" : ""} />
             <span class="santha-amount ${e.santha_checked ? "" : "faded"}">${formatMoney(santhaAmount)}</span>
           </div>
         </td>
-        <td><input type="text" class="f-paid" value="${escapeHtml(e.paid || "")}" /></td>
-      </tr>`)
+        <td><input type="text" class="f-paid" ${ariaLabelAttr(SHEET_LABELS.paid, who)} value="${escapeHtml(e.paid || "")}" /></td>
+      </tr>`; })
     .join("");
 
   updateTotalsBanner(rows);
 }
+
+// Column names for the row controls' accessible labels (same words as the table header in index.html).
+const SHEET_LABELS = { receipt: "இரசீது எண்", name: "பெயர்", place: "ஊர்", mobile: "மொபைல் எண்", santha: "தலைக்கட்டு வரி", paid: "குறிப்பு" };
 
 function updateTotalsBanner(rows) {
   // Collected = what is ticked so far; / total = every head on this sheet paying the head tax; Need = the part still to collect

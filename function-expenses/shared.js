@@ -25,6 +25,12 @@ function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
+// Accessible name for a table-cell control. In both tables the column headers live in a separate <table> (the scrolling
+// split), so a screen reader would read a bare "edit text". This gives it "column - who" (who = member name or row number).
+function ariaLabelAttr(column, who) {
+  return `aria-label="${escapeHtml(who === undefined || who === "" ? column : `${column} - ${who}`)}"`;
+}
+
 // Mobile numbers display as: first 5 digits, space, the rest (98765 43210). For reading only: the saved value and
 // the box while editing have no spaces.
 function formatMobile(value) {

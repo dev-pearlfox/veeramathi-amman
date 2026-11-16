@@ -82,12 +82,37 @@ document.querySelector(".tabs").addEventListener("click", (e) => {
 });
 window.addEventListener("hashchange", () => showSection(location.hash.slice(1)));
 
-// Reload everything from the database, then redraw the section on screen.
-async function refreshAll() {
-  const problems = await loadAll();
-  dataLoaded = true;
-  const banner = $("data-banner");
-  banner.textContent = problems.join(" ");
-  banner.classList.toggle("hidden", problems.length === 0);
-  renderSection(currentSection);
+// Reload everything from the database, then redraw the section on screen. Only one load runs at a time: a call that
+// arrives while one is running waits for it and then loads once more, so an older answer can never land after a newer
+// one (for example a refresh on returning to the tab overlapping an admin save).
+let refreshing = null;
+let refreshAgain = false;
+let lastLoadedAt = 0;
+function refreshAll() {
+  if (refreshing) {
+    refreshAgain = true;
+    return refreshing;
+  }
+  refreshing = (async () => {
+    do {
+      refreshAgain = false;
+      const problems = await loadAll();
+      dataLoaded = true;
+      lastLoadedAt = Date.now();
+      const banner = $("data-banner");
+      banner.textContent = problems.join(" ");
+      banner.classList.toggle("hidden", problems.length === 0);
+      renderSection(currentSection);
+    } while (refreshAgain);
+  })().finally(() => { refreshing = null; });
+  return refreshing;
 }
+
+// Other people save payments on the Accounts page while this page sits open, so coming back to the tab after a while
+// loads fresh numbers. Not on the Admin tab: its list is redrawn by a load, which would wipe an amount being typed
+// (Admin saves refresh by themselves).
+const STALE_AFTER_MS = 30 * 1000;
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "visible" || !dataLoaded || currentSection === "admin") return;
+  if (Date.now() - lastLoadedAt > STALE_AFTER_MS) refreshAll();
+});

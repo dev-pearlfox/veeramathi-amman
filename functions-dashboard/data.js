@@ -8,6 +8,17 @@ let materials = [];
 let expenseEntries = [];  // செலவு (expense): one row per typed line (description + amount), see supabase/schema.sql
 let incomeEntries = [];   // extra வரவு typed on the Accounts page (INCOME_KINDS), see supabase/schema.sql
 
+// The columns the Dashboard actually reads, per table. Selecting only these keeps each load small (the people table's
+// `address` JSON, for one, is never shown here). If a screen ever needs another column, add it HERE or it will show blank.
+const COLUMNS = {
+  people: "id,name,name_en,member_no,mobile,avoid",
+  functions: "id,name,year,santha_amount",
+  ledger_entries: "id,function_id,person_id,santha,santha_checked,total,paid",
+  materials: "id,function_id,item_name,quantity,unit,cost,created_at",
+  expense_entries: "id,function_id,name,amount",
+  income_entries: "id,function_id,kind,amount",
+};
+
 // Supabase returns at most 1000 rows per request, so a plain select would SILENTLY drop rows once a table grows
 // past that (and the totals would just be wrong). This pages through until a short page comes back. `order` must
 // be a stable order, otherwise pages can overlap or skip rows.
@@ -15,7 +26,7 @@ async function fetchAll(table, order) {
   const PAGE = 1000;
   const rows = [];
   for (let from = 0; ; from += PAGE) {
-    const { data, error } = await order(client.from(table).select("*")).range(from, from + PAGE - 1);
+    const { data, error } = await order(client.from(table).select(COLUMNS[table])).range(from, from + PAGE - 1);
     if (error) return { data: rows, error };
     rows.push(...data);
     if (data.length < PAGE) return { data: rows, error: null };
@@ -33,12 +44,15 @@ async function loadAll() {
     fetchAll("expense_entries", byId),
     fetchAll("income_entries", byId),
   ]);
-  people = p.data;
-  functionsList = f.data;
-  ledgerEntries = l.data;
-  materials = m.data;
-  expenseEntries = x.data;
-  incomeEntries = inc.data;
+  // A failed table keeps what is already on screen (a refresh when the user comes back to the tab must not replace good
+  // numbers with an empty or half-loaded table); on the very first load there is nothing yet, so whatever came back is used.
+  const take = (current, r) => (r.error && current.length ? current : r.data);
+  people = take(people, p);
+  functionsList = take(functionsList, f);
+  ledgerEntries = take(ledgerEntries, l);
+  materials = take(materials, m);
+  expenseEntries = take(expenseEntries, x);
+  incomeEntries = take(incomeEntries, inc);
 
   const problems = [];
   [["people", p], ["functions", f], ["ledger_entries", l], ["materials", m]].forEach(([name, r]) => {

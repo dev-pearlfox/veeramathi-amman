@@ -85,13 +85,16 @@ function setStatus(message, isError) {
 // — no per-cell 🔒 button anymore, since one global toggle in the totals-banner
 // is the single source of truth. Rendered rows just have to match whatever the
 // current master state is at render time; setCellsLocked syncs later toggles.
-function cell(field, value, extraAttrs, inputType = "text", before = "") {
+// Column names for the cells' accessible labels (same words as the table header in members.html).
+const MEMBER_LABELS = { name: "பெயர்", name_en: "Name", place: "ஊர்", mobile: "Mobile Number", dob: "பிறந்த தேதி", avoid: "Avoid" };
+
+function cell(p, field, value, extraAttrs, inputType = "text", before = "") {
   const locked = document.body.classList.contains("master-locked");
   const readonlyAttr = locked ? "readonly" : "";
   const unlockedClass = locked ? "" : " unlocked";
   return `<td>
     <div class="cell-flex">
-      ${before}<input type="${inputType}" class="cell-input${unlockedClass}" data-field="${field}" value="${escapeHtml(value)}" ${readonlyAttr} ${extraAttrs || ""} />
+      ${before}<input type="${inputType}" class="cell-input${unlockedClass}" data-field="${field}" ${ariaLabelAttr(MEMBER_LABELS[field], p.name)} value="${escapeHtml(value)}" ${readonlyAttr} ${extraAttrs || ""} />
     </div>
   </td>`;
 }
@@ -107,8 +110,8 @@ const addressButton = (p) =>
 // from the current + every future function's Ledger Sheet, except a function
 // where they already have an existing entry (see peopleForCurrentFunction()
 // in app.js — do not change that exclusion rule without asking).
-function avoidCell(checked) {
-  return `<td><input type="checkbox" class="avoid-check" ${checked ? "checked" : ""} /></td>`;
+function avoidCell(p) {
+  return `<td><input type="checkbox" class="avoid-check" ${ariaLabelAttr(MEMBER_LABELS.avoid, p.name)} ${p.avoid ? "checked" : ""} /></td>`;
 }
 
 // HEART LOGIC — roll_number is each person's permanent town-registry ID
@@ -139,12 +142,12 @@ function renderRows() {
       (p) => `<tr data-person="${p.id}" class="${p.avoid ? "row-avoided" : ""}">
         <td>${p.member_no ?? ""}</td>
         <td>${p.roll_number ?? ""}</td>
-        ${cell("name", p.name)}
-        ${cell("name_en", p.name_en ?? "")}
-        ${cell("place", p.place ?? "", "", "text", addressButton(p))}
-        ${cell("mobile", formatMobile(p.mobile), 'inputmode="numeric"')}
-        ${cell("dob", p.dob ?? "", 'min="1900-01-01"', "date")}
-        ${avoidCell(p.avoid)}
+        ${cell(p, "name", p.name)}
+        ${cell(p, "name_en", p.name_en ?? "")}
+        ${cell(p, "place", p.place ?? "", "", "text", addressButton(p))}
+        ${cell(p, "mobile", formatMobile(p.mobile), 'inputmode="numeric"')}
+        ${cell(p, "dob", p.dob ?? "", 'min="1900-01-01"', "date")}
+        ${avoidCell(p)}
       </tr>`
     )
     .join("");

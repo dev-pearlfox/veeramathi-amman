@@ -1376,3 +1376,12 @@ header:has(.logout-btn) h1 { padding: 0 130px; }
   .totals-banner-two .header-link-btn, .totals-banner-simple .header-link-btn { gap: 4px; padding-left: 5px; }
   .totals-banner-two .btn-icon, .totals-banner-simple .btn-icon { width: 18px; height: 18px; }
 }
+
+/* Reduced motion: only the decorative effects are switched off. The save flash keeps its colour (held steady while the class
+   is on, see blinkRow()) so the user still sees "saved" or "error"; the sticky/shrink transitions are NOT touched (Heart Logic). */
+@media (prefers-reduced-motion: reduce) {
+  .totals-shine { animation: none; }
+  table.sheet tr.row-saved td { transition: none; }
+  table.sheet tbody tr.row-blink-ok td { animation: none; background: rgba(21, 128, 61, 0.35); }
+  table.sheet tbody tr.row-blink-error td { animation: none; background: rgba(220, 38, 38, 0.32); }
+}

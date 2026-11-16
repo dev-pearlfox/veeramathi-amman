@@ -335,3 +335,8 @@ a[href^="tel:"] { color: var(--accent-2); font-weight: 600; text-decoration: non
 
 /* Password cards: a little air between the "which page is this for" line and the first field */
 .pw-about { margin: -4px 0 14px; }
+
+/* Reduced motion: the "Saved" label just appears, and the Save button's press effect stays (it is tiny and instant). */
+@media (prefers-reduced-motion: reduce) {
+  .saved-label { animation: none; }
+}
