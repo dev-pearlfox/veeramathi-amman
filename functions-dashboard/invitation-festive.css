@@ -1,0 +1,46 @@
+/* "WhatsApp - Rich festive": a full-colour look for the WhatsApp PDF only (invitation.js adds body.inv-festive to the
+   WhatsApp print). The booklet print and the "Normal" WhatsApp look never match these rules. The black ornaments
+   (toran, dancers, peacocks, corners) are swapped for ready-tinted copies (invitation/*-maroon.png, corner-gold.png:
+   the same artwork in maroon / gold with a transparent background). */
+@media print {
+  body.inv-festive #inv-share .inv-page {
+    --fz-maroon: #7a1020; --fz-deep: #4a0a14; --fz-gold: #c8961e; --fz-gold-light: #f6dfa0; --fz-cream: #fff3d6; --fz-line: #d9b66a;
+    background: radial-gradient(circle at 50% 18%, #fffdf5 0%, #fff6df 55%, #fbe9bd 100%);
+    color: #3a0c12;
+
+    /* frame: a thick maroon line with a gold line inside and a thin gold halo outside */
+    .inv-frame { border-color: var(--fz-maroon); border-radius: 0.14in; box-shadow: 0 0 0 0.03in var(--fz-gold); }
+    .inv-frame::before { border-color: var(--fz-gold); border-radius: 0.1in; border-width: 0.02in; }
+    .inv-corner { content: url(invitation/corner-gold.png); }
+    .inv-badge { background: var(--fz-maroon); color: #ffe9a8; border-color: var(--fz-gold); }
+
+    /* ornaments on the cover */
+    .inv-toran { content: url(invitation/toran-maroon.png); }
+    .inv-dancer { content: url(invitation/dancer-maroon.png); }
+    .inv-peacock { content: url(invitation/peacock-maroon.png); }
+    .inv-art-color, .inv-deity { mix-blend-mode: multiply; }   /* their white backgrounds melt into the cream page */
+    .inv-cover-title, .inv-headtax { color: var(--fz-maroon); }
+    .inv-cover-motto { color: #8a5a00; }
+    .inv-cover-invite, .inv-contact-row, .inv-program-date, .inv-headtax { border-color: var(--fz-gold); }
+    .inv-cover-date::before { border-color: var(--fz-gold); }
+    .inv-cover-date span { background: var(--fz-maroon); color: #ffe9a8; border-color: var(--fz-gold); }
+    .inv-contact-label { background: var(--fz-maroon); color: #ffe9a8; }
+    .inv-contact-row > div + div { border-left-color: var(--fz-gold); }
+    .inv-program-title span { border-color: var(--fz-maroon); background: var(--fz-gold-light); color: var(--fz-deep); }
+    .inv-rule { border-top-color: var(--fz-gold); }
+    .inv-sub { color: var(--fz-maroon); }
+    .inv-signoff { color: var(--fz-maroon); }
+    .inv-request-title { background: var(--fz-gold-light); border-color: var(--fz-maroon); box-shadow: 0.03in 0.03in 0 var(--fz-gold); color: var(--fz-deep); }
+
+    /* page titles: a maroon pill with gold edge and cream lettering */
+    .inv-title { background: linear-gradient(90deg, #6a0d1b, #a3162b 50%, #6a0d1b); color: #ffecb8; border: 0.02in solid var(--fz-gold); border-radius: 0.3in; box-shadow: 0 0.04in 0 rgba(122, 16, 32, 0.3); }
+
+    /* tables: maroon header, gold lines, soft stripes, a gold total row */
+    .inv-t th { background: var(--fz-maroon); color: #ffecb8; }
+    .inv-t th, .inv-t td, .inv-gifts td, .inv-program td, .inv-sum, .inv-sum td, .inv-program-note { border-color: var(--fz-line); }
+    .inv-t:not(.inv-plain) tbody tr:nth-child(even) td { background: rgba(246, 223, 160, 0.35); }
+    .inv-t .inv-total td, .inv-sum tr:last-child td { background: var(--fz-gold-light); color: var(--fz-maroon); }
+    .inv-gifts td.who, .inv-program b { color: var(--fz-maroon); }
+    .inv-contacts td:nth-child(2) { border-right-color: var(--fz-gold); }
+  }
+}

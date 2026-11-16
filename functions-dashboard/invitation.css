@@ -153,7 +153,8 @@
 .inv-cover-date::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; border-top: 0.015in solid #000; }
 .inv-cover-date span { position: relative; display: inline-block; padding: 0 0.15in; border: 0.015in solid #000; border-radius: 0.06in; background: #fff; font-size: 10.5pt; font-weight: 800; line-height: 0.27in; }
 .inv-cover-art { display: flex; align-items: center; justify-content: space-between; margin-top: 0.25in; height: 5.2in; }
-.inv-cover-art > img:not(.inv-peacock) { width: 6.3in; height: auto; }
+.inv-cover-art > .inv-art-bw, .inv-cover-art > .inv-art-color { height: 5.1in; width: auto; }   /* Amma alone */
+.inv-deity { height: 1.7in; width: auto; filter: grayscale(1); mix-blend-mode: multiply; }   /* Ganesha and Murugan: colour files, grey in the booklet like Amma; multiply lets the near-white picture background melt into the page */
 .inv-peacock { width: 0.47in; height: 3in; }
 .inv-verse { width: max-content; max-width: 100%; margin: 0.2in auto 0; }
 .inv-verse p { margin: 0; font-size: 12.5pt; font-weight: 700; line-height: 1.5; }
@@ -202,4 +203,5 @@
   body.inv-sharing #inv-share .inv-page:last-child { break-after: auto; }
   body.inv-sharing .inv-art-bw { display: none; }
   body.inv-sharing .inv-art-color { display: block; }
+  body.inv-sharing .inv-deity { filter: none; }
 }

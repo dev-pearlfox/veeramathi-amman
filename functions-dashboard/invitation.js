@@ -151,16 +151,18 @@ function closeInvitationPreview() {
 //
 // Two ways to print, chosen in the Print chooser:
 //  - "booklet": the sheets for the printer (two pages per 18 x 12 in sheet, in the printer's order), as usual;
-//  - "share":   a PDF for WhatsApp: the pages one by one, in page order, 9 x 12 in each, with the Amman photo in colour.
+//  - "share":   a PDF for WhatsApp: the pages one by one, in page order, 9 x 12 in each, with the Amman photo in colour;
+//  - "festive": the same WhatsApp PDF in full colour (maroon and gold, invitation-festive.css).
 //    The booklet's sheets are in printing order, so the pages are copied (edits included) in page order into #inv-share,
 //    which only this print shows (invitation.css).
 async function printInvitation(mode) {
-  const share = mode === "share";
+  const festive = mode === "festive";
+  const share = mode === "share" || festive;
   invEnsureBuilt();
   await invFitTitles();
   const originalTitle = document.title;
-  document.title = `Invitation ${invFunctionLabel(invPickedFunction())}${share ? " WhatsApp" : ""}`;   // the browser's default PDF file name
-  const bodyClasses = share ? ["inv-printing", "inv-sharing"] : ["inv-printing"];
+  document.title = `Invitation ${invFunctionLabel(invPickedFunction())}${share ? " WhatsApp" : ""}${festive ? " festive" : ""}`;   // the browser's default PDF file name
+  const bodyClasses = ["inv-printing", ...(share ? ["inv-sharing"] : []), ...(festive ? ["inv-festive"] : [])];
   if (share) {
     const pages = [...$("inv-sheets").querySelectorAll(".inv-page")].sort((a, b) => Number(a.dataset.page) - Number(b.dataset.page));
     $("inv-share").replaceChildren(...pages.map((p) => { const copy = p.cloneNode(true); copy.contentEditable = "false"; return copy; }));
@@ -202,6 +204,7 @@ $("inv-edit-save").addEventListener("click", saveInvitationEdit);
 $("inv-bar-print").addEventListener("click", openPrintChooser);
 $("inv-print-booklet").addEventListener("click", () => printAs("booklet"));
 $("inv-print-share").addEventListener("click", () => printAs("share"));
+$("inv-print-festive").addEventListener("click", () => printAs("festive"));
 $("inv-choose-cancel").addEventListener("click", closePrintChooser);
 $("inv-choose").addEventListener("click", (e) => { if (e.target === $("inv-choose")) closePrintChooser(); });   // a click on the dark backdrop
 $("inv-bar-close").addEventListener("click", closeInvitationPreview);
