@@ -433,10 +433,22 @@ $("sheet-tbody-wrap").addEventListener("scroll", () => {
   $("sheet-thead-wrap").scrollLeft = $("sheet-tbody-wrap").scrollLeft;
 });
 // Same for the வரவு / செலவு tables, but both ways: their pinned header follows the rows sideways, and a swipe on the header
-// itself (it scrolls too, without a scrollbar: expenses.css) moves the rows. Assigning the same value fires no scroll event, so no loop.
-const linkSideScroll = (from, to) => from.addEventListener("scroll", () => { if (to.scrollLeft !== from.scrollLeft) to.scrollLeft = from.scrollLeft; });
-linkSideScroll($("income-tbody-wrap"), $("income-thead-wrap"));
-linkSideScroll($("income-thead-wrap"), $("income-tbody-wrap"));
+// itself (it scrolls too, without a scrollbar: expenses.css) moves the rows. Only the box the finger is on drives the other one:
+// if each copied the other's position, the copies echoed back and forth and the swipe stuttered. The finger's box stays the driver
+// for a moment after it lifts (the swipe keeps gliding), then the rows take over again.
+(() => {
+  const rows = $("income-tbody-wrap"), head = $("income-thead-wrap");
+  let driver = rows, release;
+  const grab = (box) => () => { clearTimeout(release); driver = box; };
+  const letGo = () => { clearTimeout(release); release = setTimeout(() => { driver = rows; }, 900); };
+  for (const box of [rows, head]) {
+    for (const start of ["touchstart", "pointerdown", "wheel"]) box.addEventListener(start, grab(box), { passive: true });
+    for (const end of ["touchend", "touchcancel", "pointerup", "wheel"]) box.addEventListener(end, letGo, { passive: true });
+  }
+  const follow = (from, to) => from.addEventListener("scroll", () => { if (driver === from) to.scrollLeft = from.scrollLeft; }, { passive: true });
+  follow(rows, head);
+  follow(head, rows);
+})();
 
 // Debounced re-render so fast typing in a filter doesn't force a full
 // re-render on every keystroke — and flushes any in-flight debounced
