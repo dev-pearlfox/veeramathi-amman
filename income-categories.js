@@ -10,7 +10,8 @@
 const INCOME_KINDS = [
   { key: "carry-forward", label: "முந்தைய இருப்பு",   // money left over from last year's festival
     isCarryOver: true,
-    totalLabel: "மொத்த முந்தைய இருப்பு",
+    colWidths: { name: 160, amount: 100, date: 140, note: 200 },   // optional: each column's width in px (income.js); without it the name column takes what is left
+    totalLabel: "மொத்தம்",
     columns: [
       { field: "name", label: "விவரம்", placeholder: "எ.கா. கடந்த ஆண்டு மீதி" },
       { field: "amount", label: "தொகை" },
@@ -18,6 +19,7 @@ const INCOME_KINDS = [
       { field: "note", label: "குறிப்பு" },
     ] },
   { key: "hundi", label: "உண்டியல்",   // the temple hundi
+    colWidths: { name: 260, amount: 130, date: 160, note: 400 },
     totalLabel: "மொத்த உண்டியல்",
     columns: [
       { field: "name", label: "விவரம்", placeholder: "எ.கா. உண்டியல் திறந்தது" },
@@ -44,6 +46,7 @@ const INCOME_KINDS = [
       { field: "note", label: "குறிப்பு" },
     ] },
   { key: "pournami", label: "பௌர்ணமி / முடி காணிக்கை",   // full-moon puja, upkeep, hair offering
+    colWidths: { name: 260, amount: 130, date: 160, note: 400 },
     totalLabel: "மொத்தம்",
     columns: [
       { field: "name", label: "விவரம்", placeholder: "எ.கா. பூஜை, பராமரிப்பு" },

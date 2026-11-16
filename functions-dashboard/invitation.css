@@ -3,15 +3,18 @@
    two pages make an 18 x 12 in sheet. Row heights set here (--rh per table) must match invitation-pages.js (INV). */
 
 @page inv { size: 18in 12in; margin: 0; }
+@page inv-share { size: 9in 12in; margin: 0; }   /* the WhatsApp PDF: one page of the booklet per PDF page */
 
 /* ---------- the card ---------- */
 .inv-actions { display: flex; gap: 10px; margin-top: 16px; }
+/* Nothing picked yet: Preview is switched off (invitation.js sets `disabled`), so it also looks off: faded, flat, no hand cursor. */
+#inv-preview:disabled { opacity: 0.4; box-shadow: none; cursor: not-allowed; }
 #inv-hint { margin: 10px 0 0; }
 
 /* ---------- the preview (full screen) ---------- */
 #inv-overlay { display: none; position: fixed; inset: 0; z-index: 100; flex-direction: column; background: #374151; }
 #inv-overlay.open { display: flex; }
-@media screen { body.inv-open { overflow: hidden; } }
+@media screen { body.inv-open { overflow: hidden; overscroll-behavior: none; } }   /* none: a swipe down must flip the page, not pull-to-refresh the browser */
 .inv-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 16px; background: #111827; color: #fff; }
 .inv-bar-title { font-weight: 700; margin-right: auto; }
 .inv-bar-hint { font-size: 0.8rem; color: #cbd5e1; }
@@ -19,15 +22,34 @@
 .inv-bar .secondary { background: transparent; color: #fff; border: 1px solid #94a3b8; }
 .inv-bar .secondary:hover:not(:disabled) { background: rgba(255, 255, 255, 0.12); }
 .inv-bar button:disabled { opacity: 0.4; cursor: default; }
+
+/* The Print chooser: Invitation printing (the booklet sheets) or WhatsApp sharing (page-by-page PDF). */
+.inv-choose { display: none; position: absolute; inset: 0; z-index: 5; align-items: center; justify-content: center; padding: 16px; background: rgba(17, 24, 39, 0.65); }
+.inv-choose.open { display: flex; }
+.inv-choose-card { width: min(420px, 100%); display: flex; flex-direction: column; gap: 10px; padding: 20px; border-radius: 14px; background: #fff; color: #111827; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45); }
+.inv-choose-card h2 { margin: 0 0 4px; font-size: 1.15rem; }
+.inv-choice { display: flex; flex-direction: column; gap: 3px; width: 100%; text-align: left; padding: 12px 16px; background: #ecfdf5; color: #064e3b; border: 1px solid #a7f3d0; box-shadow: none; }
+.inv-choice:hover, .inv-choice:focus-visible { border-color: #10b981; opacity: 1; }
+.inv-choice span { font-size: 0.85rem; font-weight: 500; color: #374151; }
+#inv-share, .inv-art-color { display: none; }   /* only the WhatsApp PDF shows them (below) */
+
+/* Edit mode: the pages are view-only until Edit is pressed. Then a banner at the bottom offers Cancel (red) and Save (green). */
+.inv-editbar { display: none; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; padding: 10px 16px; background: #111827; color: #fff; border-top: 2px solid #10b981; }   /* centred, so on a phone the buttons sit in the middle under the text */
+#inv-overlay.editing .inv-editbar { display: flex; }
+#inv-overlay.editing { background: #7fae96; }   /* a mild green behind the page tells you that you are in edit mode */
+.inv-editbar-text { font-size: 0.85rem; color: #cbd5e1; text-align: center; }
+.inv-editbar button { min-height: 40px; padding: 6px 22px; }
+.inv-editbar .inv-cancel { background: #dc2626; box-shadow: 0 6px 14px -6px rgba(220, 38, 38, 0.6); }
+#inv-overlay.editing .inv-page.current { outline: 3px solid rgba(16, 185, 129, 0.6); }   /* the page is live */
 .inv-nav { display: flex; align-items: center; gap: 8px; }
 #inv-page-pos { min-width: 7.5em; text-align: center; font-weight: 600; }
-.inv-scroll { flex: 1; overflow: auto; padding: 14px 12px; display: flex; justify-content: center; align-items: flex-start; }
+.inv-scroll { flex: 1; overflow: auto; overscroll-behavior: contain; padding: 14px 12px; display: flex; align-items: flex-start; }   /* the page centres itself with auto margins (below); justify-content: center would clip its left side when zoomed */
 
 /* on screen only the current page shows; the sheet wrappers are layout-less (they matter only for printing) */
 @media screen {
   .inv-sheet-wrap, .inv-sheet { display: contents; }
   .inv-page { display: none; zoom: var(--inv-zoom, 1); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); }
-  .inv-page.current { display: block; }
+  .inv-page.current { display: block; margin: 0 auto; }   /* auto margins: centred when smaller than the box, scrollable from the left edge when bigger */
   .inv-measuring .inv-page { display: block; }   /* every page laid out for a moment, so the titles can be measured (invFitTitles) */
 }
 
@@ -165,7 +187,7 @@
   body.inv-printing #inv-overlay, #inv-overlay.open { display: block; position: static; background: none; }
   body.inv-printing #print-summary { display: none; }
   body.inv-printing, body.inv-printing #app { margin: 0; padding: 0; min-height: 0; }   /* the page padding would spill onto a blank extra page */
-  .inv-bar { display: none; }
+  .inv-bar, .inv-editbar, .inv-choose { display: none; }
   .inv-scroll { display: block; overflow: visible; padding: 0; }
   .inv-sheet-wrap { page: inv; break-after: page; height: 12in; overflow: hidden; }   /* exactly one sheet, so no blank page can spill after it */
   .inv-sheet-wrap:last-child { break-after: auto; }
@@ -173,4 +195,12 @@
   .inv-page { display: block; zoom: 1; box-shadow: none; }
   .inv-page:focus-within .inv-frame { box-shadow: none; }
   .inv-page { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  /* WhatsApp sharing: the pages one by one in page order (invitation.js copies them into #inv-share), the Amman photo in colour */
+  body.inv-sharing .inv-scroll { display: none; }
+  body.inv-sharing #inv-share { display: block; }
+  body.inv-sharing #inv-share .inv-page { display: block; zoom: 1; margin: 0; overflow: hidden; page: inv-share; break-after: page; box-shadow: none; }
+  body.inv-sharing #inv-share .inv-page:last-child { break-after: auto; }
+  body.inv-sharing .inv-art-bw { display: none; }
+  body.inv-sharing .inv-art-color { display: block; }
 }

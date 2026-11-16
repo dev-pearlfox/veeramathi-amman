@@ -42,7 +42,8 @@ function invCoverPage(no, f) {   // page 1
     </div>
     <div class="inv-cover-art">
       <img class="inv-peacock" src="invitation/peacock.png" alt="" />
-      <img src="invitation/cover-art.png" alt="" />
+      <img class="inv-art-bw" src="invitation/cover-art.png" alt="" />
+      <img class="inv-art-color" src="invitation/cover-art-color.jpg" alt="" />
       <img class="inv-peacock inv-flip" src="invitation/peacock.png" alt="" />
     </div>
     <div class="inv-verse">${INV_TEXT.coverVerse.map((l) => `<p>${l}</p>`).join("")}</div>`, { ornate: true });

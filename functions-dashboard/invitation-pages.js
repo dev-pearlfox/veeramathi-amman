@@ -95,7 +95,7 @@ const invCorners = (set) => (set === "top" ? ["tl", "tr"] : ["tl", "tr", "bl", "
 
 // One page: the frame, an optional ornate corner set (ornate: true = four corners, "top" = the top two), the content, and the page number (the cover has none).
 function invPage(no, inner, { ornate = false } = {}) {
-  return `<section class="inv-page" data-page="${no}" contenteditable="true" spellcheck="false">
+  return `<section class="inv-page" data-page="${no}" contenteditable="false" spellcheck="false">
     <div class="inv-frame${ornate ? " inv-ornate" : ""}">${ornate ? invCorners(ornate) : ""}<div class="inv-body">${inner}</div>${no > 1 ? `<span class="inv-badge" contenteditable="false">${no}</span>` : ""}</div>
   </section>`;
 }

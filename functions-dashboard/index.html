@@ -8,14 +8,14 @@
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <meta name="theme-color" content="#8b1e1e" />
 <meta property="og:type" content="website" />
-<meta property="og:title" content="Sri Veeramathi Amman Thunai Functions Dashboard" />
+<meta property="og:title" content="Sri Veeramathi Amman Thunai Admin Page" />
 <meta property="og:description" content="Income (வரவு), expenses (செலவு) and balance for Sri Veeramathi Amman Thunai, overall and by year and function." />
 <meta property="og:image" content="https://veeramathi.pearlfox.io/og-image.jpg" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta property="og:url" content="https://veeramathi.pearlfox.io/functions-dashboard/" />
-<title>Sri Veeramathi Amman Thunai Functions Dashboard</title>
+<title>Sri Veeramathi Amman Thunai Admin Page</title>
 <link rel="icon" href="../favicon-48.png?v=20261116a" type="image/png" sizes="48x48" />
 <link rel="apple-touch-icon" href="../favicon-180.png?v=20261116a" />
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400&family=Noto+Sans+Tamil:wght@500;600;700;800&display=swap" />
 <link rel="stylesheet" href="style.css?v=20261116k" />
-<link rel="stylesheet" href="invitation.css?v=20261116u" />
+<link rel="stylesheet" href="invitation.css?v=20261117c" />
 <link rel="stylesheet" href="../password-toggle.css?v=20261116a" />
 </head>
 <body>
@@ -51,7 +51,7 @@
 
 <div id="app" class="hidden">
   <header>
-    <h1><img src="logo.png" alt="" class="header-logo" width="925" height="645" />Sri Veeramathi Amman Thunai Functions Dashboard</h1>
+    <h1><img src="logo.png" alt="" class="header-logo" width="925" height="645" />Sri Veeramathi Amman Thunai Admin Page</h1>
     <button type="button" class="header-logout" id="banner-signout-btn" aria-label="Sign out of Dashboard"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#fff"/><g transform="translate(4.2 4.2) scale(0.65)"><g fill="none" stroke="#dc2626" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></g></g></svg><span>Logout</span></button>
     <p>Income (வரவு), expenses (செலவு) and balance (மீதி), across years and functions.</p>
   </header>
@@ -280,16 +280,42 @@
   <div id="inv-overlay" role="dialog" aria-modal="true" aria-label="Invitation preview">
     <div class="inv-bar">
       <span class="inv-bar-title" id="inv-bar-title"></span>
-      <span class="inv-bar-hint">Click any text to edit it. Edits are for this print only.</span>
+      <span class="inv-bar-hint">View only. Press Edit to change the text; edits are for this print only.</span>
       <div class="inv-nav">
         <button type="button" class="secondary" id="inv-prev" aria-label="Previous page">Prev</button>
         <span id="inv-page-pos" aria-live="polite"></span>
         <button type="button" class="secondary" id="inv-next" aria-label="Next page">Next</button>
       </div>
-      <button type="button" id="inv-bar-print">Print</button>
+      <div class="inv-nav" role="group" aria-label="Zoom">
+        <button type="button" class="secondary" id="inv-zoom-out" aria-label="Zoom out">&minus;</button>
+        <button type="button" class="secondary" id="inv-zoom-fit" aria-label="Fit the page to the screen">Fit</button>
+        <button type="button" class="secondary" id="inv-zoom-in" aria-label="Zoom in">+</button>
+      </div>
+      <button type="button" class="secondary" id="inv-bar-edit">Edit</button>
+      <button type="button" id="inv-bar-print" aria-haspopup="dialog">Print</button>
       <button type="button" class="secondary" id="inv-bar-close">Close</button>
     </div>
     <div class="inv-scroll" id="inv-sheets"></div>
+    <div id="inv-share" aria-hidden="true"></div>
+    <div class="inv-choose" id="inv-choose" role="dialog" aria-modal="true" aria-labelledby="inv-choose-title">
+      <div class="inv-choose-card">
+        <h2 id="inv-choose-title">Print for</h2>
+        <button type="button" class="inv-choice" id="inv-print-booklet">
+          <strong>Invitation printing</strong>
+          <span>The booklet sheets (18 x 12 in) for the printer, as usual.</span>
+        </button>
+        <button type="button" class="inv-choice" id="inv-print-share">
+          <strong>WhatsApp sharing</strong>
+          <span>Pages one by one (9 x 12 in), with the Amman photo in colour. Choose "Save as PDF".</span>
+        </button>
+        <button type="button" class="secondary" id="inv-choose-cancel">Cancel</button>
+      </div>
+    </div>
+    <div class="inv-editbar" id="inv-editbar" role="group" aria-label="Editing the invitation">
+      <span class="inv-editbar-text">Editing: click any text to change it. Edits are for this print only.</span>
+      <button type="button" class="inv-cancel" id="inv-edit-cancel">Cancel</button>
+      <button type="button" id="inv-edit-save">Save</button>
+    </div>
   </div>
 </div>
 
@@ -297,7 +323,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js" integrity="sha384-Sse/HDqcypGpyTDpvZOJNnG0TT3feGQUkF9H+mnRvic+LjR+K1NhTt8f51KIQ3v3" defer crossorigin="anonymous"></script>
 <script src="supabase-config.js?v=20261105s" defer></script>
 <script src="../expense-lines.js?v=20261114a" defer></script>
-<script src="../income-categories.js?v=20261116e" defer></script>
+<script src="../income-categories.js?v=20261117c" defer></script>
 <script src="../function-rules.js?v=20261114a" defer></script>
 <script src="../money-format.js?v=20261113b" defer></script>
 <script src="../password-toggle.js?v=20261116a" defer></script>
@@ -312,9 +338,9 @@
 <script src="admin.js?v=20261116e" defer></script>
 <script src="print.js?v=20261114a" defer></script>
 <script src="invitation-text.js?v=20261116d" defer></script>
-<script src="invitation-pages.js?v=20261116k" defer></script>
-<script src="invitation-cover.js?v=20261116b" defer></script>
-<script src="invitation.js?v=20261116e" defer></script>
+<script src="invitation-pages.js?v=20261116l" defer></script>
+<script src="invitation-cover.js?v=20261117a" defer></script>
+<script src="invitation.js?v=20261117a" defer></script>
 <script src="app.js?v=20261116b" defer></script>
 </body>
 </html>

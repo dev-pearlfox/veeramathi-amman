@@ -4,6 +4,9 @@
    differs from the members sheet is here. Column widths are <col> elements written by income.js (the same for header and body). */
 /* .expense-card is the same centred box (--sheet-w, style.css) #sheet-title and .sheet-table-card use. */
 .expense-card { width: var(--sheet-w); max-width: 100%; margin: 0 auto; }
+/* The column header and the card around the rows are as wide as the table: income.js sets --income-w to the table's width plus its
+   3px of borders (1073px = --sheet-w for a full-width table), so a kind with narrow columns (colWidths) gets a narrow, centred card. */
+#income-thead-wrap, #income-card { width: var(--income-w, var(--sheet-w)); }
 
 /* HEART LOGIC (owner-approved): the title's negative margin-bottom (style.css, the 0.7 scale collapse) used to leak out of the sticky
    stack when the ledger header row is hidden, so <main> began 33px (laptop) to 65px (phone) ABOVE the stack's bottom edge and the stack

@@ -103,10 +103,13 @@ function incomeCell(col, row, rowNo) {
 // The name column takes whatever is left of the 1070px the members sheet is wide; a kind with many columns just scrolls sideways.
 const COL_PX = { date: 160, amount: 130, receipt: 120, phone: 150, nameEn: 220, note: 240 };
 const SNO_PX = 70, DEL_PX = 50, TABLE_PX = 1070, NAME_MIN_PX = 240;
+// A kind with `colWidths` (income-categories.js) names the px width of every column itself (S.No and the delete column stay as
+// above), so its table can be narrower than the sheet. Without it the columns above apply and the name column takes the rest.
 function incomeColumnWidths(k) {
-  const others = SNO_PX + DEL_PX + k.columns.reduce((sum, c) => sum + (COL_PX[c.field] || 0), 0);
+  if (k.colWidths) return [SNO_PX, ...k.columns.map((c) => k.colWidths[c.field]), DEL_PX];
+  const others = SNO_PX + DEL_PX + k.columns.reduce((sum, c) => sum + (c.field === "name" ? 0 : COL_PX[c.field] || 0), 0);
   const name = Math.max(NAME_MIN_PX, TABLE_PX - others);
-  return [SNO_PX, ...k.columns.map((c) => COL_PX[c.field] || name), DEL_PX];
+  return [SNO_PX, ...k.columns.map((c) => (c.field === "name" ? name : COL_PX[c.field] || 0)), DEL_PX];
 }
 
 function renderIncome() {
@@ -118,6 +121,7 @@ function renderIncome() {
   document.getElementById("income-cols-body").innerHTML = cols;
   const total = widths.reduce((a, b) => a + b, 0) + "px";
   document.querySelectorAll(".income-table").forEach((t) => { t.style.width = total; });
+  document.body.style.setProperty("--income-w", `${widths.reduce((a, b) => a + b, 0) + 3}px`);   // the cards around the tables (expenses.css)
   document.getElementById("income-head").innerHTML =
     `<tr><th class="ic-sno">S.No</th>${k.columns.map((c) => `<th class="ic-${c.field}">${c.label}</th>`).join("")}<th class="ic-del"></th></tr>`;
   document.getElementById("income-body").innerHTML = incomeRows.map((r, i) => `<tr data-id="${r.id}">
