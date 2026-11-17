@@ -115,8 +115,19 @@ Or use https://www.srihash.org/. Forgetting to update the hash after a version
 bump = the page silently fails to load Supabase and nothing works.
 
 ## 12. Deployment: one repo, one home
-There is ONE repo, `Veeramathiymman-Kula-thaiva-valipadu` (GitHub account to be decided). GitHub Pages serves it from `main` at
+There is ONE repo, `Veeramathiymman-Kula-thaiva-valipadu` locally, `dev-pearlfox/veeramathi-amman` on GitHub. GitHub Pages serves it from `main` at
 https://veeramathi.pearlfox.io (see `CNAME`), and it takes about a minute after a push. Both sites (`function-expenses/`
 and `functions-dashboard/`) and the shared root files deploy together. After a push, verify by fetching the live URL
 directly (e.g. `curl -s https://veeramathi.pearlfox.io/function-expenses/ | grep "v="`), not just by trusting the push.
 (An older version of this note described a second mirror repo served at newmantech.in; that no longer applies.)
+
+## 13. The title block's last row: செலவு + the receipt settings pill (app.js, receipt-settings.js, style.css)
+Owner decision (permission given): the receipt-settings pill (a round gear and "Next 107") is the last item of `.title-actions`, right after
+the செலவு button, built by `settingsPillHtml()` and added in `updateSheetTitle()`. Its look is the last block of `style.css`; it is sized to
+match the other pills. It is NOT in the page header any more (an earlier version had a gear next to Logout; that was removed).
+The click listener is on `document`, because the title is redrawn often and a listener on the button itself would be lost.
+
+## 14. `#sheet-title` ignores taps on its empty strip while an income / expense view is open (expenses.css)
+Owner decision (permission given): `body.view-income #sheet-title { pointer-events: none; }`, with `:is(button, a, input, select)` inside it
+switched back on. The title box overhangs the first table row; without this it swallowed taps and swipes meant for row 1 (and kept the date
+from opening on touch). The members ledger sheet has the same overhang and has NOT been changed: ask first.
