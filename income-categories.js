@@ -28,18 +28,22 @@ const INCOME_KINDS = [
       { field: "note", label: "குறிப்பு" },
     ] },
   { key: "thirupani", label: "திருப்பணி நன்கொடை",   // temple repair / painting donations
+    colWidths: { name: 240, phone: 140, amount: 110, date: 140, receipt: 110, note: 210 },   // 950 + S.No 70 + delete 50 = the sheet's 1070px
     totalLabel: "மொத்த திருப்பணி நன்கொடை",
     columns: [
       { field: "name", label: "பெயர்", placeholder: "பெயர்" },
+      { field: "phone", label: "மொபைல் எண்" },
       { field: "amount", label: "தொகை" },
       { field: "date", label: "தேதி" },
       { field: "receipt", label: "இரசீது எண்" },
       { field: "note", label: "குறிப்பு" },
     ] },
   { key: "donation", label: "நன்கொடை",   // festival gifts from people outside the house-head list
+    colWidths: { name: 240, phone: 140, amount: 110, date: 140, receipt: 110, note: 210 },   // 950 + S.No 70 + delete 50 = the sheet's 1070px
     totalLabel: "மொத்த நன்கொடை",
     columns: [
       { field: "name", label: "பெயர்", placeholder: "பெயர்" },
+      { field: "phone", label: "மொபைல் எண்" },
       { field: "amount", label: "தொகை" },
       { field: "date", label: "தேதி" },
       { field: "receipt", label: "இரசீது எண்" },

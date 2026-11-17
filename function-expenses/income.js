@@ -194,6 +194,29 @@ document.getElementById("income-body").addEventListener("change", (e) => {
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
 
+// A donor who is also a member: when the பெயர் box is left and its text is exactly a member's name (Tamil, or English ignoring
+// capitals), that member's mobile number is copied into the row's mobile box, replacing what was there. Only rows of a kind that
+// has a mobile column (the two donation tabs). A copy, not a link: changing the number on the Members page later does not touch
+// rows already filled. `people` is the member list app.js loaded.
+function memberForName(text) {
+  const t = text.trim().toLowerCase();
+  if (!t) return null;
+  const byTamil = people.find((p) => (p.name || "").trim().toLowerCase() === t);
+  if (byTamil) return byTamil;
+  const byEnglish = people.filter((p) => (p.name_en || "").trim().toLowerCase() === t);
+  return byEnglish.length === 1 ? byEnglish[0] : null;   // two members with the same English name: do not guess
+}
+
+document.getElementById("income-body").addEventListener("change", (e) => {
+  const input = e.target.closest(".f-income");
+  if (!input || input.dataset.field !== "name") return;
+  const phoneBox = input.closest("tr").querySelector('.f-income[data-field="phone"]');
+  const member = phoneBox && memberForName(input.value);
+  if (!member || !member.mobile) return;
+  phoneBox.value = member.mobile;
+  phoneBox.dispatchEvent(new Event("input", { bubbles: true }));   // stores it in the row and starts the save
+});
+
 // The amount box: plain digits while typing, Indian grouping when you leave (see shared.js).
 document.getElementById("income-body").addEventListener("focusin", (e) => { if (e.target.dataset?.field === "amount") editMoneyBox(e.target); });
 document.getElementById("income-body").addEventListener("focusout", (e) => { if (e.target.dataset?.field === "amount") showMoneyBox(e.target); });
