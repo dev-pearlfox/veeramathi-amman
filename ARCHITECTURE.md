@@ -84,7 +84,7 @@ One file, `functions-dashboard/supabase/schema.sql`, safe to run again.
 
 | Table | Holds | Notes |
 |---|---|---|
-| `people` | Members | unique `name`, `member_no`, `roll_number`; `avoid` boolean; `address` jsonb |
+| `people` | Members | unique `name`, `member_no`, `roll_number`; `avoid` boolean; `address` jsonb (Member Origin) and `postal_address` jsonb (Postal Address; run `backups/add-postal-address.sql` once on an existing database) |
 | `functions` | Events | `name` + `year` unique; `santha_amount` default 1200 |
 | `ledger_entries` | Per member per function | unique `(function_id, person_id)`; `receipt_no`, `santha`, `santha_checked`, `donation`, `total`, `paid` (remark) |
 | `expense_entries` | செலவு lines | `name`, `amount >= 0`, `note` |

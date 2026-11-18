@@ -82,7 +82,7 @@ function setStatus(message, isError) {
 // is the single source of truth. Rendered rows just have to match whatever the
 // current master state is at render time; setCellsLocked syncs later toggles.
 // Column names for the cells' accessible labels (same words as the table header in members.html).
-const MEMBER_LABELS = { name: "பெயர்", place: "ஊர்", mobile: "Mobile Number", dob: "பிறந்த தேதி", avoid: "Avoid" };
+const MEMBER_LABELS = { name: "பெயர்", name_en: "English Name", place: "Member Origin", postal: "Postal Address", mobile: "Mobile Number", dob: "பிறந்த தேதி", avoid: "Avoid" };
 
 function cell(p, field, value, extraAttrs, inputType = "text", before = "") {
   const locked = document.body.classList.contains("master-locked");
@@ -95,11 +95,22 @@ function cell(p, field, value, extraAttrs, inputType = "text", before = "") {
   </td>`;
 }
 
-// The home icon at the front of the ஊர் cell (an SVG so it is crisp and takes the CSS colour); its popup lives in
-// member-address.js. Grey outline = no address yet, orange and filled = address saved.
+// The home icon at the front of the Member Origin and Postal Address cells (an SVG so it is crisp and takes the CSS colour);
+// its popup lives in member-address.js. Grey outline = no address yet, orange and filled = address saved. `field` is the
+// people column the icon edits: "address" (Member Origin) or "postal_address".
 const HOME_ICON_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-6h4v6"/></svg>';
-const addressButton = (p) =>
-  `<button type="button" class="addr-btn ${isAddressComplete(p.address) ? "address-complete" : ""}" title="Address" aria-label="Address of ${escapeHtml(p.name)}">${HOME_ICON_SVG}</button>`;
+const addressButton = (p, field) => {
+  const label = field === "address" ? MEMBER_LABELS.place : MEMBER_LABELS.postal;
+  return `<button type="button" class="addr-btn ${isAddressComplete(p[field]) ? "address-complete" : ""}" data-addr="${field}" title="${label}" aria-label="${label} of ${escapeHtml(p.name)}">${HOME_ICON_SVG}</button>`;
+};
+
+// Postal Address cell: the home icon plus the town of the saved postal address. The town is shown, never typed here (it is
+// not a .cell-input, so the lock and autosave code ignore it): the whole address is edited in the icon's popup.
+const postalCell = (p) => `<td>
+    <div class="cell-flex">
+      ${addressButton(p, "postal_address")}<input type="text" class="postal-town" tabindex="-1" readonly ${ariaLabelAttr(MEMBER_LABELS.postal, p.name)} value="${escapeHtml(p.postal_address?.town ?? "")}" />
+    </div>
+  </td>`;
 
 // HEART LOGIC — "Avoid" means the person is no longer active (e.g.
 // deceased). Default unchecked. Checking it fades this row and hides them
@@ -117,7 +128,9 @@ function renderRows() {
   const snoQ = $("filter-sno").value.trim().toLowerCase();
   const rollQ = $("filter-roll").value.trim().toLowerCase();
   const nameQ = $("filter-name").value.trim().toLowerCase();
+  const nameEnQ = $("filter-name-en").value.trim().toLowerCase();
   const placeQ = $("filter-place").value.trim().toLowerCase();
+  const postalQ = $("filter-postal").value.trim().toLowerCase();
   const dobQ = $("filter-dob").value.trim().replace(/[/.]/g, "-");   // 12/05 and 12.05 both mean 12-05
   const mobileQ = $("filter-mobile").value.trim().replace(/\s+/g, "").toLowerCase();
 
@@ -125,7 +138,9 @@ function renderRows() {
     if (snoQ && !String(p.member_no ?? "").toLowerCase().includes(snoQ)) return false;
     if (rollQ && !String(p.roll_number ?? "").toLowerCase().includes(rollQ)) return false;
     if (nameQ && !(p.name || "").toLowerCase().includes(nameQ)) return false;
+    if (nameEnQ && !(p.name_en || "").toLowerCase().includes(nameEnQ)) return false;
     if (placeQ && !(p.place || "").toLowerCase().includes(placeQ)) return false;
+    if (postalQ && !Object.values(p.postal_address ?? {}).join(" ").toLowerCase().includes(postalQ)) return false;   // any part: town, district, pincode...
     if (dobQ && !(p.dob || "").split("-").reverse().join("-").includes(dobQ)) return false;   // matches the dd-mm-yyyy shown
     if (mobileQ && !formatMobile(p.mobile).replace(/\s+/g, "").toLowerCase().includes(mobileQ)) return false;
     return true;
@@ -137,7 +152,9 @@ function renderRows() {
         <td>${p.member_no ?? ""}</td>
         <td>${p.roll_number ?? ""}</td>
         ${cell(p, "name", p.name)}
-        ${cell(p, "place", p.place ?? "", "", "text", addressButton(p))}
+        ${cell(p, "name_en", p.name_en ?? "")}
+        ${cell(p, "place", p.place ?? "", "", "text", addressButton(p, "address"))}
+        ${postalCell(p)}
         ${cell(p, "mobile", formatMobile(p.mobile), 'inputmode="numeric"')}
         ${cell(p, "dob", p.dob ?? "", 'min="1900-01-01"', "date")}
         ${avoidCell(p)}
@@ -190,6 +207,7 @@ function updateNewMemberLock() {
   const masterLocked = document.body.classList.contains("master-locked");
   const hasName = $("new-m-name").value.trim().length > 0;
   $("new-m-name").disabled = masterLocked;
+  $("new-m-name-en").disabled = masterLocked || !hasName;
   $("new-m-place").disabled = masterLocked || !hasName;
   $("new-m-mobile").disabled = masterLocked || !hasName;
   $("new-m-dob").disabled = masterLocked || !hasName;
@@ -199,7 +217,7 @@ function updateNewMemberLock() {
 // Cells autosave the moment they lose focus, so "cancel" cannot just drop what is on screen: it writes the old values
 // back. editSnapshot is taken when the page is unlocked; members ADDED during the session are not in it, so they
 // are kept (their own "Added" save is already final).
-const EDITABLE_FIELDS = ["name", "place", "address", "mobile", "dob", "avoid"];
+const EDITABLE_FIELDS = ["name", "name_en", "place", "address", "postal_address", "mobile", "dob", "avoid"];
 let editSnapshot = null;
 const pendingCommits = new Set();   // saves in flight (see commitCell), so cancel can wait for them
 
@@ -239,7 +257,7 @@ async function cancelEditing() {
     setStatus(`Could not undo ${errors.length} change${errors.length === 1 ? "" : "s"}: ${errors[0].message}`, true);
     return;   // still in edit mode so nothing is left half-reverted without the user knowing
   }
-  ["new-m-name", "new-m-place", "new-m-mobile", "new-m-dob"].forEach((id) => ($(id).value = ""));
+  ["new-m-name", "new-m-name-en", "new-m-place", "new-m-mobile", "new-m-dob"].forEach((id) => ($(id).value = ""));
   setMasterLocked(true);
   setStatus(changes.length ? "Changes undone." : "Cancelled.", false);
 }
@@ -314,7 +332,7 @@ async function addNewMember() {
     return;
   }
 
-  const { data: person, error } = await insertPersonRaceSafe(client, { name, place: $("new-m-place").value.trim(), mobile, dob: $("new-m-dob").value || null });
+  const { data: person, error } = await insertPersonRaceSafe(client, { name, name_en: $("new-m-name-en").value.trim(), place: $("new-m-place").value.trim(), mobile, dob: $("new-m-dob").value || null });
   if (error) {
     rejectNewMember("Error adding member: " + error.message);
     return;
@@ -323,7 +341,7 @@ async function addNewMember() {
   allPeople.push(person);
   allPeople.sort((a, b) => (a.member_no ?? 9999) - (b.member_no ?? 9999) || a.name.localeCompare(b.name));
 
-  ["new-m-name", "new-m-place", "new-m-mobile", "new-m-dob"].forEach((id) => ($(id).value = ""));
+  ["new-m-name", "new-m-name-en", "new-m-place", "new-m-mobile", "new-m-dob"].forEach((id) => ($(id).value = ""));
   updateNewMemberLock();
   setStatus("Added.", false);
   blinkRow($("new-member-row"), "ok");   // the add row confirms the save...
@@ -342,7 +360,7 @@ $("new-m-mobile").addEventListener("input", () => filterMobileInput($("new-m-mob
 
 // Row stays unsaved while typing — Enter (on any field in the row) commits it,
 // and so does clicking/tabbing away to somewhere outside the row entirely.
-["new-m-name", "new-m-place", "new-m-mobile", "new-m-dob"].forEach((id) => {
+["new-m-name", "new-m-name-en", "new-m-place", "new-m-mobile", "new-m-dob"].forEach((id) => {
   $(id).addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -387,7 +405,7 @@ $("filter-sno").addEventListener("input", () => filterDigitsInput($("filter-sno"
 $("filter-roll").addEventListener("input", () => filterDigitsInput($("filter-roll")));
 $("filter-mobile").addEventListener("input", () => filterMobileInput($("filter-mobile")));
 
-["filter-sno", "filter-roll", "filter-name", "filter-place", "filter-dob", "filter-mobile"].forEach((id) => {
+["filter-sno", "filter-roll", "filter-name", "filter-name-en", "filter-place", "filter-postal", "filter-dob", "filter-mobile"].forEach((id) => {
   $(id).addEventListener("input", debouncedRequestRenderRows);
 });
 

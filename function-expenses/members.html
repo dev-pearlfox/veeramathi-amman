@@ -22,12 +22,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@700;800&family=Poppins:wght@400;500;600;700;800&display=swap" />
-<link rel="stylesheet" href="style.css?v=20261118e" />
+<link rel="stylesheet" href="style.css?v=20261119a" />
 <link rel="stylesheet" href="date-picker.css?v=20261115a" />
-<link rel="stylesheet" href="member-address.css?v=20261115c" />
+<link rel="stylesheet" href="member-address.css?v=20261119a" />
 </head>
 <!-- Heart Logic: see HEART_LOGIC.md before changing sticky/scale/cache-bust/deployment logic. -->
-<body class="is-compact">
+<body class="is-compact page-members">
 
 <noscript>
   <div style="padding:16px; text-align:center; background:#8b1e1e; color:#fff; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
@@ -49,12 +49,14 @@
     <div class="members-thead-wrap" id="members-thead-wrap">
       <table class="sheet wide members-table">
         <thead>
-          <tr><th>S.No</th><th>Roll No.</th><th>பெயர்</th><th>ஊர்</th><th>Mobile Number</th><th>பிறந்த தேதி</th><th>Avoid</th></tr>
+          <tr><th>S.No</th><th>Roll No.</th><th>பெயர்</th><th>English Name</th><th>Member Origin</th><th>Postal Address</th><th>Mobile Number</th><th>பிறந்த தேதி</th><th>Avoid</th></tr>
           <tr class="filter-row">
             <td><label for="filter-sno" class="sr-only">Filter by S.No</label><input type="text" id="filter-sno" class="filter-input" placeholder="Filter" inputmode="numeric" pattern="[0-9]*" /></td>
             <td><label for="filter-roll" class="sr-only">Filter by Roll No.</label><input type="text" id="filter-roll" class="filter-input" placeholder="Filter" inputmode="numeric" pattern="[0-9]*" /></td>
             <td><label for="filter-name" class="sr-only">Filter by பெயர்</label><input type="text" id="filter-name" class="filter-input" placeholder="Filter" /></td>
-            <td><label for="filter-place" class="sr-only">Filter by ஊர்</label><input type="text" id="filter-place" class="filter-input" placeholder="Filter" /></td>
+            <td><label for="filter-name-en" class="sr-only">Filter by English Name</label><input type="text" id="filter-name-en" class="filter-input" placeholder="Filter" /></td>
+            <td><label for="filter-place" class="sr-only">Filter by Member Origin</label><input type="text" id="filter-place" class="filter-input" placeholder="Filter" /></td>
+            <td><label for="filter-postal" class="sr-only">Filter by Postal Address</label><input type="text" id="filter-postal" class="filter-input" placeholder="Filter" /></td>
             <td><label for="filter-mobile" class="sr-only">Filter by Mobile Number</label><input type="text" id="filter-mobile" class="filter-input" placeholder="Filter" inputmode="numeric" /></td>
             <td><label for="filter-dob" class="sr-only">Filter by பிறந்த தேதி</label><input type="text" id="filter-dob" class="filter-input" placeholder="dd-mm-yyyy" /></td>
             <td aria-hidden="true"></td>
@@ -75,7 +77,9 @@
             <td id="new-m-sno" class="new-member-num"></td>
             <td id="new-m-roll" class="new-member-num"></td>
             <td><label for="new-m-name" class="sr-only">New member's பெயர்</label><input type="text" id="new-m-name" placeholder="புதிய பெயரை உள்ளிடவும்..." /></td>
-            <td><label for="new-m-place" class="sr-only">New member's ஊர்</label><input type="text" id="new-m-place" placeholder="ஊர்" disabled /></td>
+            <td><label for="new-m-name-en" class="sr-only">New member's English Name</label><input type="text" id="new-m-name-en" placeholder="English Name" disabled /></td>
+            <td><label for="new-m-place" class="sr-only">New member's Member Origin</label><input type="text" id="new-m-place" placeholder="Member Origin" disabled /></td>
+            <td></td>   <!-- Postal Address: added later with the home icon, once the member exists -->
             <td><label for="new-m-mobile" class="sr-only">New member's Mobile Number</label><input type="text" id="new-m-mobile" placeholder="Mobile" inputmode="numeric" pattern="[0-9]*" disabled /></td>
             <td><label for="new-m-dob" class="sr-only">New member's பிறந்த தேதி</label><input type="date" id="new-m-dob" min="1900-01-01" disabled /></td>
             <td></td>
@@ -102,8 +106,8 @@
 <script src="shared.js?v=20261116c" defer></script>
 <script src="date-picker.js?v=20261117a" defer></script>
 <script src="address-data.js?v=20261114c" defer></script>
-<script src="member-address.js?v=20261115e" defer></script>
-<script src="members.js?v=20261116d" defer></script>
+<script src="member-address.js?v=20261119a" defer></script>
+<script src="members.js?v=20261119a" defer></script>
 <script src="print-table.js?v=20261114a" defer></script>
 <script src="members-print.js?v=20261114a" defer></script>
 </body>

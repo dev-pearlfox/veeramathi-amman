@@ -13,6 +13,8 @@ the owner can take. Items marked **(device)** need a real phone, tablet or lapto
 
 Everything below was only tested in headless Chrome with a fake database.
 
+- [ ] **P1** Members page, two addresses: run `backups/add-postal-address.sql` in Supabase once (adds `people.postal_address`), then on a real
+  phone and laptop check the nine columns (English Name, Member Origin, Postal Address), the two home icons, and the sideways scroll.
 - [ ] **P1** Receipt settings pill: open it on a real phone, set a number, tick a member, confirm the number lands in
   the receipt field and the row saves to the real database.
 - [ ] **P1** Row 1 tap / swipe fix (`#sheet-title { pointer-events: none }` on the வரவு / செலவு view): confirm on a real

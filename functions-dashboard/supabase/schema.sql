@@ -13,7 +13,8 @@ create table if not exists people (
   name        text not null,               -- Tamil name
   name_en     text,                        -- English name (optional)
   place       text,                        -- the house head's place (ஊர்)
-  address     jsonb,                       -- {door, street, area, town, country, state, district, pincode}, typed in the home-icon popup on the Members page
+  address     jsonb,                       -- Member Origin address {door, street, area, town, country, state, district, pincode}, typed in the home-icon popup on the Members page
+postal_address jsonb,                    -- Postal Address, same shape, from the second home icon (existing databases: backups/add-postal-address.sql)
   mobile      text,                        -- 10 digits, shown with +91
   dob         date,                        -- date of birth (optional)
   member_no   int,                         -- S.No., set by the pages (highest + 1)

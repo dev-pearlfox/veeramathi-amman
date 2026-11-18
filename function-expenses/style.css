@@ -1066,15 +1066,21 @@ table.sheet thead tr.filter-row td {
 }
 
 /* ---------- Members page table widths — HEART LOGIC, do not change without asking ----------
-   S.No. 70px / Roll No. 76px / பெயர் 230px / Name 230px / ஊர் 180px / Mobile Number 170px / பிறந்த தேதி 140px / Avoid 80px
-   (= 1176px total. The header frame (.members-thead-wrap) and the pill row (.members-filter-card)
-   are 1178px = table + 2px border, so the table fills the frame with no gap on either side.)
+   S.No. 70px / Roll No. 76px / பெயர் 440px / English Name 210px / Member Origin 190px / Postal Address 190px /
+   Mobile Number 170px / பிறந்த தேதி 140px / Avoid 80px
+   (= 1566px total. The header frame (.members-thead-wrap) and the pill row (.members-filter-card)
+   are 1568px = table + 2px border, so the table fills the frame with no gap on either side.)
    Literal fixed pixel widths, identical on desktop/tablet/mobile — the table
    does NOT stretch to fill its card (unlike table.sheet's default). On a
    screen narrower than the table's total width, it scrolls horizontally
    within its own card (table-wrap already supports this), same technique
    used for the main Ledger Sheet on phones — nothing else on the page moves. */
-table.members-table { width: 1176px; margin-top: 0; }
+table.members-table { width: 1566px; margin-top: 0; }
+/* The Members page is wider than the 1320px container <main> and .sticky-top-inner use everywhere else, so on a wide screen the
+   whole table shows without sideways scrolling: 1568px frame + 2 x 16px padding = 1600px. The two stay EQUAL (HEART LOGIC #6:
+   one shared container mechanism). On a narrower screen the frame shrinks to fit and the table scrolls sideways as before. */
+body.page-members main,
+body.page-members .sticky-top-inner { max-width: 1600px; }
 
 /* The header (column titles + filter inputs) is a separate mini table from
    the data rows, pinned via position:sticky on this WRAPPING div rather than
@@ -1136,7 +1142,7 @@ table.members-table { width: 1176px; margin-top: 0; }
   box-shadow: var(--shadow); /* same shadow every .card on the page uses — box-shadow paints outside the border-box, unaffected by this element's own overflow:hidden */
   contain: layout;
   overflow-anchor: none;
-  width: 1178px; /* 1176px table + 2px border (1px each side) so the table still fits exactly, without the border clipping it */
+  width: 1568px; /* 1566px table + 2px border (1px each side) so the table still fits exactly, without the border clipping it */
   max-width: 100%;
   margin: 22px auto 0; /* top value is breathing room from the pills bar above; closes to 0 once scrolled, just like the pills bar's own margin does */
   transition: margin-top 0.2s ease;
@@ -1193,7 +1199,7 @@ body.is-compact .members-thead-wrap { margin-top: 0; }
    padding:16px 20px (the .card.compact defaults) to go back to the boxed
    look. */
 .members-filter-card {
-  width: 1178px; /* always matches .members-thead-wrap's own width exactly, so the pill row's outer edges line up with the spreadsheet below it — the pill-row itself scrolls internally (see below) if its content doesn't fit at this width, rather than the card growing/shrinking to match content */
+  width: 1568px; /* always matches .members-thead-wrap's own width exactly, so the pill row's outer edges line up with the spreadsheet below it — the pill-row itself scrolls internally (see below) if its content doesn't fit at this width, rather than the card growing/shrinking to match content */
   max-width: 100%; /* of .sticky-top-inner's already-padded content box (see above) */
   margin: 28px auto 0; /* top value replicates <main>'s old header→pills gap, now that this card lives in .sticky-top-stack instead of <main> */
   background: none;
@@ -1226,26 +1232,32 @@ body.is-compact .members-filter-card {
   margin-top: 0;
   margin-bottom: var(--pills-card-margin-collapse, 0px);
 }
-/* Seven columns, 1176px: S.No 70 + Roll 76 + பெயர் 460 + ஊர் 180 + Mobile 170 + பிறந்த தேதி 140 + Avoid 80. பெயர் is wide because
-   it holds the whole family name ("husband - wife"); the English Name column that used to sit after it was removed, and its
-   230px went to பெயர். The total is unchanged. */
+/* Nine columns, 1566px: S.No 70 + Roll 76 + பெயர் 440 + English Name 210 + Member Origin 190 + Postal Address 190 + Mobile 170
+   + பிறந்த தேதி 140 + Avoid 80. பெயர் holds the whole family name ("husband - wife"). The English Name column was once removed
+   (its width went to பெயர்) and is back with the owner's permission, plus the new Postal Address column; Member Origin is the
+   old ஊர் column renamed. */
 table.members-table th:nth-child(1), table.members-table td:nth-child(1) { width: 70px; }
 table.members-table th:nth-child(2), table.members-table td:nth-child(2) { width: 76px; }
-table.members-table th:nth-child(3), table.members-table td:nth-child(3) { width: 460px; }
-table.members-table th:nth-child(4), table.members-table td:nth-child(4) { width: 180px; }
-table.members-table th:nth-child(5), table.members-table td:nth-child(5) { width: 170px; }
-table.members-table th:nth-child(6), table.members-table td:nth-child(6) { width: 140px; }
-table.members-table th:nth-child(7), table.members-table td:nth-child(7) { width: 80px; }
+table.members-table th:nth-child(3), table.members-table td:nth-child(3) { width: 440px; }
+table.members-table th:nth-child(4), table.members-table td:nth-child(4) { width: 210px; }
+table.members-table th:nth-child(5), table.members-table td:nth-child(5) { width: 190px; }
+table.members-table th:nth-child(6), table.members-table td:nth-child(6) { width: 190px; }
+table.members-table th:nth-child(7), table.members-table td:nth-child(7) { width: 170px; }
+table.members-table th:nth-child(8), table.members-table td:nth-child(8) { width: 140px; }
+table.members-table th:nth-child(9), table.members-table td:nth-child(9) { width: 80px; }
 table.members-table td:nth-child(2) { text-align: center; }
-table.members-table td:nth-child(7) { text-align: center; }
-/* பிறந்த தேதி (6th): a date box, left-aligned like the other text columns. */
-table.members-table td:nth-child(6) input { text-align: left; }
-/* ஊர் (4th): text, so left-aligned like the names (inputs are right-aligned by default). Also covers its filter and add-row boxes. */
-table.members-table td:nth-child(4) input { text-align: left; }
-/* Mobile column (5th): a fixed "+91" sits in front of the number, so people type only the 10 digits. Display only: the
+table.members-table td:nth-child(9) { text-align: center; }
+/* Text columns are left-aligned like the names (inputs are right-aligned by default): English Name (4th), Member Origin (5th),
+   Postal Address (6th), பிறந்த தேதி (8th, a date box). Also covers their filter and add-row boxes. */
+table.members-table td:nth-child(4) input, table.members-table td:nth-child(5) input,
+table.members-table td:nth-child(6) input, table.members-table td:nth-child(8) input { text-align: left; }
+/* Postal Address cell: its town text is display-only (the form in the icon's popup edits it), so it reads like a locked cell. */
+.postal-town { cursor: default; color: var(--muted); background: transparent; border-color: transparent; }   /* same grey as a locked .cell-input */
+.postal-town:focus { outline: none; box-shadow: none; }
+/* Mobile column (7th): a fixed "+91" sits in front of the number, so people type only the 10 digits. Display only: the
    saved value stays the plain 10 digits. Widths are untouched (HEART LOGIC: literal px columns). */
-table.members-table td:nth-child(5) { position: relative; }
-table.members-table td:nth-child(5)::before {
+table.members-table td:nth-child(7) { position: relative; }
+table.members-table td:nth-child(7)::before {
   content: "+91";
   position: absolute;
   left: 14px;
@@ -1256,7 +1268,7 @@ table.members-table td:nth-child(5)::before {
   pointer-events: none;
 }
 /* Inputs are right-aligned by default; left-align so the digits sit right after the +91. */
-table.members-table td:nth-child(5) input { padding-left: 49px; text-align: left; }
+table.members-table td:nth-child(7) input { padding-left: 49px; text-align: left; }
 table.members-table thead th:nth-child(3) { font-weight: 800; }
 table.members-table thead th { padding: 4px 3px; }
 
@@ -1302,7 +1314,9 @@ table.members-table thead th:nth-child(3),
 table.members-table thead th:nth-child(4),
 table.members-table thead th:nth-child(5),
 table.members-table thead th:nth-child(6),
-table.members-table thead th:nth-child(7) {
+table.members-table thead th:nth-child(7),
+table.members-table thead th:nth-child(8),
+table.members-table thead th:nth-child(9) {
   font-size: 1.05rem;
 }
 
@@ -1319,7 +1333,9 @@ body.is-compact table.members-table thead th:nth-child(3),
 body.is-compact table.members-table thead th:nth-child(4),
 body.is-compact table.members-table thead th:nth-child(5),
 body.is-compact table.members-table thead th:nth-child(6),
-body.is-compact table.members-table thead th:nth-child(7) {
+body.is-compact table.members-table thead th:nth-child(7),
+body.is-compact table.members-table thead th:nth-child(8),
+body.is-compact table.members-table thead th:nth-child(9) {
   font-size: 0.8rem;
 }
 body.is-compact table.sheet thead tr.filter-row th,

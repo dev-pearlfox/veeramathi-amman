@@ -1,9 +1,12 @@
-// The home icon at the front of each ஊர் cell on the Members page opens this popup: a labelled address form with
+// The home icon in the Member Origin cell and the one in the Postal Address cell (Members page) each open this popup: a labelled address form with
 // Save and Cancel. It follows the page lock (body.master-locked, members.js): while the page is LOCKED (view mode) the
 // popup only shows the saved address, read-only, with a Close button; once the page is UNLOCKED (edit mode) it can be
 // typed in, pasted into and saved. Nothing is written until Save is clicked, so a stray tap cannot change anything. `people.address` is a jsonb object {door, street, area, town, country, state,
 // district, pincode} (functions-dashboard/supabase/schema.sql). members.js draws the icon (addressButton) and keeps the
 // saved object in allPeople; this file only handles the popup. Dropdown lists live in address-data.js.
+//
+// Two addresses per member share this one form: people.address (Member Origin, the ஊர் cell) and people.postal_address
+// (Postal Address). Each icon carries data-addr naming the column it edits (ADDR_KINDS below); the form is the same.
 //
 // Country / State / District are dropdowns where we have a list (see address-data.js) and a plain text box where we
 // do not: any country outside India, any state outside India, any district outside Tamil Nadu. Country also has
@@ -23,7 +26,15 @@ const ADDRESS_FIELDS = [
 const PASTE_ICON_SVG = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>';
 const ADDR_OTHER = "__other";   // the "Other…" option's value in the country dropdown
 
+// The two addresses a member has: the people column each icon edits, and the popup title for it. A new form starts from the
+// ஊர் text beside the icon for Member Origin (splitPlace), and at India / Tamil Nadu for Postal (see openAddressPopup).
+const ADDR_KINDS = {
+  address: { title: "Member Origin address" },
+  postal_address: { title: "Postal address" },
+};
+
 let addrPersonId = null;
+let addrKind = "address";   // which of the two columns the open popup is editing
 let addrButton = null;   // the icon the open popup hangs under
 let addrDefaults = {};   // what the open form was pre-filled with (not a real address until something else is typed)
 const addrPop = document.createElement("div");
@@ -169,16 +180,19 @@ function openAddressPopup(button) {
   const person = allPeople.find((p) => p.id === button.closest("tr").dataset.person);
   if (!person) return;
   addrPersonId = person.id;
+  addrKind = button.dataset.addr;
   addrButton = button;
-  addrPop.querySelector(".addr-pop-title").textContent = `${person.name} - முகவரி`;
+  const saved = person[addrKind];
+  addrPop.querySelector(".addr-pop-title").textContent = `${person.name} - ${ADDR_KINDS[addrKind].title}`;
   const viewOnly = addrViewOnly();
-  // Edit mode: pre-filled from the ஊர் cell the icon sits in (what is on screen, even if just edited; see splitPlace).
-  // A saved address wins over these. They are only stored if something else is typed.
-  // View mode: only what is really saved, never the guesses.
-  addrDefaults = viewOnly ? {} : splitPlace(button.closest("td").querySelector(".cell-input")?.value ?? "");
-  fillAddressForm({ ...addrDefaults, ...(hasAddress(person.address) ? person.address : {}) });
+  // Edit mode, Member Origin: pre-filled from the ஊர் cell the icon sits in (what is on screen, even if just edited; see
+  // splitPlace). Postal Address: just India / Tamil Nadu. A saved address wins over these. They are only stored if
+  // something else is typed. View mode: only what is really saved, never the guesses.
+  const fromPlace = () => splitPlace(button.closest("td").querySelector(".cell-input")?.value ?? "");
+  addrDefaults = viewOnly ? {} : addrKind === "address" ? fromPlace() : { country: ADDR_INDIA, state: ADDR_DEFAULT_STATE };
+  fillAddressForm({ ...addrDefaults, ...(hasAddress(saved) ? saved : {}) });
   applyAddressMode(viewOnly);
-  addrNote.textContent = viewOnly && !hasAddress(person.address) ? "No address saved yet. Click Edit to add one." : "";
+  addrNote.textContent = viewOnly && !hasAddress(saved) ? "No address saved yet. Click Edit to add one." : "";
   addrError.textContent = "";
   addrPop.classList.remove("hidden");
   placeAddressPopup();
@@ -202,15 +216,19 @@ async function saveAddress() {
   // Only the pre-filled values (from the cell, plus India / Tamil Nadu) and nothing else typed means there is no address to store.
   const onlyDefaults = Object.entries(parts).every(([k, v]) => v === addrDefaults[k]);
   const address = Object.keys(parts).length && !onlyDefaults ? parts : null;
-  if (JSON.stringify(person.address ?? null) !== JSON.stringify(address)) {
-    const { error } = await client.from("people").update({ address }).eq("id", person.id);
+  if (JSON.stringify(person[addrKind] ?? null) !== JSON.stringify(address)) {
+    const { error } = await client.from("people").update({ [addrKind]: address }).eq("id", person.id);
     if (error) {
       addrError.textContent = "Error saving: " + error.message;
       return;
     }
-    person.address = address;
-    const icon = document.querySelector(`#members-body tr[data-person="${person.id}"] .addr-btn`);
-    if (icon) icon.classList.toggle("address-complete", isAddressComplete(address));
+    person[addrKind] = address;
+    const icon = document.querySelector(`#members-body tr[data-person="${person.id}"] .addr-btn[data-addr="${addrKind}"]`);
+    if (icon) {
+      icon.classList.toggle("address-complete", isAddressComplete(address));
+      const town = icon.closest("td").querySelector(".postal-town");   // only the Postal cell has one: its town text follows the form
+      if (town) town.value = address?.town ?? "";
+    }
     setStatus("Saved.", false);
   }
   closeAddressPopup();
@@ -286,7 +304,8 @@ addrPop.addEventListener("keydown", (e) => {
 document.getElementById("members-body").addEventListener("click", (e) => {
   const button = e.target.closest(".addr-btn");
   if (!button) return;
-  if (addrPersonId === button.closest("tr").dataset.person && !addrPop.classList.contains("hidden")) closeAddressPopup();
+  const sameOpen = addrPersonId === button.closest("tr").dataset.person && addrKind === button.dataset.addr;
+  if (sameOpen && !addrPop.classList.contains("hidden")) closeAddressPopup();
   else openAddressPopup(button);
 });
 addrPop.querySelector(".addr-pop-save").addEventListener("click", saveAddress);

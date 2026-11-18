@@ -66,9 +66,13 @@ intermittently rendered flush-left on a real device, fixed by reload.
 
 ## 7. `table.members-table` column widths are literal fixed px
 (style.css, already marked HEART LOGIC there) — do not stretch to fill wide
-screens. (Now 7 columns, still 1176px in total: the English Name column was removed
-with the owner's permission and its 230px went to பெயர், which is 460px, so the whole
-"husband - wife" name shows. The nth-child rules were renumbered to match.) A percentage-based stretch version was built and tested, then
+screens. (Now 9 columns, 1566px in total: S.No 70, Roll 76, பெயர் 440, English Name 210, Member Origin 190,
+Postal Address 190, Mobile 170, பிறந்த தேதி 140, Avoid 80. With the owner's permission the English Name column,
+once removed, came back and the Postal Address column was added; Member Origin is the old ஊர் column renamed.
+The header frame and the pill row are 1568px. Because that is wider than the usual 1320px container, `members.html`
+has `<body class="is-compact page-members">` and `body.page-members main, body.page-members .sticky-top-inner`
+are both `max-width: 1600px` (kept EQUAL, see #6). Narrower screens scroll the table sideways inside its frame as
+before. The nth-child rules were renumbered to match.) A percentage-based stretch version was built and tested, then
 explicitly reverted.
 
 The Accounts Ledger Sheet (`table.sheet:not(.members-table)`, index.html) has the same rule, also
