@@ -3,10 +3,11 @@
 
 $("print-btn").addEventListener("click", () => {
   const trs = [...document.querySelectorAll("#members-body tr")];
-  // A blank line above the first row of every family table after the first (the gap the page shows).
-  const body = trs.flatMap((tr) => (tr.classList.contains("group-start") ? [Array(9).fill(""), printRow(tr)] : [printRow(tr)]));
+  // The strip between two family tables prints as a blank line.
+  const body = trs.map((tr) => (tr.classList.contains("family-strip") ? Array(9).fill("") : printRow(tr)));
+  const members = trs.filter((tr) => tr.dataset.person).length;
   printTable({
-    heading: `${GROUP_PRINT_HEADINGS[activeGroup]} \u00b7 ${trs.length}`,   // the list that is showing, and how many members
+    heading: `${GROUP_PRINT_HEADINGS[activeGroup]} \u00b7 ${members}`,   // the list that is showing, and how many members
     fileTitle: `Sri Veeramathi Amman Thunai - members${activeGroup === "others" ? " - others" : ""}`,
     head: printRows("#members-thead-wrap thead tr:first-child")[0],
     body,

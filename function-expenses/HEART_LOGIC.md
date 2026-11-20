@@ -111,11 +111,22 @@ member has `family_group` (1, 2, 3 ...) and **S.No. (`member_no`) restarts at 1 
 identifies anyone: Roll No. does. The database keeps `(member_group, coalesce(family_group, 0), member_no)` unique
 (`people_family_no_unique`). The ONE sort order is `compareMembers` in the root `member-order.js` (தலைக்கட்டு, then table, then
 S.No., then name); the Accounts page, Dashboard, unpaid list and invitation all use it, so do not write a second `member_no` sort.
-The Members page stays ONE table: the first row of each later family table has class `group-start`, which is only a thick
-border-top in the page colour (so row heights and the fixed column widths of #7 do not move). The "Add to" picker row
+The Members page stays ONE table: above the first row of each later family table sits a thin orange strip row
+(`tr.family-strip`, one `colspan="9"` cell, "Table 2 - 17 members"; it has no `data-person`, so code that works on member rows
+never touches it, and it is never the first row, so the fixed column widths of #7 do not move). The "Add to" picker row
 (`#new-member-table-row`) is in the `tfoot` AFTER the add row, because the add row must stay the first row that gives the table
 its widths. The invitation draws a real gap row (`inv-gap`, `INV.tableGap`) and restarts its own S.No. per table; the page
 flow counts that gap, so change both together. Moving a member between tables is not built (not needed yet).
+
+Also on the Members page: the round **T1, T2 ...** buttons (`#table-jump`, members.js `renderTableJump`) are a direct child of `<body>`
+on purpose, because a `position: fixed` element inside a `transform: scale()` wrapper would not stay fixed to the screen. A click
+scrolls to that table under the sticky header and blinks its rows once.
+
+## 9d. Hover zoom on every button (`../button-zoom.css`)
+One shared file, loaded by Accounts, Members and Dashboard. It uses the CSS `scale` property (not `transform`), so it composes with
+buttons that already use `transform` and never changes layout, so the sticky/collapse maths of #1 to #6 is not affected. Its
+`transition` is `!important` on purpose (older per-button rules set their own shorthand, which would drop `scale`). The T1, T2 ...
+buttons are excluded (they have their own zoom in style.css).
 
 ## 10. Cache-busting `?v=...` on style.css / shared.js / members.js / app.js / income.js / expenses.css
 (both `members.html` and `index.html`, and the dashboard's files in its `index.html`) — browsers repeatedly served a stale

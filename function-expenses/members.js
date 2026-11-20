@@ -188,12 +188,19 @@ function renderRows() {
     return true;
   });
 
-  // The first row of every family table after the first one gets class group-start (a gap above it, style.css). It is judged on
-  // the rows that are showing, so a filter that hides a whole table does not leave a stray gap.
-  const startsTable = (p, i) => i > 0 && p.family_group !== visible[i - 1].family_group;
+  // A thin strip row ("Table 2 - 17 members", class family-strip) goes above the first row of every family table after the first.
+  // It is judged on the rows that are showing, so a filter that hides a whole table leaves no stray strip, and the count is
+  // of the members showing in that table. It has no data-person, so nothing that works on member rows touches it.
+  const showing = {};
+  visible.forEach((p) => { showing[p.family_group] = (showing[p.family_group] || 0) + 1; });
+  const strip = (p, i) => {
+    if (i === 0 || p.family_group === visible[i - 1].family_group || p.family_group == null) return "";
+    const n = showing[p.family_group];
+    return `<tr class="family-strip" data-family="${p.family_group}"><td colspan="9">Table ${p.family_group} - ${n} member${n === 1 ? "" : "s"}</td></tr>`;
+  };
   $("members-body").innerHTML = visible
     .map(
-      (p, i) => `<tr data-person="${p.id}" class="${p.avoid ? "row-avoided" : ""}${startsTable(p, i) ? " group-start" : ""}">
+      (p, i) => `${strip(p, i)}<tr data-person="${p.id}" data-family="${p.family_group ?? ""}" class="${p.avoid ? "row-avoided" : ""}">
         <td>${p.member_no ?? ""}</td>
         <td>${p.roll_number ?? ""}</td>
         ${cell(p, "name", p.name)}
@@ -207,7 +214,72 @@ function renderRows() {
     )
     .join("");
   renderTablePicker();
+  renderTableJump();
 }
+
+// ---------- T1, T2 ... jump buttons ----------
+// Round buttons fixed to the left of the screen (#table-jump, style.css): a click scrolls to that family table (just under the
+// sticky header) and, once the scrolling has stopped, the table's rows blink once. A table that a filter has emptied is dimmed.
+// Only தலைக்கட்டு has tables, and a single table needs no jump.
+function renderTableJump() {
+  const nav = $("table-jump");
+  const families = activeGroup === "thalaikattu" ? familyNumbers() : [];
+  nav.hidden = families.length < 2;
+  if (nav.hidden) return;
+  nav.innerHTML = families.map((n) => {
+    const shown = document.querySelectorAll(`#members-body tr[data-person][data-family="${n}"]`).length;
+    return `<button type="button" class="table-jump-btn" data-table="${n}" ${shown ? "" : "disabled"} aria-label="Go to table ${n}" title="Table ${n}${shown ? ` - ${shown} member${shown === 1 ? "" : "s"}` : " (hidden by the filter)"}">T${n}</button>`;
+  }).join("");
+  placeTableJump();
+}
+
+// The buttons end 20px before the table. Where the screen has no 20px of room left of the table (anything under ~1750px wide
+// the table is nearly at the screen edge) they stay at the screen edge, 4px in, over the table's edge instead of off-screen.
+// Measured from the sticky header's wrapper, which is as wide as the table and does not move when the table is scrolled sideways.
+function placeTableJump() {
+  const nav = $("table-jump");
+  if (nav.hidden) return;
+  const pad = parseFloat(getComputedStyle(nav).paddingLeft);   // the nav's own padding (style.css): room for the hover zoom and shadow
+  const size = nav.firstElementChild.offsetWidth;
+  const circleLeft = Math.max(4, $("members-thead-wrap").getBoundingClientRect().left - 20 - size);
+  nav.style.left = `${circleLeft - pad}px`;
+}
+window.addEventListener("resize", placeTableJump);
+
+// Resolves when the page has stopped scrolling (a smooth scroll has no end event in every browser), or after 2 seconds.
+function whenScrollStops() {
+  return new Promise((resolve) => {
+    let last = -1, still = 0;
+    const started = performance.now();
+    const check = () => {
+      still = window.scrollY === last ? still + 1 : 0;
+      last = window.scrollY;
+      if (still >= 6 || performance.now() - started > 2000) resolve();
+      else requestAnimationFrame(check);
+    };
+    requestAnimationFrame(check);
+  });
+}
+
+async function jumpToTable(n) {
+  const rows = [...document.querySelectorAll(`#members-body tr[data-family="${n}"]`)];
+  if (!rows.length) return;
+  const headerBottom = $("members-thead-wrap").getBoundingClientRect().bottom;   // the sticky header covers the top of the page
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  window.scrollTo({ top: rows[0].getBoundingClientRect().top + window.scrollY - headerBottom - 6, behavior: reduce ? "auto" : "smooth" });
+  await whenScrollStops();
+  rows.forEach((tr) => {
+    tr.classList.remove("table-blink");
+    void tr.offsetWidth;   // restart the animation if the same button is pressed twice
+    tr.classList.add("table-blink");
+  });
+  setTimeout(() => rows.forEach((tr) => tr.classList.remove("table-blink")), 1100);
+}
+
+$("table-jump").addEventListener("click", (e) => {
+  const btn = e.target.closest(".table-jump-btn");
+  if (btn && !btn.disabled) jumpToTable(Number(btn.dataset.table));
+});
 
 async function loadMembers() {
   setStatus("Loading members…", false);

@@ -1,0 +1,30 @@
+/* Every button on every page (Accounts, Members, Dashboard) zooms in while the pointer is on it and eases back out when it leaves.
+   Shared by function-expenses/index.html, members.html and functions-dashboard/index.html.
+
+   Uses the `scale` property, not `transform`: many buttons already position themselves with a transform (translateY(-50%)) or have
+   their own hover lift, and `scale` composes with those instead of replacing them. It never changes layout, so the pinned headers
+   and the HEART_LOGIC sticky/collapse maths cannot move.
+
+   Not covered on purpose: the round T1, T2 ... table jump buttons (style.css), which have their own bigger, springier zoom. */
+:root { --button-zoom: 1.18; }
+
+button:not(.table-jump-btn), .header-link-btn, .banner-btn {
+  /* The one place the transition is set for every button, !important because older per-button rules each set their own `transition`
+     (a shorthand that would drop `scale` and make the zoom snap). This list is the union of what those rules animated, so nothing
+     they did is lost. */
+  transition: scale 0.22s cubic-bezier(0.34, 1.4, 0.64, 1), transform 0.12s ease, opacity 0.15s ease, background-color 0.15s ease,
+    color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, padding 0.2s ease, min-height 0.2s ease, font-size 0.2s ease !important;
+}
+
+/* Hover only where a real pointer exists: on a phone a tap would otherwise leave the button zoomed until the next tap elsewhere. */
+@media (hover: hover) {
+  :is(button:not(.table-jump-btn), .header-link-btn, .banner-btn):is(:hover, :focus-visible):not(:disabled) { scale: var(--button-zoom); }
+}
+/* The press: a little smaller than the hover zoom, on touch screens too. */
+:is(button:not(.table-jump-btn), .header-link-btn, .banner-btn):active:not(:disabled) { scale: 1.1; }
+
+@media (prefers-reduced-motion: reduce) {
+  button:not(.table-jump-btn), .header-link-btn, .banner-btn { transition: none !important; }
+  :is(button, .header-link-btn, .banner-btn):is(:hover, :focus-visible, :active) { scale: 1 !important; }
+}
+@media print { button, .header-link-btn, .banner-btn { scale: 1 !important; } }
