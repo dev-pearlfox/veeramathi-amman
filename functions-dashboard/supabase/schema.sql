@@ -20,11 +20,15 @@ postal_address jsonb,                    -- Postal Address, same shape, from the
   member_no   int,                         -- S.No., set by the pages (highest + 1)
   roll_number int,                         -- permanent Roll No., starts at 1001, set by the pages
   avoid       boolean not null default false,   -- no longer active (hidden from new function sheets)
+  member_group text not null default 'thalaikattu',   -- the Members page list: 'thalaikattu' (has a Roll No.) or 'others' (no Roll No.); existing databases: backups/add-member-groups.sql
+  family_group int,                        -- the family table (1, 2, 3 ...) a thalaikattu member sits in, as in the printed booklet; NULL for others
   created_at  timestamptz not null default now(),
   constraint people_name_unique unique (name),
-  constraint people_member_no_unique unique (member_no),      -- several NULLs are allowed, duplicates are not
+  constraint people_member_group_check check (member_group in ('thalaikattu', 'others')),
   constraint people_roll_number_unique unique (roll_number)
 );
+-- S.No. (member_no) restarts at 1 inside each family table, so it is unique only inside one (an Others member has no table: 0).
+create unique index if not exists people_family_no_unique on people (member_group, coalesce(family_group, 0), member_no);
 
 -- ---------------------------------------------------------------- functions (the events)
 create table if not exists functions (

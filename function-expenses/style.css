@@ -1009,6 +1009,24 @@ body.is-compact .sheet-filter-card .pill-row.has-overflow {
    table's right edge; only the sides are zeroed, the top and bottom keep the gap above the table. */
 .members-filter-card.card { padding-left: 0; padding-right: 0; }
 .members-filter-card .print-btn { display: block; margin-left: auto; }
+/* The two list buttons (தலைக்கட்டு / Others, #group-pills) sit at the left, Print stays at the right. One row; if the screen is too
+   narrow they wrap and the card just gets taller (syncPillsCardCollapse measures the card's real height). min-height 32px is
+   the Print button's own, so the card is NOT taller than it was with Print alone. */
+.members-filter-card.card { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px; }
+.members-filter-card.card .pill { min-height: 32px; padding: 5px 16px; font-size: 0.9rem; }   /* .card in the selector outranks the older `.card.compact .pill` */
+.pill .pill-count { margin-left: 4px; font-weight: 600; opacity: 0.8; }
+/* Wider than a phone: the two list buttons sit in the exact middle of the bar (1fr auto 1fr = equal side columns), Print at the right edge. */
+@media (min-width: 601px) {
+  .members-filter-card.card { display: grid; grid-template-columns: 1fr auto 1fr; }
+  .members-filter-card.card #group-pills { grid-column: 2; }
+  .members-filter-card.card .print-btn { grid-column: 3; justify-self: end; margin-left: 0; }
+}
+/* Phones: the two buttons and Print must still share ONE row (a second row would make the pinned header taller). */
+@media (max-width: 480px) {
+  .members-filter-card.card .pill { padding: 5px 8px; font-size: 0.8rem; }
+  .members-filter-card .print-btn { padding: 6px 10px; font-size: 0.8rem; }
+  .members-filter-card.card .pill-row { gap: 4px; }
+}
 
 /* The printout (print-table.js fills #print-sheet, a direct child of <body> on both pages): only it is printed,
    landscape, the column titles repeat on every page. */
@@ -1279,6 +1297,15 @@ table.members-table tfoot td { background: rgba(21, 128, 61, 0.1); }
 table.members-table tfoot td input:disabled,
 table.members-table tfoot td select:disabled { background: transparent; color: var(--muted); opacity: 0.55; cursor: not-allowed; }
 .new-member-num { text-align: center; color: #15803d; font-weight: 700; }
+/* The தலைக்கட்டு list is several family tables (members.js, class group-start on the first row of each one after the first):
+   a gap between them, like the printed booklet. A thick border in the page colour, so the row heights and the fixed column
+   widths (HEART_LOGIC #7) are untouched. */
+#members-body tr.group-start > td { border-top: 16px solid var(--bg); }
+/* The "Add to <table>" choice under the add row. A single cell spanning the nine columns, after the add row so that row
+   still gives the table its widths. */
+#new-member-table-row td { text-align: left; padding: 6px 12px; font-size: 0.85rem; color: var(--muted); background: var(--surface); }
+#new-member-table-row select { width: auto; max-width: 100%; min-height: 30px; padding: 2px 8px; font-size: 0.85rem; }
+body.master-locked #new-member-table-row select { opacity: 0.6; }
 
 /* Custom-drawn (not the native tick) since accent-color can only recolor the
    browser's own checkmark glyph, not swap it for an X. */

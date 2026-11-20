@@ -97,6 +97,7 @@
 .inv-t td.n, .inv-t td.r { text-align: center; }
 .inv-t td.amt { text-align: right; font-weight: 800; }
 .inv-t td small { font-size: 0.68em; font-weight: 600; }
+.inv-t tr.inv-gap td { height: 0.149in; padding: 0; border-left: 0; border-right: 0; }   /* the blank line between two family tables (INV.tableGap) */
 .inv-total td { height: 0.3in; text-align: center; font-size: 11pt; }
 .inv-total td.amt { font-size: 10pt; }   /* so a total like 1,74,455 fits the narrow amount column */
 .inv-total td.amt { text-align: right; }

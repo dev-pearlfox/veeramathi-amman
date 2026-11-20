@@ -214,7 +214,7 @@ async function loadPeople() {
     setStatus("sheet-status", "Error loading members: " + error.message, true);
     return;
   }
-  people = data;
+  people = data.sort(compareMembers);   // family table order (member-order.js), not S.No. alone: S.No. repeats in every table
 }
 
 async function loadFunctions() {

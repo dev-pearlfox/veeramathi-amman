@@ -22,9 +22,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@700;800&family=Poppins:wght@400;500;600;700;800&display=swap" />
-<link rel="stylesheet" href="style.css?v=20261119b" />
+<link rel="stylesheet" href="style.css?v=20261121a" />
 <link rel="stylesheet" href="date-picker.css?v=20261115a" />
 <link rel="stylesheet" href="member-address.css?v=20261119b" />
+<link rel="stylesheet" href="../filter-clear.css?v=20261120b" />
 </head>
 <!-- Heart Logic: see HEART_LOGIC.md before changing sticky/scale/cache-bust/deployment logic. -->
 <body class="is-compact page-members">
@@ -43,6 +44,10 @@
 
   <div class="sticky-top-inner">
     <section class="card compact members-filter-card">
+      <div id="group-pills" class="pill-row" role="group" aria-label="Member list">
+        <button type="button" class="pill active" data-group="thalaikattu" aria-pressed="true">தலைக்கட்டு</button>
+        <button type="button" class="pill" data-group="others" aria-pressed="false">Others</button>
+      </div>
       <button type="button" id="print-btn" class="members-toggle print-btn">Print / save as PDF</button>
     </section>
 
@@ -84,6 +89,11 @@
             <td><label for="new-m-dob" class="sr-only">New member's பிறந்த தேதி</label><input type="date" id="new-m-dob" min="1900-01-01" disabled /></td>
             <td></td>
           </tr>
+          <!-- Which family table the new member joins (தலைக்கட்டு only; members.js). Kept AFTER the add row: the add row stays the
+               first row of the empty table, so the column widths (HEART_LOGIC #7) are still read from it. -->
+          <tr id="new-member-table-row">
+            <td colspan="9"><label for="new-m-table">Add to</label> <select id="new-m-table"></select></td>
+          </tr>
         </tfoot>
       </table>
     </div>
@@ -103,12 +113,14 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js" integrity="sha384-JBR+x8blGwjDRO63aHCGiZMD4VNiTR4ZUGA+N6ZKLf3zNt1fK8IBpcgPaMrxqWBp" defer crossorigin="anonymous"></script>
 <script src="supabase-config.js?v=20261105t" defer></script>
-<script src="shared.js?v=20261116c" defer></script>
+<script src="../member-order.js?v=20261121a" defer></script>
+<script src="shared.js?v=20261121a" defer></script>
+<script src="../filter-clear.js?v=20261120b" defer></script>
 <script src="date-picker.js?v=20261117a" defer></script>
 <script src="address-data.js?v=20261114c" defer></script>
 <script src="member-address.js?v=20261119b" defer></script>
-<script src="members.js?v=20261119b" defer></script>
+<script src="members.js?v=20261121a" defer></script>
 <script src="print-table.js?v=20261114a" defer></script>
-<script src="members-print.js?v=20261114a" defer></script>
+<script src="members-print.js?v=20261121a" defer></script>
 </body>
 </html>

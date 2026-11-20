@@ -1,8 +1,6 @@
 // Explore: "Unpaid சந்தா". For each selected function, how many have paid, what is still pending, and who has not
 // paid (with a tap-to-call number). The numbers come from santhaStatus() in data.js.
 
-const byMemberNo = (a, b) => (a.member_no ?? 9999) - (b.member_no ?? 9999) || (a.name || "").localeCompare(b.name || "");
-
 // The number as stored, as a tel: link. Digits only in the link, so spaces or dashes in the data cannot break it.
 function mobileLink(mobile) {
   const shown = String(mobile ?? "").trim();
@@ -31,7 +29,7 @@ function renderUnpaid(funcs) {
                <thead><tr><th>S.No.</th><th>Name</th><th>English name</th><th>Mobile</th></tr></thead>
                <tbody>${st.unpaid
                  .slice()
-                 .sort(byMemberNo)
+                 .sort(compareMembers)   // member-order.js: family table, then S.No.
                  .map((p) => `<tr><td>${p.member_no ?? ""}</td><td>${escapeHtml(p.name || "?")}</td><td>${escapeHtml(p.name_en ?? "")}</td><td>${mobileLink(p.mobile)}</td></tr>`)
                  .join("")}</tbody>
              </table></div>`

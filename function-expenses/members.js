@@ -33,6 +33,47 @@ $("logout-btn").addEventListener("click", () => {
 
 let allPeople = [];
 
+// The two lists of the page (people.member_group; memberGroupOf is in shared.js). தலைக்கட்டு is shown first, always.
+// Others have their own S.No. and no Roll No.; a member is added to whichever list is showing.
+const GROUP_LABELS = { thalaikattu: "தலைக்கட்டு", others: "Others" };
+const GROUP_PRINT_HEADINGS = { thalaikattu: "மொத்த குடும்பத் தலைவர்கள்", others: "Others" };   // members-print.js
+let activeGroup = "thalaikattu";
+const peopleOfGroup = (group) => allPeople.filter((p) => memberGroupOf(p) === group);
+
+// The தலைக்கட்டு list is split into family tables (people.family_group: 1, 2, 3 ...), each with its own S.No. from 1, like the
+// printed booklet. The add row sends a new member to the table picked in #new-m-table (newMemberFamily); it starts on the last one.
+let newMemberFamily = null;
+const familyNumbers = () => [...new Set(peopleOfGroup("thalaikattu").map((p) => p.family_group).filter((n) => n != null))].sort((a, b) => a - b);
+const lastFamily = () => familyNumbers().at(-1) ?? null;
+
+// Rebuilds the "Add to table" choices: every table with its size and first member, then a "new table" at the end. Only
+// தலைக்கட்டு has tables, so the row is hidden on Others.
+function renderTablePicker() {
+  const row = $("new-member-table-row");
+  row.hidden = activeGroup !== "thalaikattu";
+  if (row.hidden) return;
+  const families = familyNumbers();
+  const fresh = (families.at(-1) ?? 0) + 1;
+  if (newMemberFamily == null || (newMemberFamily !== fresh && !families.includes(newMemberFamily))) newMemberFamily = lastFamily() ?? fresh;
+  const options = families.map((n) => {
+    const members = peopleOfGroup("thalaikattu").filter((p) => p.family_group === n);
+    return `<option value="${n}">Table ${n} - ${members.length} member${members.length === 1 ? "" : "s"}, from ${escapeHtml(members[0].name.replace(/^திரு\.\s*/, "").slice(0, 28))}</option>`;
+  });
+  options.push(`<option value="${fresh}">New table ${fresh}</option>`);
+  $("new-m-table").innerHTML = options.join("");
+  $("new-m-table").value = String(newMemberFamily);
+}
+
+// The two buttons: the label and how many members the list holds (all of them, whatever the column filters say).
+function renderGroupPills() {
+  document.querySelectorAll("#group-pills .pill").forEach((pill) => {
+    const group = pill.dataset.group;
+    pill.classList.toggle("active", group === activeGroup);
+    pill.setAttribute("aria-pressed", String(group === activeGroup));
+    pill.innerHTML = `${GROUP_LABELS[group]} <span class="pill-count">${peopleOfGroup(group).length}</span>`;
+  });
+}
+
 // escapeHtml, formatMobile live in shared.js (loaded before this file) —
 // kept as one copy with app.js.
 
@@ -134,7 +175,8 @@ function renderRows() {
   const dobQ = $("filter-dob").value.trim().replace(/[/.]/g, "-");   // 12/05 and 12.05 both mean 12-05
   const mobileQ = $("filter-mobile").value.trim().replace(/\s+/g, "").toLowerCase();
 
-  const visible = allPeople.filter((p) => {
+  renderGroupPills();
+  const visible = peopleOfGroup(activeGroup).filter((p) => {
     if (snoQ && !String(p.member_no ?? "").toLowerCase().includes(snoQ)) return false;
     if (rollQ && !String(p.roll_number ?? "").toLowerCase().includes(rollQ)) return false;
     if (nameQ && !(p.name || "").toLowerCase().includes(nameQ)) return false;
@@ -146,9 +188,12 @@ function renderRows() {
     return true;
   });
 
+  // The first row of every family table after the first one gets class group-start (a gap above it, style.css). It is judged on
+  // the rows that are showing, so a filter that hides a whole table does not leave a stray gap.
+  const startsTable = (p, i) => i > 0 && p.family_group !== visible[i - 1].family_group;
   $("members-body").innerHTML = visible
     .map(
-      (p) => `<tr data-person="${p.id}" class="${p.avoid ? "row-avoided" : ""}">
+      (p, i) => `<tr data-person="${p.id}" class="${p.avoid ? "row-avoided" : ""}${startsTable(p, i) ? " group-start" : ""}">
         <td>${p.member_no ?? ""}</td>
         <td>${p.roll_number ?? ""}</td>
         ${cell(p, "name", p.name)}
@@ -161,6 +206,7 @@ function renderRows() {
       </tr>`
     )
     .join("");
+  renderTablePicker();
 }
 
 async function loadMembers() {
@@ -174,7 +220,7 @@ async function loadMembers() {
     setStatus("Error loading members: " + error.message, true);
     return;
   }
-  allPeople = data;
+  allPeople = data.sort(compareMembers);   // member-order.js
   renderRows();
   prefillNewMemberRow();
   setStatus("", false);
@@ -184,7 +230,7 @@ async function loadMembers() {
 // computeNextRollNumber (shared.js) bound to this page's `allPeople` array —
 // see shared.js for the Roll Number HEART LOGIC rule.
 function nextMemberNo() {
-  return computeNextMemberNo(allPeople);
+  return computeNextMemberNo(allPeople, activeGroup, activeGroup === "thalaikattu" ? newMemberFamily : null);   // counted inside the picked table
 }
 function nextRollNumber() {
   return computeNextRollNumber(allPeople);
@@ -192,7 +238,7 @@ function nextRollNumber() {
 
 function prefillNewMemberRow() {
   $("new-m-sno").textContent = nextMemberNo();
-  $("new-m-roll").textContent = nextRollNumber();
+  $("new-m-roll").textContent = activeGroup === "thalaikattu" ? nextRollNumber() : "";   // only தலைக்கட்டு members get a Roll No.
   updateNewMemberLock();
 }
 
@@ -212,7 +258,28 @@ function updateNewMemberLock() {
   $("new-m-mobile").disabled = masterLocked || !hasName;
   $("new-m-dob").disabled = masterLocked || !hasName;
   $("new-m-postal-btn").disabled = masterLocked || !hasName;
+  $("new-m-table").disabled = masterLocked;
 }
+
+// What the add row sends about the list: nothing for தலைக்கட்டு (it is the column's default, and a Roll No. is handed out), and
+// for Others the list name plus an explicit empty Roll No. (insertPersonRaceSafe keeps a null roll_number as it is).
+const newMemberGroupFields = () => (activeGroup === "others" ? { member_group: "others", roll_number: null } : { family_group: newMemberFamily });
+
+// Picking another table changes the S.No. the new member will get.
+$("new-m-table").addEventListener("change", () => {
+  newMemberFamily = Number($("new-m-table").value);
+  prefillNewMemberRow();
+});
+
+// The two list buttons. Switching re-draws the table, so any open cell is saved first (requestRenderRows does that), and the
+// add row's S.No. / Roll No. follow the list.
+$("group-pills").addEventListener("click", async (e) => {
+  const pill = e.target.closest(".pill");
+  if (!pill || pill.dataset.group === activeGroup) return;
+  activeGroup = pill.dataset.group;
+  await requestRenderRows();   // also rebuilds the table picker (renderRows)
+  prefillNewMemberRow();
+});
 
 // Forget the Postal Address typed into the add row (after the member is added, or the edit is cancelled).
 function clearNewMemberPostal() {
@@ -329,7 +396,7 @@ async function addNewMember() {
 
   const dup = allPeople.find((p) => p.name.trim().toLowerCase() === name.toLowerCase());
   if (dup) {
-    rejectNewMember(`"${name}" already exists (S.No. ${dup.member_no ?? "-"}) — scroll up to find them instead of re-adding.`);
+    rejectNewMember(`"${name}" already exists in ${GROUP_LABELS[memberGroupOf(dup)]} (${dup.family_group ? `table ${dup.family_group}, ` : ""}S.No. ${dup.member_no ?? "-"}) — find them there instead of re-adding.`);
     return;
   }
 
@@ -341,14 +408,15 @@ async function addNewMember() {
     return;
   }
 
-  const { data: person, error } = await insertPersonRaceSafe(client, { name, name_en: $("new-m-name-en").value.trim(), place: $("new-m-place").value.trim(), mobile, dob: $("new-m-dob").value || null, postal_address: newMemberDraft.postal_address });
+  const { data: person, error } = await insertPersonRaceSafe(client, { name, name_en: $("new-m-name-en").value.trim(), place: $("new-m-place").value.trim(), mobile, dob: $("new-m-dob").value || null, postal_address: newMemberDraft.postal_address, ...newMemberGroupFields() });
   if (error) {
     rejectNewMember("Error adding member: " + error.message);
     return;
   }
 
   allPeople.push(person);
-  allPeople.sort((a, b) => (a.member_no ?? 9999) - (b.member_no ?? 9999) || a.name.localeCompare(b.name));
+  allPeople.sort(compareMembers);
+  newMemberFamily = person.family_group ?? newMemberFamily;   // the next new member goes to the same table, a new table included
 
   ["new-m-name", "new-m-name-en", "new-m-place", "new-m-mobile", "new-m-dob"].forEach((id) => ($(id).value = ""));
   clearNewMemberPostal();

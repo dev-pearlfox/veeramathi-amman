@@ -31,6 +31,7 @@ Fonts come from Google Fonts.
   function-rules.js       who belongs to a function (eligiblePeople), FUNCTION_NAMES
   money-format.js         formatMoney (Indian grouping)
   password-toggle.js/.css show / hide password eye
+  filter-clear.js/.css    clear (x) button + highlighted border on every .filter-input (Members, Accounts, Dashboard)
   CNAME, .github/workflows/pages.yml, scripts/backup-to-csv.mjs
 function-expenses/        Accounts + Members
 functions-dashboard/      Dashboard + Invitation, supabase/schema.sql
@@ -42,6 +43,7 @@ functions-dashboard/      Dashboard + Invitation, supabase/schema.sql
 |---|---|
 | `index.html`, `app.js` | Ledger sheet page: sign-in gate, function pills, sheet rows, the title block with the வரவு / செலவு buttons and the settings pill, tick handling |
 | `members.html`, `members.js` | Members page; `member-address.js` is the address popup; `members-print.js` prints the list |
+| `member-order.js` (repo root) | The one member sort (`compareMembers`: list, family table, S.No.) and `memberGroupOf`, used by Accounts, Members and Dashboard |
 | `shared.js` | Helpers both pages use: formatting, aria labels, the leave-page saver (`registerLeaveSaver`, `trackedSave`) |
 | `income.js` | The table engine for every வரவு tab and செலவு (`LINE_KINDS`), with the pinned header table and body table |
 | `expenses.css`, `style.css` | Styles. `style.css` has the Heart Logic layout |
@@ -84,7 +86,7 @@ One file, `functions-dashboard/supabase/schema.sql`, safe to run again.
 
 | Table | Holds | Notes |
 |---|---|---|
-| `people` | Members | unique `name`, `member_no`, `roll_number`; `avoid` boolean; `address` jsonb (Member Origin) and `postal_address` jsonb (Postal Address; run `backups/add-postal-address.sql` once on an existing database) |
+| `people` | Members | unique `name`, `(member_group, coalesce(family_group, 0), member_no)` (S.No. restarts in each family table); `family_group` int (the family table of a thalaikattu member, NULL for others), `roll_number` (only தலைக்கட்டு members have one); `member_group` `thalaikattu` / `others` (run `backups/add-member-groups.sql` on an existing database); `avoid` boolean; `address` jsonb (Member Origin) and `postal_address` jsonb (Postal Address; run `backups/add-postal-address.sql` once on an existing database) |
 | `functions` | Events | `name` + `year` unique; `santha_amount` default 1200 |
 | `ledger_entries` | Per member per function | unique `(function_id, person_id)`; `receipt_no`, `santha`, `santha_checked`, `donation`, `total`, `paid` (remark) |
 | `expense_entries` | செலவு lines | `name`, `amount >= 0`, `note` |

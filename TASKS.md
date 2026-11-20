@@ -15,6 +15,14 @@ Everything below was only tested in headless Chrome with a fake database.
 
 - [ ] **P1** Members page, two addresses: run `backups/add-postal-address.sql` in Supabase once (adds `people.postal_address`), then on a real
   phone and laptop check the nine columns (English Name, Member Origin, Postal Address), the two home icons, and the sideways scroll.
+- [ ] **P1** தலைக்கட்டு / Others buttons AND family tables: run `backups/add-member-groups.sql` in Supabase FIRST (adds `people.member_group` and
+  `people.family_group`, splits the 82 members into the 8 family tables of the 2026 booklet: 15, 17, 9, 1, 4, 4, 7, 25, and restarts S.No. at 1 in each;
+  Roll No. is unchanged; the old S.No. list is kept in `backup_people_family_groups`). Then check: the gap between tables on the Members page, the
+  "Add to" picker (last table by default, "New table" at the end), adding to Others (no Roll No.), printing, the Accounts order, and the invitation
+  pages 4 to 6 against the printed 2026 booklet. Real phone: the one-row buttons + Print. Decide what Accounts and Dashboard do with Others.
+  (Tested only in headless Chrome with fake data so far. Moving a member between tables is not built.)
+- [ ] **P1** Filter clear (x) button: on a real phone, type in a column filter (Members, Accounts, Dashboard), confirm the orange / green border and the x
+  show, tapping the x empties the box and the list refilters, and the dropdown filters (ஊர், தலைக்கட்டு வரி) do the same.
 - [ ] **P1** Receipt settings pill: open it on a real phone, set a number, tick a member, confirm the number lands in
   the receipt field and the row saves to the real database.
 - [ ] **P1** Row 1 tap / swipe fix (`#sheet-title { pointer-events: none }` on the வரவு / செலவு view): confirm on a real

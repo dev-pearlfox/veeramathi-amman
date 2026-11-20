@@ -16,6 +16,7 @@ const INV = {
   headH: 0.44,     // a table's heading row (two lines)
   totalH: 0.3,     // a total row
   gap: 0.2,        // space between two tables on one page
+  tableGap: 0.16,  // the blank line between two family tables inside one list (invTable: the inv-gap row)
   rowBorder: 0.011,// a row's 1px border
   minRows: 3,      // a table is not started on a page that has room for fewer rows than this
   noteH: 1.7,      // the closing note under the expense list
@@ -28,13 +29,21 @@ const invByAmountDesc = (a, b) => b.amount - a.amount || (a.name || "").localeCo
 
 // ---------- the data, as table rows ----------
 
+// Returns { rows, gaps }: the rows [S.No., receipt, name, amount] and the set of row indexes where a NEW family table starts
+// (not the first). The S.No. counts from 1 again in each table, like the printed booklet; a table's gap is drawn above its first row.
 function invPayerRows(f) {
   const byId = new Map(people.map((p) => [p.id, p]));
-  return ledgerEntries
+  const sorted = ledgerEntries
     .filter((e) => e.function_id === f.id && e.santha_checked && byId.has(e.person_id))
     .map((e) => ({ p: byId.get(e.person_id), receipt: e.receipt_no || "", amount: Number(e.santha) || Number(f.santha_amount) || 0 }))
-    .sort((a, b) => (a.p.member_no ?? 9999) - (b.p.member_no ?? 9999) || (a.p.name || "").localeCompare(b.p.name || ""))
-    .map((r, i) => [i + 1, escapeHtml(r.receipt), invNameCell(r.p), money(r.amount)]);
+    .sort((a, b) => compareMembers(a.p, b.p));
+  const gaps = new Set();
+  let n = 0;
+  const rows = sorted.map((r, i) => {
+    if (i > 0 && r.p.family_group !== sorted[i - 1].p.family_group) { gaps.add(i); n = 0; }
+    return [++n, escapeHtml(r.receipt), invNameCell(r.p), money(r.amount)];
+  });
+  return { rows, gaps };
 }
 
 const invNameCell = (p) => `${escapeHtml(p.name || p.name_en || "")}${p.place ? ` <small>${escapeHtml(p.place)}</small>` : ""}`;
@@ -76,8 +85,9 @@ function invFlow(sections) {
       const start = i;
       while (i < sec.rows.length) {
         const reserve = i + 1 === sec.rows.length && sec.total ? INV.totalH : 0;   // the last row must leave room for the total
-        if (i > start && page().used + rowH + reserve > INV.bodyH) break;
-        page().used += rowH;
+        const gapH = i > start && sec.gaps?.has(i) ? INV.tableGap : 0;   // the blank line above a new family table (never at the top of a page)
+        if (i > start && page().used + gapH + rowH + reserve > INV.bodyH) break;
+        page().used += gapH + rowH;
         i++;
       }
       const last = i >= sec.rows.length;
@@ -106,7 +116,10 @@ function invTable(sec, from, to, withTotal, blanks = 0) {
   const cols = `<colgroup>${sec.cols.map((w) => `<col style="width:${w}in">`).join("")}</colgroup>`;
   const head = sec.head ? `<thead><tr>${sec.head.map((h) => `<th>${h}</th>`).join("")}</tr></thead>` : "";
   const row = (cells) => `<tr>${cells.map((c, i) => `<td class="${sec.cls[i]}">${c}</td>`).join("")}</tr>`;
-  const body = sec.rows.slice(from, to).map(row).join("");
+  // A blank line (inv-gap, borderless at the sides so the tables look separate) above the first row of each new family table,
+  // except at the top of a page (from).
+  const gap = `<tr class="inv-gap"><td colspan="${sec.cols.length}"></td></tr>`;
+  const body = sec.rows.slice(from, to).map((r, i) => (sec.gaps?.has(from + i) && i > 0 ? gap : "") + row(r)).join("");
   const total = withTotal && sec.total ? `<tr class="inv-total"><td colspan="${sec.cols.length - 1}">${sec.total.label}</td><td class="amt">${sec.total.amount}</td></tr>` : "";
   const blank = row(sec.cls.map(() => "&nbsp;")).repeat(blanks);
   return `<table class="inv-t${sec.head ? " inv-tight" : ""}" style="--rh:${sec.rh}in;--fs:${sec.fs}pt">${cols}${head}<tbody>${body}${total}${blank}</tbody></table>`;
@@ -126,10 +139,10 @@ function invListCols(total) {
 }
 
 function invPayerSection(f) {
-  const rows = invPayerRows(f);
+  const { rows, gaps } = invPayerRows(f);
   const sum = rows.reduce((t, r) => t + parseMoney(r[3]), 0);
   return { title: `${invYearText(f)} ${escapeHtml(f.name)} தலைக்கட்டு வரி செலுத்தியவர்கள்`, head: ["வ.<br>எண்", "இரசீது<br>எண்", "பெயர்", "தொகை"],
-    cols: invListCols(sum), cls: ["n", "r", "name", "amt"], rh: 0.26, fs: 10.5, rows, total: { label: "மொத்தம்", amount: money(sum) } };
+    cols: invListCols(sum), cls: ["n", "r", "name", "amt"], rh: 0.26, fs: 10.5, rows, gaps, total: { label: "மொத்தம்", amount: money(sum) } };
 }
 
 function invDonorSection(f) {

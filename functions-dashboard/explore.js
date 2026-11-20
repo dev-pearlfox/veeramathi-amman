@@ -141,7 +141,7 @@ function renderPeopleTable(entries) {
   });
   let rows = Object.entries(totals).sort((a, b) => {
     const pa = peopleMap[a[0]], pb = peopleMap[b[0]];
-    return (pa?.member_no ?? 9999) - (pb?.member_no ?? 9999) || (pa?.name || "").localeCompare(pb?.name || "");
+    return compareMembers(pa ?? {}, pb ?? {});   // member-order.js
   });
 
   const snoQ = $("filter-people-sno").value.trim().toLowerCase();

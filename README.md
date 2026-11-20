@@ -16,7 +16,7 @@ Status as of commit `202c4b8` plus the mobile column and auto-fill (this commit)
 | `functions-dashboard/` | **Admin Page** (the Dashboard) | Totals, charts, compare years, unpaid list, add functions, change passwords, and the **Invitation** booklet. |
 
 Files both sites load sit at the repo root: `income-categories.js`, `expense-lines.js`, `function-rules.js`,
-`money-format.js`, `password-toggle.js/.css`, logos, favicons and `og-image.jpg`.
+`money-format.js`, `password-toggle.js/.css`, `filter-clear.js/.css`, logos, favicons and `og-image.jpg`.
 
 ## What it does
 

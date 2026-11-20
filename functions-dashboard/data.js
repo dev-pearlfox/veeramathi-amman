@@ -11,7 +11,7 @@ let incomeEntries = [];   // extra வரவு typed on the Accounts page (INCO
 // The columns the Dashboard actually reads, per table. Selecting only these keeps each load small (the people table's
 // `address` JSON, for one, is never shown here). If a screen ever needs another column, add it HERE or it will show blank.
 const COLUMNS = {
-  people: "id,name,name_en,member_no,mobile,avoid,place",
+  people: "id,name,name_en,member_no,member_group,family_group,mobile,avoid,place",
   functions: "id,name,year,santha_amount",
   ledger_entries: "id,function_id,person_id,receipt_no,santha,santha_checked,total,paid",
   materials: "id,function_id,item_name,quantity,unit,cost,created_at",
@@ -47,7 +47,7 @@ async function loadAll() {
   // A failed table keeps what is already on screen (a refresh when the user comes back to the tab must not replace good
   // numbers with an empty or half-loaded table); on the very first load there is nothing yet, so whatever came back is used.
   const take = (current, r) => (r.error && current.length ? current : r.data);
-  people = take(people, p);
+  people = take(people, p).slice().sort(compareMembers);   // family table order (member-order.js): S.No. repeats in every table
   functionsList = take(functionsList, f);
   ledgerEntries = take(ledgerEntries, l);
   materials = take(materials, m);

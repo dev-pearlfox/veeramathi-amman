@@ -1,0 +1,34 @@
+/* Clear (x) button and highlighted border for the column filter boxes (filter-clear.js). Uses each site's own --accent. */
+
+.filter-clear-host { position: relative; }
+
+/* A filter with something in it: accent border plus a thin ring, so it is obvious which columns are filtered. */
+.filter-input.has-value {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+  background: var(--surface);
+}
+/* Keep the typed text clear of the x. The host (the cell) in the selector outranks the shrunk (is-compact) padding and the
+   Members S.No column's own `table.sheet td:nth-child(1) input` rule. */
+.filter-clear-host .filter-input.has-value { padding-right: 24px; }
+.filter-clear-host select.filter-input.has-value { padding-right: 12px; }   /* small on purpose: Chrome already reserves room for the arrow, and the narrow dropdown columns must still show their whole chosen text */
+
+.filter-clear {
+  /* --fc-mid / --fc-edge are measured by filter-clear.js. A negative margin, not translate: no transforms near the sticky header. */
+  position: absolute; top: var(--fc-mid, 50%); margin: -8px 0 0; right: calc(var(--fc-edge, 6px) + 4px);
+  width: 16px; height: 16px; min-width: 0; min-height: 0; padding: 0;   /* undo each site's big global button (min-height 44px, padding) */
+  box-shadow: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  cursor: pointer; line-height: 1;
+}
+.filter-clear[hidden] { display: none; }
+.filter-clear:hover, .filter-clear:active { filter: brightness(0.9); transform: none; }   /* no hover lift like other buttons */
+.filter-clear svg { display: block; }
+.filter-clear-select { right: calc(var(--fc-edge, 6px) + 18px); }   /* left of the dropdown's own arrow */
+body.is-compact .filter-clear { width: 14px; height: 14px; margin-top: -7px; right: calc(var(--fc-edge, 6px) + 2px); }
+body.is-compact .filter-clear-select { right: calc(var(--fc-edge, 6px) + 16px); }
+body.is-compact .filter-clear svg { width: 10px; height: 10px; }
+
+@media print { .filter-clear { display: none; } }

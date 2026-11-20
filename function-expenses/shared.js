@@ -103,8 +103,12 @@ function computeNextRollNumber(peopleList) {
   return max + 1;
 }
 
-function computeNextMemberNo(peopleList) {
-  const max = peopleList.reduce((m, p) => Math.max(m, p.member_no || 0), 0);
+// S.No. is counted inside each family table on its own (member-order.js; the database keeps (member_group, family_group,
+// member_no) unique), so the next one is the highest S.No. of the SAME list and table + 1. A new table (nobody in it yet)
+// starts at 1. Roll Number above is NOT per table: only thalaikattu members get one (see below).
+function computeNextMemberNo(peopleList, group = "thalaikattu", family = null) {
+  const sameTable = (p) => memberGroupOf(p) === group && (p.family_group ?? null) === (family ?? null);
+  const max = peopleList.filter(sameTable).reduce((m, p) => Math.max(m, p.member_no || 0), 0);
   return max + 1;
 }
 
@@ -119,10 +123,12 @@ function computeNextMemberNo(peopleList) {
 async function insertPersonRaceSafe(client, base, attemptsLeft = 3) {
   const { data: numberSource, error: fetchError } = await client
     .from("people")
-    .select("member_no, roll_number");
+    .select("*");   // not just the two number columns: member_group may not exist in an old database yet, and * never fails on that
   if (fetchError) return { data: null, error: fetchError };
-  const memberNo = base.member_no ?? computeNextMemberNo(numberSource);
-  const rollNumber = base.roll_number ?? computeNextRollNumber(numberSource);
+  const memberNo = base.member_no ?? computeNextMemberNo(numberSource, memberGroupOf(base), base.family_group ?? null);
+  // An "others" member is passed roll_number: null on purpose and it must STAY null (they have no Roll No.): only a missing
+  // key means "give the next number".
+  const rollNumber = "roll_number" in base ? base.roll_number : computeNextRollNumber(numberSource);
 
   const { data, error } = await client
     .from("people")

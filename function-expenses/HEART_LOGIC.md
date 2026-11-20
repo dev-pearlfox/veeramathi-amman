@@ -90,10 +90,32 @@ it), so transparent showed the page's own faint cream tint instead of white.
 The Members page used to show one "மொத்த குடும்பத் தலைவர்கள் - 82" pill in a
 nowrap `.pill-row`. It was not clickable and the page has a single list, so the
 owner asked for it to be removed completely (pill, count and its CSS). The
-filter card now holds only the Print button. The `.members-filter-card` scroll
+filter card now holds only the Print button. (Later, with the owner's permission, it also holds two list buttons, தலைக்கட்டு and
+Others, `#group-pills`, at the left: the card is a flex row, the buttons use the Print button's own 32px height so the card is NOT
+taller, and on phones (max-width 480px) they are tightened so all three still share one row. Checked: card 66px / stack height
+identical with and without the buttons at 1700, 1280 and 700px.) The `.members-filter-card` scroll
 shrink (item on `syncPillsCardCollapse`) still applies to that card. The
 `.pill-row` rules on index.html are unchanged. (The வருடம்/விழா rows were later merged by the owner into ONE row of
 "function (year)" pills, oldest year first; the shrink scale, `syncSheetFilterCardCollapse` and the sticky stack were left as they were.)
+
+## 9b. Two member lists: தலைக்கட்டு and Others (`people.member_group`)
+Roll Number (see shared.js) is given ONLY to தலைக்கட்டு members; an Others member is inserted with `roll_number: null`, which
+`insertPersonRaceSafe` keeps as null (only a MISSING `roll_number` key means "give the next one"). S.No. is counted inside each list
+(`computeNextMemberNo(list, group, family)`). A row without `member_group` (a database that has not run `backups/add-member-groups.sql` yet) counts as தலைக்கட்டு. Roll Number stays
+off every function's Ledger Sheet. The Accounts page and Dashboard were left as they were: they still list every member, so Others
+would show there with their own (possibly repeating) S.No. until the owner decides otherwise.
+
+## 9c. Family tables inside தலைக்கட்டு (`people.family_group`)
+The தலைக்கட்டு list is split into family tables like the printed booklet (2026: 15, 17, 9, 1, 4, 4, 7 and 25 members). Each
+member has `family_group` (1, 2, 3 ...) and **S.No. (`member_no`) restarts at 1 inside every table**, so S.No. alone no longer
+identifies anyone: Roll No. does. The database keeps `(member_group, coalesce(family_group, 0), member_no)` unique
+(`people_family_no_unique`). The ONE sort order is `compareMembers` in the root `member-order.js` (தலைக்கட்டு, then table, then
+S.No., then name); the Accounts page, Dashboard, unpaid list and invitation all use it, so do not write a second `member_no` sort.
+The Members page stays ONE table: the first row of each later family table has class `group-start`, which is only a thick
+border-top in the page colour (so row heights and the fixed column widths of #7 do not move). The "Add to" picker row
+(`#new-member-table-row`) is in the `tfoot` AFTER the add row, because the add row must stay the first row that gives the table
+its widths. The invitation draws a real gap row (`inv-gap`, `INV.tableGap`) and restarts its own S.No. per table; the page
+flow counts that gap, so change both together. Moving a member between tables is not built (not needed yet).
 
 ## 10. Cache-busting `?v=...` on style.css / shared.js / members.js / app.js / income.js / expenses.css
 (both `members.html` and `index.html`, and the dashboard's files in its `index.html`) — browsers repeatedly served a stale
