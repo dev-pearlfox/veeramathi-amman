@@ -22,9 +22,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@700;800&family=Poppins:wght@400;500;600;700;800&display=swap" />
-<link rel="stylesheet" href="style.css?v=20261119a" />
+<link rel="stylesheet" href="style.css?v=20261119b" />
 <link rel="stylesheet" href="date-picker.css?v=20261115a" />
-<link rel="stylesheet" href="member-address.css?v=20261119a" />
+<link rel="stylesheet" href="member-address.css?v=20261119b" />
 </head>
 <!-- Heart Logic: see HEART_LOGIC.md before changing sticky/scale/cache-bust/deployment logic. -->
 <body class="is-compact page-members">
@@ -79,7 +79,7 @@
             <td><label for="new-m-name" class="sr-only">New member's பெயர்</label><input type="text" id="new-m-name" placeholder="புதிய பெயரை உள்ளிடவும்..." /></td>
             <td><label for="new-m-name-en" class="sr-only">New member's English Name</label><input type="text" id="new-m-name-en" placeholder="English Name" disabled /></td>
             <td><label for="new-m-place" class="sr-only">New member's Member Origin</label><input type="text" id="new-m-place" placeholder="Member Origin" disabled /></td>
-            <td></td>   <!-- Postal Address: added later with the home icon, once the member exists -->
+            <td><div class="cell-flex"><button type="button" id="new-m-postal-btn" class="addr-btn" data-addr="postal_address" title="Postal Address" aria-label="New member's Postal Address" disabled><!-- home icon drawn by members.js --></button><input type="text" id="new-m-postal-town" class="postal-town" tabindex="-1" readonly placeholder="Postal Address" aria-label="New member's Postal Address town" /></div></td>
             <td><label for="new-m-mobile" class="sr-only">New member's Mobile Number</label><input type="text" id="new-m-mobile" placeholder="Mobile" inputmode="numeric" pattern="[0-9]*" disabled /></td>
             <td><label for="new-m-dob" class="sr-only">New member's பிறந்த தேதி</label><input type="date" id="new-m-dob" min="1900-01-01" disabled /></td>
             <td></td>
@@ -106,8 +106,8 @@
 <script src="shared.js?v=20261116c" defer></script>
 <script src="date-picker.js?v=20261117a" defer></script>
 <script src="address-data.js?v=20261114c" defer></script>
-<script src="member-address.js?v=20261119a" defer></script>
-<script src="members.js?v=20261119a" defer></script>
+<script src="member-address.js?v=20261119b" defer></script>
+<script src="members.js?v=20261119b" defer></script>
 <script src="print-table.js?v=20261114a" defer></script>
 <script src="members-print.js?v=20261114a" defer></script>
 </body>

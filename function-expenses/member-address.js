@@ -33,6 +33,18 @@ const ADDR_KINDS = {
   postal_address: { title: "Postal address" },
 };
 
+// The add-member row at the bottom has a Postal Address icon too, before the member exists. It edits this stand-in
+// instead of a saved person: Save in the popup keeps the address in memory only, and members.js writes it with the
+// rest of the new member when the row is added (addNewMember).
+const NEW_MEMBER_ID = "new-draft";
+const newMemberDraft = {
+  id: NEW_MEMBER_ID,
+  postal_address: null,
+  get name() { return document.getElementById("new-m-name").value.trim() || "New member"; },
+};
+const addrPersonOf = (button) =>
+  button.closest("tr").id === "new-member-row" ? newMemberDraft : allPeople.find((p) => p.id === button.closest("tr").dataset.person);
+
 let addrPersonId = null;
 let addrKind = "address";   // which of the two columns the open popup is editing
 let addrButton = null;   // the icon the open popup hangs under
@@ -177,7 +189,7 @@ function placeAddressPopup() {
 }
 
 function openAddressPopup(button) {
-  const person = allPeople.find((p) => p.id === button.closest("tr").dataset.person);
+  const person = addrPersonOf(button);
   if (!person) return;
   addrPersonId = person.id;
   addrKind = button.dataset.addr;
@@ -201,7 +213,7 @@ function openAddressPopup(button) {
 
 async function saveAddress() {
   if (addrViewOnly()) return;   // Enter in a box must not save while the page is locked
-  const person = allPeople.find((p) => p.id === addrPersonId);
+  const person = addrPersonId === NEW_MEMBER_ID ? newMemberDraft : allPeople.find((p) => p.id === addrPersonId);
   if (!person) return;
   const parts = {};
   ADDRESS_FIELDS.forEach((f) => {
@@ -217,19 +229,22 @@ async function saveAddress() {
   const onlyDefaults = Object.entries(parts).every(([k, v]) => v === addrDefaults[k]);
   const address = Object.keys(parts).length && !onlyDefaults ? parts : null;
   if (JSON.stringify(person[addrKind] ?? null) !== JSON.stringify(address)) {
-    const { error } = await client.from("people").update({ [addrKind]: address }).eq("id", person.id);
-    if (error) {
-      addrError.textContent = "Error saving: " + error.message;
-      return;
+    const isDraft = person === newMemberDraft;
+    if (!isDraft) {
+      const { error } = await client.from("people").update({ [addrKind]: address }).eq("id", person.id);
+      if (error) {
+        addrError.textContent = "Error saving: " + error.message;
+        return;
+      }
     }
     person[addrKind] = address;
-    const icon = document.querySelector(`#members-body tr[data-person="${person.id}"] .addr-btn[data-addr="${addrKind}"]`);
+    const icon = isDraft ? document.getElementById("new-m-postal-btn") : document.querySelector(`#members-body tr[data-person="${person.id}"] .addr-btn[data-addr="${addrKind}"]`);
     if (icon) {
       icon.classList.toggle("address-complete", isAddressComplete(address));
       const town = icon.closest("td").querySelector(".postal-town");   // only the Postal cell has one: its town text follows the form
       if (town) town.value = address?.town ?? "";
     }
-    setStatus("Saved.", false);
+    setStatus(isDraft ? "Postal address kept. It is saved when you add the member." : "Saved.", false);
   }
   closeAddressPopup();
 }
@@ -301,13 +316,15 @@ addrPop.addEventListener("keydown", (e) => {
 
 // document.getElementById, not members.js's `$`: this file loads BEFORE members.js, so `$` does not exist yet here and
 // using it threw at load, which silently killed every listener below (the home icon did nothing).
-document.getElementById("members-body").addEventListener("click", (e) => {
+function onAddressIconClick(e) {
   const button = e.target.closest(".addr-btn");
-  if (!button) return;
-  const sameOpen = addrPersonId === button.closest("tr").dataset.person && addrKind === button.dataset.addr;
+  if (!button || button.disabled) return;
+  const sameOpen = addrPersonId === addrPersonOf(button)?.id && addrKind === button.dataset.addr;
   if (sameOpen && !addrPop.classList.contains("hidden")) closeAddressPopup();
   else openAddressPopup(button);
-});
+}
+document.getElementById("members-body").addEventListener("click", onAddressIconClick);
+document.getElementById("new-member-row").addEventListener("click", onAddressIconClick);
 addrPop.querySelector(".addr-pop-save").addEventListener("click", saveAddress);
 addrPop.querySelector(".addr-pop-cancel").addEventListener("click", closeAddressPopup);
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeAddressPopup(); });

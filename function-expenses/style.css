@@ -1068,8 +1068,9 @@ table.sheet thead tr.filter-row td {
 /* ---------- Members page table widths — HEART LOGIC, do not change without asking ----------
    S.No. 70px / Roll No. 76px / பெயர் 440px / English Name 210px / Member Origin 190px / Postal Address 190px /
    Mobile Number 170px / பிறந்த தேதி 140px / Avoid 80px
-   (= 1566px total. The header frame (.members-thead-wrap) and the pill row (.members-filter-card)
-   are 1568px = table + 2px border, so the table fills the frame with no gap on either side.)
+   (= 1566px total, drawn 1567px wide because of the collapsed outer border. The header frame (.members-thead-wrap) and the
+   pill row (.members-filter-card) are 1569px = that + 2px frame border, so the table fills the frame with no gap and no
+   1px sideways scroll.)
    Literal fixed pixel widths, identical on desktop/tablet/mobile — the table
    does NOT stretch to fill its card (unlike table.sheet's default). On a
    screen narrower than the table's total width, it scrolls horizontally
@@ -1077,10 +1078,10 @@ table.sheet thead tr.filter-row td {
    used for the main Ledger Sheet on phones — nothing else on the page moves. */
 table.members-table { width: 1566px; margin-top: 0; }
 /* The Members page is wider than the 1320px container <main> and .sticky-top-inner use everywhere else, so on a wide screen the
-   whole table shows without sideways scrolling: 1568px frame + 2 x 16px padding = 1600px. The two stay EQUAL (HEART LOGIC #6:
+   whole table shows without sideways scrolling: 1569px frame + 2 x 16px padding = 1601px. The two stay EQUAL (HEART LOGIC #6:
    one shared container mechanism). On a narrower screen the frame shrinks to fit and the table scrolls sideways as before. */
 body.page-members main,
-body.page-members .sticky-top-inner { max-width: 1600px; }
+body.page-members .sticky-top-inner { max-width: 1601px; }
 
 /* The header (column titles + filter inputs) is a separate mini table from
    the data rows, pinned via position:sticky on this WRAPPING div rather than
@@ -1142,7 +1143,7 @@ body.page-members .sticky-top-inner { max-width: 1600px; }
   box-shadow: var(--shadow); /* same shadow every .card on the page uses — box-shadow paints outside the border-box, unaffected by this element's own overflow:hidden */
   contain: layout;
   overflow-anchor: none;
-  width: 1568px; /* 1566px table + 2px border (1px each side) so the table still fits exactly, without the border clipping it */
+  width: 1569px; /* 1567px drawn table (1566 + collapsed border) + 2px frame border (1px each side) so the table fits exactly, without the border clipping it */
   max-width: 100%;
   margin: 22px auto 0; /* top value is breathing room from the pills bar above; closes to 0 once scrolled, just like the pills bar's own margin does */
   transition: margin-top 0.2s ease;
@@ -1199,7 +1200,7 @@ body.is-compact .members-thead-wrap { margin-top: 0; }
    padding:16px 20px (the .card.compact defaults) to go back to the boxed
    look. */
 .members-filter-card {
-  width: 1568px; /* always matches .members-thead-wrap's own width exactly, so the pill row's outer edges line up with the spreadsheet below it — the pill-row itself scrolls internally (see below) if its content doesn't fit at this width, rather than the card growing/shrinking to match content */
+  width: 1569px; /* always matches .members-thead-wrap's own width exactly, so the pill row's outer edges line up with the spreadsheet below it — the pill-row itself scrolls internally (see below) if its content doesn't fit at this width, rather than the card growing/shrinking to match content */
   max-width: 100%; /* of .sticky-top-inner's already-padded content box (see above) */
   margin: 28px auto 0; /* top value replicates <main>'s old header→pills gap, now that this card lives in .sticky-top-stack instead of <main> */
   background: none;

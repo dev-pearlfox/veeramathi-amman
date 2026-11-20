@@ -7,6 +7,9 @@
 }
 .addr-btn svg { display: block; }
 .addr-btn:hover { color: var(--accent); background: var(--accent-soft); border-color: var(--accent); }
+/* The add-member row's icon, until a name is typed or while the page is locked. */
+.addr-btn:disabled { opacity: 0.45; cursor: default; }
+.addr-btn:disabled:hover { color: var(--muted); background: #fff; border-color: var(--border); }
 /* A saved address turns the icon orange and fills the house, so you can see who has one. */
 .addr-btn.address-complete { color: var(--accent); border-color: var(--accent); }
 .addr-btn.address-complete svg { fill: var(--accent); fill-opacity: 0.25; }

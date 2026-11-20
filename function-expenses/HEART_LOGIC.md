@@ -69,9 +69,9 @@ intermittently rendered flush-left on a real device, fixed by reload.
 screens. (Now 9 columns, 1566px in total: S.No 70, Roll 76, பெயர் 440, English Name 210, Member Origin 190,
 Postal Address 190, Mobile 170, பிறந்த தேதி 140, Avoid 80. With the owner's permission the English Name column,
 once removed, came back and the Postal Address column was added; Member Origin is the old ஊர் column renamed.
-The header frame and the pill row are 1568px. Because that is wider than the usual 1320px container, `members.html`
+The table is drawn 1567px wide (the collapsed outer border adds 1px), so the header frame and the pill row are 1569px (1567 + 2px frame border); at 1568 the table overflowed its frame by 1px and scrolled sideways for nothing. Because that is wider than the usual 1320px container, `members.html`
 has `<body class="is-compact page-members">` and `body.page-members main, body.page-members .sticky-top-inner`
-are both `max-width: 1600px` (kept EQUAL, see #6). Narrower screens scroll the table sideways inside its frame as
+are both `max-width: 1601px` (1569 + 2 x 16px padding; kept EQUAL, see #6). Narrower screens scroll the table sideways inside its frame as
 before. The nth-child rules were renumbered to match.) A percentage-based stretch version was built and tested, then
 explicitly reverted.
 

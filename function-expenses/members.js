@@ -211,6 +211,14 @@ function updateNewMemberLock() {
   $("new-m-place").disabled = masterLocked || !hasName;
   $("new-m-mobile").disabled = masterLocked || !hasName;
   $("new-m-dob").disabled = masterLocked || !hasName;
+  $("new-m-postal-btn").disabled = masterLocked || !hasName;
+}
+
+// Forget the Postal Address typed into the add row (after the member is added, or the edit is cancelled).
+function clearNewMemberPostal() {
+  newMemberDraft.postal_address = null;   // member-address.js
+  $("new-m-postal-btn").classList.remove("address-complete");
+  $("new-m-postal-town").value = "";
 }
 
 // ---------- Cancel editing (the x next to the lock) ----------
@@ -258,6 +266,7 @@ async function cancelEditing() {
     return;   // still in edit mode so nothing is left half-reverted without the user knowing
   }
   ["new-m-name", "new-m-name-en", "new-m-place", "new-m-mobile", "new-m-dob"].forEach((id) => ($(id).value = ""));
+  clearNewMemberPostal();
   setMasterLocked(true);
   setStatus(changes.length ? "Changes undone." : "Cancelled.", false);
 }
@@ -332,7 +341,7 @@ async function addNewMember() {
     return;
   }
 
-  const { data: person, error } = await insertPersonRaceSafe(client, { name, name_en: $("new-m-name-en").value.trim(), place: $("new-m-place").value.trim(), mobile, dob: $("new-m-dob").value || null });
+  const { data: person, error } = await insertPersonRaceSafe(client, { name, name_en: $("new-m-name-en").value.trim(), place: $("new-m-place").value.trim(), mobile, dob: $("new-m-dob").value || null, postal_address: newMemberDraft.postal_address });
   if (error) {
     rejectNewMember("Error adding member: " + error.message);
     return;
@@ -342,6 +351,7 @@ async function addNewMember() {
   allPeople.sort((a, b) => (a.member_no ?? 9999) - (b.member_no ?? 9999) || a.name.localeCompare(b.name));
 
   ["new-m-name", "new-m-name-en", "new-m-place", "new-m-mobile", "new-m-dob"].forEach((id) => ($(id).value = ""));
+  clearNewMemberPostal();
   updateNewMemberLock();
   setStatus("Added.", false);
   blinkRow($("new-member-row"), "ok");   // the add row confirms the save...
@@ -355,6 +365,7 @@ async function addNewMember() {
   }
 }
 
+$("new-m-postal-btn").innerHTML = HOME_ICON_SVG;
 $("new-m-name").addEventListener("input", updateNewMemberLock);
 $("new-m-mobile").addEventListener("input", () => filterMobileInput($("new-m-mobile")));
 
@@ -376,6 +387,7 @@ $("new-m-mobile").addEventListener("input", () => filterMobileInput($("new-m-mob
 // row doesn't auto-commit when the user is trying to click something else.
 document.addEventListener("click", (e) => {
   if ($("new-member-row").contains(e.target)) return;
+  if (addrPop.contains(e.target)) return;   // the Postal Address popup of the add row: clicking in it must not add the member
   if (isInteractiveTarget(e.target)) return;
   addNewMember();
 });
