@@ -214,7 +214,7 @@ async function loadPeople() {
     setStatus("sheet-status", "Error loading members: " + error.message, true);
     return;
   }
-  people = data.sort(compareMembers);   // family table order (member-order.js), not S.No. alone: S.No. repeats in every table
+  people = data.filter(isThalaikattu).sort(compareMembers);   // Others are not on the ledger sheets (member-order.js). Family table order (member-order.js), not S.No. alone: S.No. repeats in every table
 }
 
 async function loadFunctions() {
@@ -415,7 +415,7 @@ function renderSheet() {
 }
 
 // Column names for the row controls' accessible labels (same words as the table header in index.html).
-const SHEET_LABELS = { receipt: "இரசீது எண்", name: "பெயர்", place: "ஊர்", mobile: "மொபைல் எண்", santha: "தலைக்கட்டு வரி" };
+const SHEET_LABELS = { receipt: "இரசீது எண்", name: "பெயர்", place: "Member Origin", mobile: "மொபைல் எண்", santha: "தலைக்கட்டு வரி" };
 
 function updateTotalsBanner(rows) {
   // Collected = what is ticked so far; / total = every head on this sheet paying the head tax; Need = the part still to collect

@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@700;800&family=Poppins:wght@400;500;600;700;800&display=swap" />
-<link rel="stylesheet" href="style.css?v=20261121i" />
+<link rel="stylesheet" href="style.css?v=20261121l" />
 <link rel="stylesheet" href="date-picker.css?v=20261115a" />
 <link rel="stylesheet" href="member-address.css?v=20261119b" />
 <link rel="stylesheet" href="../filter-clear.css?v=20261120b" />
@@ -77,6 +77,9 @@
   <section class="card members-table-card">
     <div class="table-wrap members-tbody-wrap" id="members-tbody-wrap">
       <table class="sheet wide members-table">
+        <!-- The orange "Table 1 - 15 members" bar of the first table showing (members.js). A caption, NOT a row: a full-width first row
+             would take over the column widths (HEART_LOGIC #7: they are read from the first row). -->
+        <caption id="members-caption" class="family-caption"></caption>
         <tbody id="members-body"></tbody>
         <tfoot>
           <tr id="new-member-row">
@@ -117,14 +120,14 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js" integrity="sha384-JBR+x8blGwjDRO63aHCGiZMD4VNiTR4ZUGA+N6ZKLf3zNt1fK8IBpcgPaMrxqWBp" defer crossorigin="anonymous"></script>
 <script src="supabase-config.js?v=20261105t" defer></script>
-<script src="../member-order.js?v=20261121a" defer></script>
-<script src="shared.js?v=20261121a" defer></script>
+<script src="../member-order.js?v=20261121b" defer></script>
+<script src="shared.js?v=20261121b" defer></script>
 <script src="../filter-clear.js?v=20261120b" defer></script>
 <script src="date-picker.js?v=20261117a" defer></script>
 <script src="address-data.js?v=20261114c" defer></script>
-<script src="member-address.js?v=20261119b" defer></script>
-<script src="members.js?v=20261121e" defer></script>
+<script src="member-address.js?v=20261119c" defer></script>
+<script src="members.js?v=20261121i" defer></script>
 <script src="print-table.js?v=20261114a" defer></script>
-<script src="members-print.js?v=20261121b" defer></script>
+<script src="members-print.js?v=20261121d" defer></script>
 </body>
 </html>

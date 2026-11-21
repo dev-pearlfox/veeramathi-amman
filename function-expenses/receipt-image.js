@@ -117,7 +117,7 @@ async function renderReceiptBlob(d) {
   const [art] = await Promise.all([loadReceiptArt(), loadReceiptFonts()]);
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
-  const rows = [["இரசீது எண்", d.receipt], ["தேதி", d.date], ["பெயர்", d.name], ["ஊர்", d.place], ["விழா", d.festival]]
+  const rows = [["இரசீது எண்", d.receipt], ["தேதி", d.date], ["பெயர்", d.name], ["Member Origin", d.place], ["விழா", d.festival]]
     .filter(([, value]) => value)
     .map(([label, value]) => ({ label, ...valueLines(ctx, value, RECEIPT_W - 390 - 90) }));
   const rowsEnd = 934 - ROW_H + 24 + rows.reduce((sum, r) => sum + ROW_H + (r.lines.length - 1) * ROW_EXTRA_LINE_H, 0);

@@ -10,7 +10,7 @@ create extension if not exists pgcrypto;
 -- ---------------------------------------------------------------- people (the members)
 create table if not exists people (
   id          uuid primary key default gen_random_uuid(),
-  name        text not null,               -- Tamil name
+  name        text,                        -- Tamil name (empty only for an Others member who has just an English name; unique when given)
   name_en     text,                        -- English name (optional)
   place       text,                        -- the house head's place (ஊர்)
   address     jsonb,                       -- Member Origin address {door, street, area, town, country, state, district, pincode}, typed in the home-icon popup on the Members page
@@ -23,7 +23,8 @@ postal_address jsonb,                    -- Postal Address, same shape, from the
   member_group text not null default 'thalaikattu',   -- the Members page list: 'thalaikattu' (has a Roll No.) or 'others' (no Roll No.); existing databases: backups/add-member-groups.sql
   family_group int,                        -- the family table (1, 2, 3 ...) a thalaikattu member sits in, as in the printed booklet; NULL for others
   created_at  timestamptz not null default now(),
-  constraint people_name_unique unique (name),
+  constraint people_name_unique unique (name),   -- several empty names are allowed: NULLs never clash
+  constraint people_has_a_name check (name is not null or name_en is not null),
   constraint people_member_group_check check (member_group in ('thalaikattu', 'others')),
   constraint people_roll_number_unique unique (roll_number)
 );

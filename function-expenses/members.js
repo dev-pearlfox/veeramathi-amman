@@ -66,6 +66,8 @@ function renderTablePicker() {
 
 // The two buttons: the label and how many members the list holds (all of them, whatever the column filters say).
 function renderGroupPills() {
+  // Others have no Roll No., birth date or Avoid: body.group-others hides those columns and makes the table narrower (style.css, HEART_LOGIC #7).
+  document.body.classList.toggle("group-others", activeGroup === "others");
   document.querySelectorAll("#group-pills .pill").forEach((pill) => {
     const group = pill.dataset.group;
     pill.classList.toggle("active", group === activeGroup);
@@ -131,7 +133,7 @@ function cell(p, field, value, extraAttrs, inputType = "text", before = "") {
   const unlockedClass = locked ? "" : " unlocked";
   return `<td>
     <div class="cell-flex">
-      ${before}<input type="${inputType}" class="cell-input${unlockedClass}" data-field="${field}" ${ariaLabelAttr(MEMBER_LABELS[field], p.name)} value="${escapeHtml(value)}" ${readonlyAttr} ${extraAttrs || ""} />
+      ${before}<input type="${inputType}" class="cell-input${unlockedClass}" data-field="${field}" ${ariaLabelAttr(MEMBER_LABELS[field], displayName(p))} value="${escapeHtml(value)}" ${readonlyAttr} ${extraAttrs || ""} />
     </div>
   </td>`;
 }
@@ -142,14 +144,14 @@ function cell(p, field, value, extraAttrs, inputType = "text", before = "") {
 const HOME_ICON_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-6h4v6"/></svg>';
 const addressButton = (p, field) => {
   const label = field === "address" ? MEMBER_LABELS.place : MEMBER_LABELS.postal;
-  return `<button type="button" class="addr-btn ${isAddressComplete(p[field]) ? "address-complete" : ""}" data-addr="${field}" title="${label}" aria-label="${label} of ${escapeHtml(p.name)}">${HOME_ICON_SVG}</button>`;
+  return `<button type="button" class="addr-btn ${isAddressComplete(p[field]) ? "address-complete" : ""}" data-addr="${field}" title="${label}" aria-label="${label} of ${escapeHtml(displayName(p))}">${HOME_ICON_SVG}</button>`;
 };
 
 // Postal Address cell: the home icon plus the town of the saved postal address. The town is shown, never typed here (it is
 // not a .cell-input, so the lock and autosave code ignore it): the whole address is edited in the icon's popup.
 const postalCell = (p) => `<td>
     <div class="cell-flex">
-      ${addressButton(p, "postal_address")}<input type="text" class="postal-town" tabindex="-1" readonly ${ariaLabelAttr(MEMBER_LABELS.postal, p.name)} value="${escapeHtml(p.postal_address?.town ?? "")}" />
+      ${addressButton(p, "postal_address")}<input type="text" class="postal-town" tabindex="-1" readonly ${ariaLabelAttr(MEMBER_LABELS.postal, displayName(p))} value="${escapeHtml(p.postal_address?.town ?? "")}" />
     </div>
   </td>`;
 
@@ -159,7 +161,7 @@ const postalCell = (p) => `<td>
 // where they already have an existing entry (see peopleForCurrentFunction()
 // in app.js — do not change that exclusion rule without asking).
 function avoidCell(p) {
-  return `<td><input type="checkbox" class="avoid-check" ${ariaLabelAttr(MEMBER_LABELS.avoid, p.name)} ${p.avoid ? "checked" : ""} /></td>`;
+  return `<td><input type="checkbox" class="avoid-check" ${ariaLabelAttr(MEMBER_LABELS.avoid, displayName(p))} ${p.avoid ? "checked" : ""} /></td>`;
 }
 
 // HEART LOGIC — roll_number is each person's permanent town-registry ID
@@ -188,22 +190,27 @@ function renderRows() {
     return true;
   });
 
-  // A thin strip row ("Table 2 - 17 members", class family-strip) goes above the first row of every family table after the first.
-  // It is judged on the rows that are showing, so a filter that hides a whole table leaves no stray strip, and the count is
-  // of the members showing in that table. It has no data-person, so nothing that works on member rows touches it.
+  // An orange bar ("Table 2 - 17 members") sits above every family table. The first table showing gets it as the table's CAPTION
+  // (#members-caption): a full-width first row would take over the column widths (HEART_LOGIC #7). Each later table gets a strip
+  // row (class family-strip) above its first row. Both are judged on the rows that are showing, so a filter that hides a whole
+  // table leaves no stray bar, and the count is of the members showing in that table. A strip has no data-person, so nothing that
+  // works on member rows touches it.
   const showing = {};
   visible.forEach((p) => { showing[p.family_group] = (showing[p.family_group] || 0) + 1; });
+  const bannerText = (n) => `Table ${n} - ${showing[n]} member${showing[n] === 1 ? "" : "s"}`;
   const strip = (p, i) => {
     if (i === 0 || p.family_group === visible[i - 1].family_group || p.family_group == null) return "";
-    const n = showing[p.family_group];
-    return `<tr class="family-strip" data-family="${p.family_group}"><td colspan="9">Table ${p.family_group} - ${n} member${n === 1 ? "" : "s"}</td></tr>`;
+    return `<tr class="family-strip" data-family="${p.family_group}"><td colspan="9">${bannerText(p.family_group)}</td></tr>`;
   };
+  const firstFamily = visible[0]?.family_group ?? null;   // Others have no table: no bar
+  $("members-caption").dataset.family = firstFamily ?? "";
+  $("members-caption").textContent = firstFamily == null ? "" : bannerText(firstFamily);
   $("members-body").innerHTML = visible
     .map(
       (p, i) => `${strip(p, i)}<tr data-person="${p.id}" data-family="${p.family_group ?? ""}" class="${p.avoid ? "row-avoided" : ""}">
         <td>${p.member_no ?? ""}</td>
         <td>${p.roll_number ?? ""}</td>
-        ${cell(p, "name", p.name)}
+        ${cell(p, "name", p.name ?? "")}
         ${cell(p, "name_en", p.name_en ?? "")}
         ${cell(p, "place", p.place ?? "", "", "text", addressButton(p, "address"))}
         ${postalCell(p)}
@@ -264,16 +271,18 @@ function whenScrollStops() {
 async function jumpToTable(n) {
   const rows = [...document.querySelectorAll(`#members-body tr[data-family="${n}"]`)];
   if (!rows.length) return;
+  const caption = $("members-caption");   // the first table's bar is not a row (see renderRows)
+  const anchor = caption.dataset.family === String(n) ? caption : rows[0];
   const headerBottom = $("members-thead-wrap").getBoundingClientRect().bottom;   // the sticky header covers the top of the page
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  window.scrollTo({ top: rows[0].getBoundingClientRect().top + window.scrollY - headerBottom - 6, behavior: reduce ? "auto" : "smooth" });
+  window.scrollTo({ top: anchor.getBoundingClientRect().top + window.scrollY - headerBottom - 6, behavior: reduce ? "auto" : "smooth" });
   await whenScrollStops();
-  rows.forEach((tr) => {
+  [...rows, caption].forEach((tr) => {
     tr.classList.remove("table-blink");
     void tr.offsetWidth;   // restart the animation if the same button is pressed twice
     tr.classList.add("table-blink");
   });
-  setTimeout(() => rows.forEach((tr) => tr.classList.remove("table-blink")), 1100);
+  setTimeout(() => [...rows, caption].forEach((tr) => tr.classList.remove("table-blink")), 1100);
 }
 
 $("table-jump").addEventListener("click", (e) => {
@@ -349,6 +358,7 @@ $("group-pills").addEventListener("click", async (e) => {
   const pill = e.target.closest(".pill");
   if (!pill || pill.dataset.group === activeGroup) return;
   activeGroup = pill.dataset.group;
+  if (activeGroup === "others") ["filter-roll", "filter-dob"].forEach((id) => ($(id).value = ""));   // hidden for Others: a leftover filter would silently hide everyone
   await requestRenderRows();   // also rebuilds the table picker (renderRows)
   prefillNewMemberRow();
 });
@@ -466,7 +476,7 @@ async function addNewMember() {
   const name = $("new-m-name").value.trim();
   if (!name) return;   // an empty row is not an error: a click anywhere lands here too
 
-  const dup = allPeople.find((p) => p.name.trim().toLowerCase() === name.toLowerCase());
+  const dup = allPeople.find((p) => (p.name ?? "").trim().toLowerCase() === name.toLowerCase());
   if (dup) {
     rejectNewMember(`"${name}" already exists in ${GROUP_LABELS[memberGroupOf(dup)]} (${dup.family_group ? `table ${dup.family_group}, ` : ""}S.No. ${dup.member_no ?? "-"}) — find them there instead of re-adding.`);
     return;
@@ -612,16 +622,18 @@ async function commitCellNow(input) {
     }
   }
 
-  if (field === "name") {
-    if (!value) {
-      setStatus("Name cannot be empty.", true);
-      input.value = person.name;
-      return;
-    }
-    const dup = allPeople.find((p) => p.id !== personId && p.name.trim().toLowerCase() === value.toLowerCase());
+  // A thalaikattu member always has a பெயர். An Others member may have none (people.name is then empty), but never both names empty.
+  const nameWouldVanish = (field === "name" && !value && (isThalaikattu(person) || !person.name_en)) || (field === "name_en" && !value && !person.name);
+  if (nameWouldVanish) {
+    setStatus(field === "name" ? "Name cannot be empty." : "A member needs a name: type the பெயர் first.", true);
+    input.value = person[field] ?? "";
+    return;
+  }
+  if (field === "name" && value) {
+    const dup = allPeople.find((p) => p.id !== personId && (p.name ?? "").trim().toLowerCase() === value.toLowerCase());
     if (dup) {
       setStatus(`"${value}" is already used by another member (S.No. ${dup.member_no ?? "-"}).`, true);
-      input.value = person.name;
+      input.value = person.name ?? "";
       return;
     }
   }
@@ -630,7 +642,7 @@ async function commitCellNow(input) {
 
   // No change → no write. Every unlocked cell would otherwise "commit"
   // on every blur/click-away, even if the user never typed a thing.
-  const dbValue = value === "" && field === "dob" ? null : value;   // an emptied date is NULL, not an empty string
+  const dbValue = value === "" && (field === "dob" || field === "name") ? null : value;   // an emptied date (or an Others member's emptied பெயர்) is NULL, not an empty string
   if ((person[field] ?? "") === value) return;   // ?? "": an empty (null) cell left empty is not a change
 
   const { error } = await trackedSave(client.from("people").update({ [field]: dbValue }).eq("id", personId));
@@ -674,7 +686,7 @@ $("members-body").addEventListener("change", async (e) => {
   // Uncheck is confirmed too, since it changes their visibility across
   // every function's sheet.
   const person = allPeople.find((p) => p.id === personId);
-  const label = person?.name || "this member";
+  const label = (person && displayName(person)) || "this member";
   const prompt = value
     ? `Mark "${label}" as no longer active?\n\nThey'll be hidden from every current and future function's Ledger Sheet (except sheets where they already have a saved row).`
     : `Restore "${label}" to the active member list?\n\nThey'll reappear on every function's Ledger Sheet.`;

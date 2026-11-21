@@ -27,6 +27,9 @@ function escapeHtml(str) {
 
 // Accessible name for a table-cell control. In both tables the column headers live in a separate <table> (the scrolling
 // split), so a screen reader would read a bare "edit text". This gives it "column - who" (who = member name or row number).
+// The name to show for a person. An Others member may have no Tamil name (people.name is empty): the English one is used then.
+const displayName = (p) => p.name || p.name_en || "";
+
 function ariaLabelAttr(column, who) {
   return `aria-label="${escapeHtml(who === undefined || who === "" ? column : `${column} - ${who}`)}"`;
 }

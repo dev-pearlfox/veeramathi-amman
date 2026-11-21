@@ -47,7 +47,7 @@ async function loadAll() {
   // A failed table keeps what is already on screen (a refresh when the user comes back to the tab must not replace good
   // numbers with an empty or half-loaded table); on the very first load there is nothing yet, so whatever came back is used.
   const take = (current, r) => (r.error && current.length ? current : r.data);
-  people = take(people, p).slice().sort(compareMembers);   // family table order (member-order.js): S.No. repeats in every table
+  people = take(people, p).filter(isThalaikattu).sort(compareMembers);   // Others are not on the Dashboard (member-order.js). Family table order (member-order.js): S.No. repeats in every table
   functionsList = take(functionsList, f);
   ledgerEntries = take(ledgerEntries, l);
   materials = take(materials, m);

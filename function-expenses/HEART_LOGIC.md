@@ -74,6 +74,10 @@ has `<body class="is-compact page-members">` and `body.page-members main, body.p
 are both `max-width: 1601px` (1569 + 2 x 16px padding; kept EQUAL, see #6). Narrower screens scroll the table sideways inside its frame as
 before. The nth-child rules were renumbered to match.) A percentage-based stretch version was built and tested, then
 explicitly reverted.
+On the Others tab only (`body.group-others`, set by members.js `renderGroupPills`; the owner chose to shrink the whole table) the Roll No.,
+பிறந்த தேதி and Avoid columns are hidden (`display: none`, so nth-child numbers do not shift) and the table is 1270px (the other six
+columns keep their own widths), the header frame and pill row 1273px, the page max-width 1305px. Switching to Others clears the Roll No. and
+birth date filter boxes (hidden filters must not silently hide people), and the printout leaves those three columns off.
 
 The Accounts Ledger Sheet (`table.sheet:not(.members-table)`, index.html) has the same rule, also
 fixed px and 1070px in total. Its குறிப்பு column was cut from 170px to 30px (an icon only,
@@ -102,8 +106,13 @@ shrink (item on `syncPillsCardCollapse`) still applies to that card. The
 Roll Number (see shared.js) is given ONLY to தலைக்கட்டு members; an Others member is inserted with `roll_number: null`, which
 `insertPersonRaceSafe` keeps as null (only a MISSING `roll_number` key means "give the next one"). S.No. is counted inside each list
 (`computeNextMemberNo(list, group, family)`). A row without `member_group` (a database that has not run `backups/add-member-groups.sql` yet) counts as தலைக்கட்டு. Roll Number stays
-off every function's Ledger Sheet. The Accounts page and Dashboard were left as they were: they still list every member, so Others
-would show there with their own (possibly repeating) S.No. until the owner decides otherwise.
+off every function's Ledger Sheet. **Others are hidden on the Accounts page and the Dashboard for now** (owner's decision, to be revisited):
+`isThalaikattu` in the root `member-order.js` is the one check, used by app.js `loadPeople` and the Dashboard's data.js; the invitation
+also uses only தலைக்கட்டு. Others show on the Members page only, where they have no Roll No., birth date or Avoid column.
+**`people.name` (பெயர்) may be empty for an Others member who has an English name** (the 62 people imported from the English pages of
+the address PDF have only English names). `name` is nullable, unique when given (NULLs never clash), and the check `people_has_a_name`
+needs `name` or `name_en`. A thalaikattu member always has a பெயர். Use `displayName(p)` (shared.js) wherever a name is shown as text,
+and never call `.name.trim()` on a person without `?? ""`. Not movable between தலைக்கட்டு and Others (owner's decision).
 
 ## 9c. Family tables inside தலைக்கட்டு (`people.family_group`)
 The தலைக்கட்டு list is split into family tables like the printed booklet (2026: 15, 17, 9, 1, 4, 4, 7 and 25 members). Each
@@ -111,9 +120,12 @@ member has `family_group` (1, 2, 3 ...) and **S.No. (`member_no`) restarts at 1 
 identifies anyone: Roll No. does. The database keeps `(member_group, coalesce(family_group, 0), member_no)` unique
 (`people_family_no_unique`). The ONE sort order is `compareMembers` in the root `member-order.js` (தலைக்கட்டு, then table, then
 S.No., then name); the Accounts page, Dashboard, unpaid list and invitation all use it, so do not write a second `member_no` sort.
-The Members page stays ONE table: above the first row of each later family table sits a thin orange strip row
+The Members page stays ONE table: above the first row of each later family table sits an orange strip row
 (`tr.family-strip`, one `colspan="9"` cell, "Table 2 - 17 members"; it has no `data-person`, so code that works on member rows
-never touches it, and it is never the first row, so the fixed column widths of #7 do not move). The "Add to" picker row
+never touches it, and it is never the first row, so the fixed column widths of #7 do not move). **The first table showing gets its
+bar as the body table's `<caption id="members-caption">`, NOT as a row**: `table.sheet` is `table-layout: fixed`, which reads the
+column widths from the first row, and a full-width first row collapsed every column to about 174px (tested). Never make a bar the
+first row. The caption follows the filters (the first table that is showing) and is hidden on Others. The "Add to" picker row
 (`#new-member-table-row`) is in the `tfoot` AFTER the add row, because the add row must stay the first row that gives the table
 its widths. The invitation draws a real gap row (`inv-gap`, `INV.tableGap`) and restarts its own S.No. per table; the page
 flow counts that gap, so change both together. Moving a member between tables is not built (not needed yet).

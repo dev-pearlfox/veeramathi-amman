@@ -195,7 +195,7 @@ function openAddressPopup(button) {
   addrKind = button.dataset.addr;
   addrButton = button;
   const saved = person[addrKind];
-  addrPop.querySelector(".addr-pop-title").textContent = `${person.name} - ${ADDR_KINDS[addrKind].title}`;
+  addrPop.querySelector(".addr-pop-title").textContent = `${displayName(person)} - ${ADDR_KINDS[addrKind].title}`;
   const viewOnly = addrViewOnly();
   // Edit mode, Member Origin: pre-filled from the ஊர் cell the icon sits in (what is on screen, even if just edited; see
   // splitPlace). Postal Address: just India / Tamil Nadu. A saved address wins over these. They are only stored if

@@ -19,7 +19,7 @@ Everything below was only tested in headless Chrome with a fake database.
   `people.family_group`, splits the 82 members into the 8 family tables of the 2026 booklet: 15, 17, 9, 1, 4, 4, 7, 25, and restarts S.No. at 1 in each;
   Roll No. is unchanged; the old S.No. list is kept in `backup_people_family_groups`). Then check: the gap between tables on the Members page, the
   "Add to" picker (last table by default, "New table" at the end), adding to Others (no Roll No.), printing, the Accounts order, and the invitation
-  pages 4 to 6 against the printed 2026 booklet. Real phone: the one-row buttons + Print. Decide what Accounts and Dashboard do with Others.
+  pages 4 to 6 against the printed 2026 booklet. Real phone: the one-row buttons + Print. Others are hidden on Accounts and the Dashboard for now (decided; a switch can be added later).
   (Tested only in headless Chrome with fake data so far. Moving a member between tables is not built.)
 - [ ] **P1** Filter clear (x) button: on a real phone, type in a column filter (Members, Accounts, Dashboard), confirm the orange / green border and the x
   show, tapping the x empties the box and the list refilters, and the dropdown filters (ஊர், தலைக்கட்டு வரி) do the same.
@@ -83,6 +83,13 @@ Everything below was only tested in headless Chrome with a fake database.
   list passes about 800.
 
 ## 4. Done (recent)
+
+- [x] Members page: Decisions from the owner. Members are not movable between தலைக்கட்டு and Others; ஊர் renamed Member Origin; Others hidden on
+  Accounts and the Dashboard for now; Table 1 gets the same orange bar as the other tables (a caption, see HEART_LOGIC 9c).
+- [x] Others tab: no Roll No., birth date or Avoid column (narrower table); பெயர் may be empty for Others (`people.name` nullable, HEART_LOGIC 9b).
+- [ ] **P1** Run `backups/others-import.sql` once in Supabase (adds the 135 people from the address PDF to Others; it also lets `people.name` be empty).
+  Then on a real device check the Others tab (S.No. 1 to 135, English Name only for 62 of them) and proofread the Tamil names; the review file is
+  `backups/others-import-preview.csv`. The undo file is `backups/others-import-undo.sql`. (`backups/` is not in git: it holds personal data.)
 
 - [x] Receipt box, WhatsApp / Print / Save image / SMS (`01593ca`).
 - [x] Receipt numbering ("Next 107" pill after செலவு), receipt folder, receipt file names (`4962390`).
