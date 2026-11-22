@@ -106,6 +106,39 @@ function computeNextRollNumber(peopleList) {
   return max + 1;
 }
 
+// Donors (the Others list, people.member_group = "others") have a Roll No. of their own: D1, D2, D3 ... It is stored as the number
+// people.donor_no (unique, backups/donor-numbers.sql) and shown with a "D" in front. A தலைக்கட்டு member keeps roll_number (1001...),
+// a donor never gets one, so the two series cannot clash.
+const DONOR_PREFIX = "D";
+function computeNextDonorNo(peopleList) {
+  return peopleList.reduce((m, p) => Math.max(m, p.donor_no || 0), 0) + 1;
+}
+const rollText = (p) => p.roll_number ?? (p.donor_no ? DONOR_PREFIX + p.donor_no : "");   // what the Roll No. column shows
+
+// Who already owns a mobile number / a name? (The database refuses repeats too: people_mobile_unique, people_name_unique,
+// people_name_en_unique in backups/donor-numbers.sql. These checks only give a friendlier, earlier message.) exceptId = the
+// person being edited. Mobile numbers are compared by their last 10 digits; a blank number never clashes.
+const mobileDigits = (m) => String(m ?? "").replace(/\D/g, "").slice(-10);
+function findMobileOwner(peopleList, mobile, exceptId = null) {
+  const digits = mobileDigits(mobile);
+  return digits ? peopleList.find((p) => p.id !== exceptId && mobileDigits(p.mobile) === digits) : undefined;
+}
+// A Tamil name must be unique. A person with NO Tamil name (a donor with only an English name) is matched by the English name
+// against others who also have no Tamil name.
+function findNameOwner(peopleList, name, nameEn, exceptId = null) {
+  const same = (a, b) => (a ?? "").trim().toLowerCase() === (b ?? "").trim().toLowerCase();
+  if (name && name.trim()) return peopleList.find((p) => p.id !== exceptId && same(p.name, name));
+  if (nameEn && nameEn.trim()) return peopleList.find((p) => p.id !== exceptId && !(p.name ?? "").trim() && same(p.name_en, nameEn));
+  return undefined;
+}
+// The database's refusal, in plain words (it names the rule that was broken).
+function personSaveError(error) {
+  const msg = error.message || "";
+  if (/people_mobile_unique/.test(msg)) return "That mobile number already belongs to another member.";
+  if (/people_name(_en)?_unique/.test(msg)) return "That name already belongs to another member.";
+  return "Error: " + msg;
+}
+
 // S.No. is counted inside each family table on its own (member-order.js; the database keeps (member_group, family_group,
 // member_no) unique), so the next one is the highest S.No. of the SAME list and table + 1. A new table (nobody in it yet)
 // starts at 1. Roll Number above is NOT per table: only thalaikattu members get one (see below).
@@ -132,13 +165,15 @@ async function insertPersonRaceSafe(client, base, attemptsLeft = 3) {
   // An "others" member is passed roll_number: null on purpose and it must STAY null (they have no Roll No.): only a missing
   // key means "give the next number".
   const rollNumber = "roll_number" in base ? base.roll_number : computeNextRollNumber(numberSource);
+  const donorNo = memberGroupOf(base) === "others" ? { donor_no: computeNextDonorNo(numberSource) } : {};   // a donor's D-number
 
   const { data, error } = await client
     .from("people")
-    .insert({ ...base, member_no: memberNo, roll_number: rollNumber })
+    .insert({ ...base, member_no: memberNo, roll_number: rollNumber, ...donorNo })
     .select()
     .single();
-  if (error && error.code === "23505" && attemptsLeft > 1) {
+  // Retry only when a NUMBER collided (someone else took it a moment ago). A repeated name or mobile will not change by retrying.
+  if (error && error.code === "23505" && /people_(roll_number|family_no|donor_no)_unique/.test(error.message) && attemptsLeft > 1) {
     return insertPersonRaceSafe(client, base, attemptsLeft - 1);
   }
   return { data, error };

@@ -6,8 +6,9 @@
 
 // A row from a database that has not run backups/add-member-groups.sql yet has no member_group: it is thalaikattu.
 const memberGroupOf = (p) => p.member_group ?? "thalaikattu";
-// Only தலைக்கட்டு members are on the Accounts ledger sheets, the Dashboard and the invitation. Others live on the Members page only
-// (the owner's decision: hidden there for now, to be revisited). The Members page itself shows both lists, so it does not use this.
+// Both lists are on the Members page, the Accounts ledger sheets and the Dashboard. A தலைக்கட்டு member is expected to pay the head
+// tax; an Others member pays only if they wish, so they never count as unpaid (owesSantha in function-rules.js uses this check).
+// The invitation lists whoever paid, so an Others member shows there only after paying.
 const isThalaikattu = (p) => memberGroupOf(p) === "thalaikattu";
 
 // தலைக்கட்டு first, then Others; inside தலைக்கட்டு table 1, 2, 3 ...; inside a table by S.No.; the name breaks any tie.

@@ -74,10 +74,11 @@ has `<body class="is-compact page-members">` and `body.page-members main, body.p
 are both `max-width: 1601px` (1569 + 2 x 16px padding; kept EQUAL, see #6). Narrower screens scroll the table sideways inside its frame as
 before. The nth-child rules were renumbered to match.) A percentage-based stretch version was built and tested, then
 explicitly reverted.
-On the Others tab only (`body.group-others`, set by members.js `renderGroupPills`; the owner chose to shrink the whole table) the Roll No.,
-பிறந்த தேதி and Avoid columns are hidden (`display: none`, so nth-child numbers do not shift) and the table is 1270px (the other six
-columns keep their own widths), the header frame and pill row 1273px, the page max-width 1305px. Switching to Others clears the Roll No. and
-birth date filter boxes (hidden filters must not silently hide people), and the printout leaves those three columns off.
+On the Donors (Others) tab only (`body.group-others`, set by members.js `renderGroupPills`; the owner chose to shrink the whole table) the
+பிறந்த தேதி and Avoid columns are hidden (`display: none`, so nth-child numbers do not shift) and the table is 1346px (the other seven
+columns keep their own widths), the header frame and pill row 1349px, the page max-width 1381px. **The Roll No. column is shown on Donors**
+(owner's permission, 22 Nov: it holds D1, D2 ...; it used to be hidden and the table was 1270px / 1273px / 1305px). Switching to Donors clears
+the birth date filter box (a hidden filter must not silently hide people), and the printout leaves those two columns off.
 
 The Accounts Ledger Sheet (`table.sheet:not(.members-table)`, index.html) has the same rule, also
 fixed px and 1070px in total. Its குறிப்பு column was cut from 170px to 30px (an icon only,
@@ -103,12 +104,20 @@ shrink (item on `syncPillsCardCollapse`) still applies to that card. The
 "function (year)" pills, oldest year first; the shrink scale, `syncSheetFilterCardCollapse` and the sticky stack were left as they were.)
 
 ## 9b. Two member lists: தலைக்கட்டு and Others (`people.member_group`)
-Roll Number (see shared.js) is given ONLY to தலைக்கட்டு members; an Others member is inserted with `roll_number: null`, which
-`insertPersonRaceSafe` keeps as null (only a MISSING `roll_number` key means "give the next one"). S.No. is counted inside each list
+Roll Number (see shared.js) is given ONLY to தலைக்கட்டு members; an Others member (shown as **Donors**) is inserted with `roll_number: null`, which
+`insertPersonRaceSafe` keeps as null (only a MISSING `roll_number` key means "give the next one"). A donor has a Roll No. of its own, **D1, D2 ...**:
+the number `people.donor_no` (unique; `backups/donor-numbers.sql`), shown with a "D" by `rollText()` (shared.js) and given by `insertPersonRaceSafe`
+(highest + 1, retried only when a NUMBER collided). No two people may share a name, a mobile number (last 10 digits; blank is fine) or a Roll
+No.: the database refuses it (`people_name_unique`, `people_name_en_unique` for a person with no Tamil name, `people_mobile_unique`,
+`people_donor_no_unique`) and members.js checks first for a friendlier message (`findMobileOwner`, `findNameOwner`, `personSaveError`). S.No. is counted inside each list
 (`computeNextMemberNo(list, group, family)`). A row without `member_group` (a database that has not run `backups/add-member-groups.sql` yet) counts as தலைக்கட்டு. Roll Number stays
-off every function's Ledger Sheet. **Others are hidden on the Accounts page and the Dashboard for now** (owner's decision, to be revisited):
-`isThalaikattu` in the root `member-order.js` is the one check, used by app.js `loadPeople` and the Dashboard's data.js; the invitation
-also uses only தலைக்கட்டு. Others show on the Members page only, where they have no Roll No., birth date or Avoid column.
+off every function's Ledger Sheet. **Others are on the Accounts page and the Dashboard too** (owner's decision, 22 Nov): they are listed
+after the தலைக்கட்டு members so a payment can be recorded, but only a தலைக்கட்டு member OWES the head tax. A தலைக்கட்டு member
+should pay; an Others member pays only if they wish to. `owesSantha(p, paid)` in the root `function-rules.js` is the one rule
+(it uses `isThalaikattu` from `member-order.js`): the Dashboard's `santhaStatus` counts an Others member only once their head-tax box is
+ticked, so they never appear in the unpaid list or the pending total. The invitation lists whoever paid (head tax, donation or gift),
+so an Others member appears there only after paying; their table starts after the தலைக்கட்டு tables (S.No. counts from 1 again).
+On the Members page they have no Roll No., birth date or Avoid column.
 **`people.name` (பெயர்) may be empty for an Others member who has an English name** (the 62 people imported from the English pages of
 the address PDF have only English names). `name` is nullable, unique when given (NULLs never clash), and the check `people_has_a_name`
 needs `name` or `name_en`. A thalaikattu member always has a பெயர். Use `displayName(p)` (shared.js) wherever a name is shown as text,

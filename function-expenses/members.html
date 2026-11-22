@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@700;800&family=Poppins:wght@400;500;600;700;800&display=swap" />
-<link rel="stylesheet" href="style.css?v=20261121m" />
+<link rel="stylesheet" href="style.css?v=20261122b" />
 <link rel="stylesheet" href="date-picker.css?v=20261115a" />
 <link rel="stylesheet" href="member-address.css?v=20261119c" />
 <link rel="stylesheet" href="../filter-clear.css?v=20261120b" />
@@ -47,7 +47,7 @@
     <section class="card compact members-filter-card">
       <div id="group-pills" class="pill-row" role="group" aria-label="Member list">
         <button type="button" class="pill active" data-group="thalaikattu" aria-pressed="true">தலைக்கட்டு</button>
-        <button type="button" class="pill" data-group="others" aria-pressed="false">Others</button>
+        <button type="button" class="pill" data-group="others" aria-pressed="false">Donors</button>
       </div>
       <button type="button" id="print-btn" class="members-toggle print-btn">Print / save as PDF</button>
     </section>
@@ -58,7 +58,7 @@
           <tr><th>S.No</th><th>Roll No.</th><th>பெயர்</th><th>English Name</th><th>Home Address</th><th>Postal Address</th><th>Mobile Number</th><th>பிறந்த தேதி</th><th>Avoid</th></tr>
           <tr class="filter-row">
             <td><label for="filter-sno" class="sr-only">Filter by S.No</label><input type="text" id="filter-sno" class="filter-input" placeholder="Filter" inputmode="numeric" pattern="[0-9]*" /></td>
-            <td><label for="filter-roll" class="sr-only">Filter by Roll No.</label><input type="text" id="filter-roll" class="filter-input" placeholder="Filter" inputmode="numeric" pattern="[0-9]*" /></td>
+            <td><label for="filter-roll" class="sr-only">Filter by Roll No.</label><input type="text" id="filter-roll" class="filter-input" placeholder="Filter" /></td>
             <td><label for="filter-name" class="sr-only">Filter by பெயர்</label><input type="text" id="filter-name" class="filter-input" placeholder="Filter" /></td>
             <td><label for="filter-name-en" class="sr-only">Filter by English Name</label><input type="text" id="filter-name-en" class="filter-input" placeholder="Filter" /></td>
             <td><label for="filter-place" class="sr-only">Filter by Home Address</label><input type="text" id="filter-place" class="filter-input" placeholder="Filter" /></td>
@@ -120,14 +120,14 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js" integrity="sha384-JBR+x8blGwjDRO63aHCGiZMD4VNiTR4ZUGA+N6ZKLf3zNt1fK8IBpcgPaMrxqWBp" defer crossorigin="anonymous"></script>
 <script src="supabase-config.js?v=20261105t" defer></script>
-<script src="../member-order.js?v=20261121b" defer></script>
-<script src="shared.js?v=20261121b" defer></script>
+<script src="../member-order.js?v=20261122a" defer></script>
+<script src="shared.js?v=20261122a" defer></script>
 <script src="../filter-clear.js?v=20261120b" defer></script>
 <script src="date-picker.js?v=20261117a" defer></script>
 <script src="address-data.js?v=20261114g" defer></script>
 <script src="member-address.js?v=20261119f" defer></script>
-<script src="members.js?v=20261121l" defer></script>
+<script src="members.js?v=20261122b" defer></script>
 <script src="print-table.js?v=20261114a" defer></script>
-<script src="members-print.js?v=20261121d" defer></script>
+<script src="members-print.js?v=20261122a" defer></script>
 </body>
 </html>

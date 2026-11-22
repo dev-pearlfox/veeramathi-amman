@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400&family=Noto+Sans+Tamil:wght@500;600;700;800&display=swap" />
-<link rel="stylesheet" href="style.css?v=20261116k" />
+<link rel="stylesheet" href="style.css?v=20261122a" />
 <link rel="stylesheet" href="invitation.css?v=20261121a" />
 <link rel="stylesheet" href="invitation-festive.css?v=20261118d" />
 <link rel="stylesheet" href="../password-toggle.css?v=20261116a" />
@@ -84,6 +84,7 @@
         <div class="tile"><div class="label">Total தலைக்கட்டு வரி</div><div class="value" id="ov-santha">0</div></div>
         <span id="ov-extra-tiles"></span>
         <div class="tile"><div class="label">Material Cost <small>(separate)</small></div><div class="value" id="ov-material">0</div></div>
+        <span id="ov-fund-tiles"></span>   <!-- fund collections, kept apart from வரவு (overview.js) -->
       </div>
       <p class="note" id="ov-carry-note"></p>
 
@@ -268,6 +269,28 @@
         </table>
         </div>
       </div>
+
+      <!-- Fund collections (funds.js): a named donation drive inside one function, e.g. "Land Purchase" in 2027. -->
+      <div class="card" id="fund-card">
+        <h2>Fund Collections</h2>
+        <p class="note">A fund collection (for example Land Purchase) becomes a new tab inside the function you pick, on the Accounts page, with the same table as நன்கொடை. Its money is kept apart: it is not added to that function's வரவு or balance.</p>
+        <form id="fund-form">
+          <label>Function
+            <select id="fund-function" required></select>
+          </label>
+          <label>Fund name
+            <input type="text" id="fund-title" required maxlength="80" autocomplete="off" placeholder="e.g. Land Purchase" />
+          </label>
+          <button type="submit">Add Fund Collection</button>
+          <p class="status" id="fund-status" role="status" aria-live="polite"></p>
+        </form>
+        <div class="table-wrap">
+        <table>
+          <thead><tr><th>Function</th><th>Fund name</th><th>Collected</th><th></th></tr></thead>
+          <tbody id="fund-list"></tbody>
+        </table>
+        </div>
+      </div>
     </section>
 
   </div>
@@ -329,24 +352,25 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js" integrity="sha384-Sse/HDqcypGpyTDpvZOJNnG0TT3feGQUkF9H+mnRvic+LjR+K1NhTt8f51KIQ3v3" defer crossorigin="anonymous"></script>
 <script src="supabase-config.js?v=20261105s" defer></script>
 <script src="../expense-lines.js?v=20261114a" defer></script>
-<script src="../income-categories.js?v=20261118g" defer></script>
-<script src="../function-rules.js?v=20261114a" defer></script>
+<script src="../income-categories.js?v=20261122a" defer></script>
+<script src="../function-rules.js?v=20261122a" defer></script>
 <script src="../money-format.js?v=20261113b" defer></script>
-<script src="../member-order.js?v=20261121b" defer></script>
+<script src="../member-order.js?v=20261122a" defer></script>
 <script src="../password-toggle.js?v=20261116a" defer></script>
 <script src="../filter-clear.js?v=20261120b" defer></script>
 <script src="core.js?v=20261113a" defer></script>
-<script src="data.js?v=20261121b" defer></script>
+<script src="data.js?v=20261122b" defer></script>
 <script src="charts.js?v=20261105s" defer></script>
 <script src="widgets.js?v=20261114a" defer></script>
-<script src="overview.js?v=20261114b" defer></script>
+<script src="overview.js?v=20261122a" defer></script>
 <script src="compare.js?v=20261105s" defer></script>
-<script src="explore.js?v=20261121a" defer></script>
+<script src="explore.js?v=20261122a" defer></script>
 <script src="unpaid.js?v=20261121a" defer></script>
-<script src="admin.js?v=20261116e" defer></script>
+<script src="admin.js?v=20261122a" defer></script>
+<script src="funds.js?v=20261122a" defer></script>
 <script src="print.js?v=20261114a" defer></script>
 <script src="invitation-text.js?v=20261116d" defer></script>
-<script src="invitation-pages.js?v=20261121a" defer></script>
+<script src="invitation-pages.js?v=20261122a" defer></script>
 <script src="invitation-cover.js?v=20261118a" defer></script>
 <script src="invitation.js?v=20261118a" defer></script>
 <script src="app.js?v=20261116b" defer></script>

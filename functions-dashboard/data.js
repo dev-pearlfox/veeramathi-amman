@@ -7,6 +7,7 @@ let ledgerEntries = [];   // வரவு (income): per-person collections (sant
 let materials = [];
 let expenseEntries = [];  // செலவு (expense): one row per typed line (description + amount), see supabase/schema.sql
 let incomeEntries = [];   // extra வரவு typed on the Accounts page (INCOME_KINDS), see supabase/schema.sql
+let fundCollections = []; // the fund drives the admin made inside a function (their money is in incomeEntries, kind "fund:<id>")
 
 // The columns the Dashboard actually reads, per table. Selecting only these keeps each load small (the people table's
 // `address` JSON, for one, is never shown here). If a screen ever needs another column, add it HERE or it will show blank.
@@ -16,6 +17,7 @@ const COLUMNS = {
   ledger_entries: "id,function_id,person_id,receipt_no,santha,santha_checked,total,paid",
   materials: "id,function_id,item_name,quantity,unit,cost,created_at",
   expense_entries: "id,function_id,name,amount,created_at",
+  fund_collections: "id,function_id,title,created_at",
   income_entries: "id,function_id,kind,amount,name,receipt_no",   // name + receipt_no: the printed invitation booklet (invitation-pages.js)
 };
 
@@ -36,23 +38,25 @@ async function fetchAll(table, order) {
 // Replaces all in-memory data. Returns a list of human-readable problems (empty when all is well) for the banner.
 async function loadAll() {
   const byId = (q) => q.order("id");
-  const [p, f, l, m, x, inc] = await Promise.all([
+  const [p, f, l, m, x, inc, fc] = await Promise.all([
     fetchAll("people", (q) => q.order("member_no", { ascending: true, nullsFirst: false }).order("name").order("id")),
     fetchAll("functions", (q) => q.order("year").order("id")),
     fetchAll("ledger_entries", byId),
     fetchAll("materials", byId),
     fetchAll("expense_entries", byId),
     fetchAll("income_entries", byId),
+    fetchAll("fund_collections", (q) => q.order("created_at").order("id")),   // missing until backups/fund-collections.sql is run: then just none
   ]);
   // A failed table keeps what is already on screen (a refresh when the user comes back to the tab must not replace good
   // numbers with an empty or half-loaded table); on the very first load there is nothing yet, so whatever came back is used.
   const take = (current, r) => (r.error && current.length ? current : r.data);
-  people = take(people, p).filter(isThalaikattu).sort(compareMembers);   // Others are not on the Dashboard (member-order.js). Family table order (member-order.js): S.No. repeats in every table
+  people = take(people, p).sort(compareMembers);   // தலைக்கட்டு first, then Others (member-order.js). Family table order (member-order.js): S.No. repeats in every table
   functionsList = take(functionsList, f);
   ledgerEntries = take(ledgerEntries, l);
   materials = take(materials, m);
   expenseEntries = take(expenseEntries, x);
   incomeEntries = take(incomeEntries, inc);
+  fundCollections = take(fundCollections, fc);
 
   const problems = [];
   [["people", p], ["functions", f], ["ledger_entries", l], ["materials", m]].forEach(([name, r]) => {
@@ -100,6 +104,7 @@ function summarize(funcIds) {
   entries.forEach((e) => LEDGER_INCOME_FIELDS.forEach((k) => { income[k] += Number(e[k] || 0); }));
   INCOME_KINDS.forEach((k) => { income.extra[k.key] = 0; });
   incomeEntries.filter((r) => funcIds.has(r.function_id)).forEach((r) => {
+    if (isFundKind(r.kind)) return;   // a fund collection is not festival வரவு: it is shown apart (fundSummaries), never in the totals
     const amount = Number(r.amount || 0);
     if (!oneYear && INCOME_KINDS.some((k) => k.key === r.kind && k.isCarryOver)) { income.carryNotCounted += amount; return; }
     income.extra[r.kind] = (income.extra[r.kind] || 0) + amount;
@@ -107,6 +112,18 @@ function summarize(funcIds) {
   });
   const expense = expenses.reduce((sum, r) => sum + Number(r.amount || 0), 0);
   return { entries, expenses, income, expense, balance: income.total - expense };
+}
+
+// The fund collections of `funcIds`, each with what it has collected: [{ fund, f (its function), total, count }], oldest function year first.
+function fundSummaries(funcIds) {
+  const fnById = new Map(functionsList.map((f) => [f.id, f]));
+  return fundCollections
+    .filter((x) => funcIds.has(x.function_id) && fnById.has(x.function_id))
+    .map((fund) => {
+      const lines = incomeEntries.filter((r) => r.kind === fundKindKey(fund.id));
+      return { fund, f: fnById.get(fund.function_id), total: lines.reduce((s, r) => s + Number(r.amount || 0), 0), count: lines.length };
+    })
+    .sort((a, b) => a.f.year - b.f.year || a.fund.title.localeCompare(b.fund.title));
 }
 
 // வரவு without any carried-over money: what a running (cumulative) total over several years must use.
@@ -124,11 +141,11 @@ function functionRows(funcIds) {
 
 // Who has and has not paid the தலைக்கட்டு வரி for function `f`. "Paid" = the head-tax box is ticked on the Accounts page.
 // Who is expected to pay comes from the shared rule (../function-rules.js). `pending` = unpaid people x the
-// function's fixed head-tax amount.
+// function's fixed head-tax amount. Others (member-order.js) are never counted as unpaid, only as paid once they pay.
 function santhaStatus(f) {
   const entries = ledgerEntries.filter((e) => e.function_id === f.id);
-  const eligible = eligiblePeople(people, f, entries);
   const paidIds = new Set(entries.filter((e) => e.santha_checked).map((e) => e.person_id));
+  const eligible = eligiblePeople(people, f, entries).filter((p) => owesSantha(p, paidIds.has(p.id)));   // Others count only once they paid
   const unpaid = eligible.filter((p) => !paidIds.has(p.id));
   return { eligible: eligible.length, paid: eligible.length - unpaid.length, unpaid, pending: unpaid.length * Number(f.santha_amount ?? 0) };
 }

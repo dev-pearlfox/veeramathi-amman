@@ -59,3 +59,14 @@ const INCOME_KINDS = [
       { field: "note", label: "குறிப்பு" },
     ] },
 ];
+
+// ---------- Fund collections (made by the admin, stored in the fund_collections table: functions-dashboard/supabase/schema.sql) ----------
+// A fund collection is a named donation list inside ONE function (e.g. "Land Purchase" in the 2027 function). On the Accounts page it is
+// one more tab and works like the நன்கொடை table (same columns); its rows live in income_entries with kind = "fund:<fund id>". Because
+// the kind is not in INCOME_KINDS, the Dashboard must NOT add it to the function's வரவு: it asks isFundKind() and shows the fund apart.
+const FUND_KIND_PREFIX = "fund:";
+const isFundKind = (kind) => String(kind).startsWith(FUND_KIND_PREFIX);
+const fundKindKey = (fundId) => FUND_KIND_PREFIX + fundId;
+const donationKind = () => INCOME_KINDS.find((k) => k.key === "donation");
+// The table definition of one fund, in the shape the Accounts engine (function-expenses/income.js) reads, copied from நன்கொடை.
+const fundKind = (fund) => ({ ...donationKind(), key: fundKindKey(fund.id), label: fund.title, totalLabel: "மொத்தம்", isFund: true });

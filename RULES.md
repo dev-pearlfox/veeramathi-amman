@@ -17,7 +17,7 @@ Companion docs: [README.md](./README.md), [ARCHITECTURE.md](./ARCHITECTURE.md), 
    something that "looks simpler" brings the bug back. The Dashboard is not covered.
 2. **Bump the cache-buster.** Every CSS / JS file is loaded as `file?v=YYYYMMDDx`. Change a file, bump its `?v=` on
    **every page** that loads it. A stale cached script once left a page showing only its header.
-3. **Never rename keys in `income-categories.js`.** Keys are stored in `income_entries.kind`. Labels can change.
+3. **Never rename keys in `income-categories.js`.** Keys are stored in `income_entries.kind`. Labels can change. A kind starting `fund:` is a fund collection (`fund_collections`): `summarize()` in `data.js` must keep skipping it, or fund money leaks into the function's வரவு.
 4. **Passwords.** Never ask for, store, log or write a password. Never touch the owner's database. SQL changes are
    given to the owner to run in Supabase.
 5. **Do not commit or push unless asked.** Ask first when the work is ready. List what is uncommitted.

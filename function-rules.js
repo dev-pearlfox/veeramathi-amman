@@ -12,3 +12,8 @@ function eligiblePeople(allPeople, fn, entriesForFunction) {
   const hasEntry = new Set(entriesForFunction.map((e) => e.person_id));
   return allPeople.filter((p) => !p.avoid || hasEntry.has(p.id));
 }
+
+// Who OWES the head tax (தலைக்கட்டு வரி). A தலைக்கட்டு member should pay. An Others member pays only if they wish to, so they are on
+// the Ledger Sheet (to record a payment) but never count as unpaid: they count only once they have paid (`paid` = their head-tax box
+// is ticked). isThalaikattu is in member-order.js.
+const owesSantha = (p, paid) => isThalaikattu(p) || paid;

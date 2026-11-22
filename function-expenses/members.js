@@ -35,8 +35,8 @@ let allPeople = [];
 
 // The two lists of the page (people.member_group; memberGroupOf is in shared.js). தலைக்கட்டு is shown first, always.
 // Others have their own S.No. and no Roll No.; a member is added to whichever list is showing.
-const GROUP_LABELS = { thalaikattu: "தலைக்கட்டு", others: "Others" };
-const GROUP_PRINT_HEADINGS = { thalaikattu: "மொத்த குடும்பத் தலைவர்கள்", others: "Others" };   // members-print.js
+const GROUP_LABELS = { thalaikattu: "தலைக்கட்டு", others: "Donors" };   // the data value stays "others"; only the words people see changed
+const GROUP_PRINT_HEADINGS = { thalaikattu: "மொத்த குடும்பத் தலைவர்கள்", others: "Donors" };   // members-print.js
 let activeGroup = "thalaikattu";
 const peopleOfGroup = (group) => allPeople.filter((p) => memberGroupOf(p) === group);
 
@@ -180,7 +180,7 @@ function renderRows() {
   renderGroupPills();
   const visible = peopleOfGroup(activeGroup).filter((p) => {
     if (snoQ && !String(p.member_no ?? "").toLowerCase().includes(snoQ)) return false;
-    if (rollQ && !String(p.roll_number ?? "").toLowerCase().includes(rollQ)) return false;
+    if (rollQ && !String(rollText(p)).toLowerCase().includes(rollQ)) return false;
     if (nameQ && !(p.name || "").toLowerCase().includes(nameQ)) return false;
     if (nameEnQ && !(p.name_en || "").toLowerCase().includes(nameEnQ)) return false;
     if (placeQ && !(p.place || "").toLowerCase().includes(placeQ)) return false;
@@ -209,7 +209,7 @@ function renderRows() {
     .map(
       (p, i) => `${strip(p, i)}<tr data-person="${p.id}" data-family="${p.family_group ?? ""}" class="${p.avoid ? "row-avoided" : ""}">
         <td>${p.member_no ?? ""}</td>
-        <td>${p.roll_number ?? ""}</td>
+        <td>${rollText(p)}</td>
         ${cell(p, "name", p.name ?? "")}
         ${cell(p, "name_en", p.name_en ?? "")}
         ${cell(p, "place", p.place ?? "", "", "text", addressButton(p, "address"))}
@@ -319,7 +319,7 @@ function nextRollNumber() {
 
 function prefillNewMemberRow() {
   $("new-m-sno").textContent = nextMemberNo();
-  $("new-m-roll").textContent = activeGroup === "thalaikattu" ? nextRollNumber() : "";   // only தலைக்கட்டு members get a Roll No.
+  $("new-m-roll").textContent = activeGroup === "thalaikattu" ? nextRollNumber() : DONOR_PREFIX + computeNextDonorNo(allPeople);   // தலைக்கட்டு: 1001...; a donor: D1, D2...
   updateNewMemberLock();
 }
 
@@ -360,7 +360,7 @@ $("group-pills").addEventListener("click", async (e) => {
   const pill = e.target.closest(".pill");
   if (!pill || pill.dataset.group === activeGroup) return;
   activeGroup = pill.dataset.group;
-  if (activeGroup === "others") ["filter-roll", "filter-dob"].forEach((id) => ($(id).value = ""));   // hidden for Others: a leftover filter would silently hide everyone
+  if (activeGroup === "others") $("filter-dob").value = "";   // hidden for Donors: a leftover filter would silently hide everyone
   await requestRenderRows();   // also rebuilds the table picker (renderRows)
   prefillNewMemberRow();
 });
@@ -484,9 +484,9 @@ async function addNewMember() {
     return;
   }
 
-  const dup = name && allPeople.find((p) => (p.name ?? "").trim().toLowerCase() === name.toLowerCase());
+  const dup = findNameOwner(allPeople, name, nameEn);   // shared.js: the Tamil name, or the English one when there is no Tamil name
   if (dup) {
-    rejectNewMember(`"${name}" already exists in ${GROUP_LABELS[memberGroupOf(dup)]} (${dup.family_group ? `table ${dup.family_group}, ` : ""}S.No. ${dup.member_no ?? "-"}) — find them there instead of re-adding.`);
+    rejectNewMember(`"${name || nameEn}" already exists in ${GROUP_LABELS[memberGroupOf(dup)]} (${dup.family_group ? `table ${dup.family_group}, ` : ""}S.No. ${dup.member_no ?? "-"}) — find them there instead of re-adding.`);
     return;
   }
 
@@ -497,10 +497,16 @@ async function addNewMember() {
     $("new-m-mobile").focus();
     return;
   }
+  const mobileOwner = findMobileOwner(allPeople, mobile);
+  if (mobileOwner) {
+    rejectNewMember(`That mobile number already belongs to ${displayName(mobileOwner)} (${GROUP_LABELS[memberGroupOf(mobileOwner)]}, ${rollText(mobileOwner) || `S.No. ${mobileOwner.member_no ?? "-"}`}).`);
+    $("new-m-mobile").focus();
+    return;
+  }
 
   const { data: person, error } = await insertPersonRaceSafe(client, { name: name || null, name_en: nameEn, place: $("new-m-place").value.trim(), mobile, dob: $("new-m-dob").value || null, postal_address: newMemberDraft.postal_address, ...newMemberGroupFields() });
   if (error) {
-    rejectNewMember("Error adding member: " + error.message);
+    rejectNewMember(personSaveError(error));
     return;
   }
 
@@ -628,6 +634,12 @@ async function commitCellNow(input) {
       input.value = formatMobile(person.mobile);   // put the old number back
       return;
     }
+    const owner = value !== (person.mobile ?? "") ? findMobileOwner(allPeople, value, personId) : undefined;
+    if (owner) {
+      setStatus(`That mobile number already belongs to ${displayName(owner)} (${rollText(owner) || `S.No. ${owner.member_no ?? "-"}`}).`, true);
+      input.value = formatMobile(person.mobile);
+      return;
+    }
   }
 
   // A thalaikattu member always has a பெயர். An Others member may have none (people.name is then empty), but never both names empty.
@@ -637,8 +649,8 @@ async function commitCellNow(input) {
     input.value = person[field] ?? "";
     return;
   }
-  if (field === "name" && value) {
-    const dup = allPeople.find((p) => p.id !== personId && (p.name ?? "").trim().toLowerCase() === value.toLowerCase());
+  if ((field === "name" && value) || (field === "name_en" && value && !person.name)) {
+    const dup = findNameOwner(allPeople, field === "name" ? value : "", field === "name_en" ? value : "", personId);
     if (dup) {
       setStatus(`"${value}" is already used by another member (S.No. ${dup.member_no ?? "-"}).`, true);
       input.value = person.name ?? "";
@@ -655,7 +667,7 @@ async function commitCellNow(input) {
 
   const { error } = await trackedSave(client.from("people").update({ [field]: dbValue }).eq("id", personId));
   if (error) {
-    setStatus("Error saving: " + error.message, true);
+    setStatus(personSaveError(error), true);
     return;
   }
   person[field] = dbValue;

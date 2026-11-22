@@ -95,7 +95,7 @@ $("ex-fn-select").addEventListener("change", (e) => {
 // ---------- Charts ----------
 
 function renderPeopleChart(entries) {
-  const peopleName = Object.fromEntries(people.map((p) => [p.id, p.name]));
+  const peopleName = Object.fromEntries(people.map((p) => [p.id, p.name || p.name_en]));
   const totals = {};
   entries.forEach((e) => {
     totals[e.person_id] = (totals[e.person_id] || 0) + Number(e.total);
@@ -153,7 +153,7 @@ function renderPeopleTable(entries) {
   rows = rows.filter(([id, v]) => {
     const p = peopleMap[id];
     if (snoQ && !String(p?.member_no ?? "").toLowerCase().includes(snoQ)) return false;
-    if (nameQ && !(p?.name || "").toLowerCase().includes(nameQ)) return false;
+    if (nameQ && !(p?.name || p?.name_en || "").toLowerCase().includes(nameQ)) return false;
     if (santhaQ && !money(v.santha).includes(santhaQ)) return false;
     if (totalQ && !money(v.total).includes(totalQ)) return false;
     if (paidQ && !v.remarks.join("; ").toLowerCase().includes(paidQ)) return false;
@@ -165,7 +165,7 @@ function renderPeopleTable(entries) {
       const p = peopleMap[id];
       return `<tr>
         <td>${p?.member_no ?? ""}</td>
-        <td>${escapeHtml(p?.name || "?")}</td>
+        <td>${escapeHtml(p?.name || p?.name_en || "?")}</td>
         <td>${money(v.santha)}</td>
         <td>${money(v.total)}</td>
         <td>${escapeHtml(v.remarks.join("; "))}</td>

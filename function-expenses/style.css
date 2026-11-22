@@ -1268,15 +1268,16 @@ table.members-table th:nth-child(7), table.members-table td:nth-child(7) { width
 table.members-table th:nth-child(8), table.members-table td:nth-child(8) { width: 140px; }
 table.members-table th:nth-child(9), table.members-table td:nth-child(9) { width: 80px; }
 table.members-table td:nth-child(2) { text-align: center; }
-/* Others tab only (members.js puts body.group-others): no Roll No. (2nd), பிறந்த தேதி (8th) or Avoid (9th) column, so their 76 + 140
-   + 80px go and the table, its header frame and the pill row are all 296px narrower (1566 -> 1270, frames 1569 -> 1273, page
-   max-width 1601 -> 1305, still frame + 2 x 16px). nth-child counts the hidden cells, so every other column keeps its own fixed width. */
-body.group-others table.members-table :is(th, td):is(:nth-child(2), :nth-child(8), :nth-child(9)) { display: none; }
-body.group-others table.members-table { width: 1270px; }
+/* Donors (Others) tab only (members.js puts body.group-others): no பிறந்த தேதி (8th) or Avoid (9th) column, so their 140 + 80px go
+   and the table, its header frame and the pill row are all 220px narrower (1566 -> 1346, frames 1569 -> 1349, page max-width
+   1601 -> 1381, still frame + 2 x 16px). The Roll No. (2nd) column STAYS: a donor's D1, D2 ... (owner's decision, 22 Nov; before that it
+   was hidden and the table was 1270px). nth-child counts the hidden cells, so every other column keeps its own fixed width. */
+body.group-others table.members-table :is(th, td):is(:nth-child(8), :nth-child(9)) { display: none; }
+body.group-others table.members-table { width: 1346px; }
 body.group-others .members-thead-wrap,
-body.group-others .members-filter-card { width: 1273px; }
+body.group-others .members-filter-card { width: 1349px; }
 body.page-members.group-others main,
-body.page-members.group-others .sticky-top-inner { max-width: 1305px; }
+body.page-members.group-others .sticky-top-inner { max-width: 1381px; }
 table.members-table td:nth-child(9) { text-align: center; }
 /* Text columns are left-aligned like the names (inputs are right-aligned by default): English Name (4th), Home Address (5th),
    Postal Address (6th), பிறந்த தேதி (8th, a date box). Also covers their filter and add-row boxes. */

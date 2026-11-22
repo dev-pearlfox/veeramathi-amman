@@ -27,22 +27,36 @@ const FIELD_TYPES = {
 };
 const INCOME_FIELDS = Object.keys(FIELD_TYPES);
 
-const LINE_KINDS = [...INCOME_KINDS, EXPENSE_KIND];                // every table this engine can show
+// The fund collections the admin made (fund_collections table), every function's: [{ id, function_id, title }]. Each is one more tab
+// of its own function and a table like நன்கொடை (fundKind, income-categories.js). A missing table (SQL not run yet) just means none.
+let fundsList = [];
+async function loadFunds() {
+  const { data, error } = await client.from("fund_collections").select("*").order("created_at");
+  if (error) { console.warn("Fund collections not loaded:", error.message); return; }
+  fundsList = data;
+}
+const fundKindsOf = (functionId) => fundsList.filter((x) => x.function_id === functionId).map(fundKind);
+
+const lineKinds = () => [...INCOME_KINDS, ...fundsList.map(fundKind), EXPENSE_KIND];   // every table this engine can show
 const lineTable = (k) => k.table || "income_entries";              // where a kind's lines are stored
 
 const incomeKey = () => `${selectedFunctionId}|${incomeView}`;
-const incomeKind = () => LINE_KINDS.find((k) => k.key === incomeView);
+const incomeKind = () => lineKinds().find((k) => k.key === incomeView);
 const incomeRowIsEmpty = (r) => INCOME_FIELDS.every((f) => !r[f]);
 const newIncomeRow = () => ({ id: crypto.randomUUID(), date: "", name: "", nameEn: "", phone: "", amount: 0, receipt: "", note: "", saved: false });
 
 const lineButtonHtml = (k) =>
   `<button type="button" class="members-toggle income-btn ${incomeView === k.key ? "active" : ""}" data-income="${k.key}">${k.label}</button>`;
 
-const incomeButtonsHtml = () => INCOME_KINDS.map(lineButtonHtml).join("");   // the buttons after "வரவு:"
+const incomeButtonsHtml = () => [...INCOME_KINDS, ...fundKindsOf(selectedFunctionId)].map(lineButtonHtml).join("");   // the buttons after "வரவு:", then this function's fund collections
 const expenseButtonHtml = () => lineButtonHtml(EXPENSE_KIND);                // the செலவு button, on its own
 
 // Called by app.js after every title render, and by setIncomeView.
 function syncIncomeView() {
+  if (incomeView && isFundKind(incomeView) && !fundKindsOf(selectedFunctionId).some((k) => k.key === incomeView)) {
+    incomeView = null;   // a fund tab belongs to ONE function: another function was picked (or the fund was deleted), so leave it
+    applySheetVisibility();
+  }
   document.getElementById("income-card").classList.toggle("hidden", !incomeView);
   document.getElementById("income-thead-wrap").classList.toggle("hidden", !incomeView);
   document.body.classList.toggle("view-income", !!incomeView);
@@ -140,7 +154,7 @@ function renderIncome() {
 
 // `row` is the row object itself (not looked up by id) so a save still finds it after the user switched table.
 async function saveIncome(row, funcId, kindKey) {
-  const k = LINE_KINDS.find((x) => x.key === kindKey);
+  const k = lineKinds().find((x) => x.key === kindKey);
   const showing = incomeKey() === `${funcId}|${kindKey}`;
   let error = null;
   if (incomeRowIsEmpty(row)) {

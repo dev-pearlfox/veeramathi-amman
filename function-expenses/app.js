@@ -203,7 +203,7 @@ if (sheetTitleEl) new MutationObserver(syncPillRowOverflow).observe(sheetTitleEl
 async function loadAll() {
   // people and functions do not depend on each other: one round trip instead of two. The pills (whose title shows
   // the member count) are drawn once both are in.
-  await Promise.all([loadPeople(), loadFunctions()]);
+  await Promise.all([loadPeople(), loadFunctions(), loadFunds()]);   // loadFunds: income.js
   renderFunctionPills();
   await loadLedgerEntries();
 }
@@ -214,7 +214,7 @@ async function loadPeople() {
     setStatus("sheet-status", "Error loading members: " + error.message, true);
     return;
   }
-  people = data.filter(isThalaikattu).sort(compareMembers);   // Others are not on the ledger sheets (member-order.js). Family table order (member-order.js), not S.No. alone: S.No. repeats in every table
+  people = data.sort(compareMembers);   // தலைக்கட்டு first, then Others (member-order.js). Family table order (member-order.js), not S.No. alone: S.No. repeats in every table
 }
 
 async function loadFunctions() {
@@ -263,7 +263,7 @@ function updateSheetTitle() {
       // group is a <div>/<strong>, not a direct-child <span>, on purpose: style.css and syncPillRowOverflow
       // treat the title's direct-child <span> as the title TEXT.
       `<div class="title-group"><strong class="title-group-label">வரவு:</strong>` +
-        `<button type="button" id="toggle-members-btn" class="members-toggle ${sheetCollapsed ? "" : "active"}">தலைக்கட்டு - ${peopleForCurrentFunction().length}</button>` +
+        `<button type="button" id="toggle-members-btn" class="members-toggle ${sheetCollapsed ? "" : "active"}">தலைக்கட்டு - ${peopleForCurrentFunction().filter(isThalaikattu).length}</button>` +
         incomeButtonsHtml() +   // income.js: the extra வரவு buttons (INCOME_KINDS)
       `</div>` +
       // செலவு (expense): one button; its table (income.js, EXPENSE_KIND) replaces the members sheet while it is open.
@@ -385,7 +385,7 @@ function renderSheet() {
 
   const visible = rows.filter(({ p, seq, e }) => {
     if (snoQ && !String(seq).includes(snoQ)) return false;
-    if (nameQ && !(p.name || "").toLowerCase().includes(nameQ)) return false;
+    if (nameQ && !displayName(p).toLowerCase().includes(nameQ)) return false;
     if (placeQ && (p.place || "").trim() !== placeQ) return false;
     if (mobileQ && !String(p.mobile ?? "").replace(/\s+/g, "").includes(mobileQ)) return false;
     if (receiptQ && !String(e.receipt_no || "").toLowerCase().includes(receiptQ)) return false;
@@ -395,10 +395,10 @@ function renderSheet() {
   });
 
   $("sheet-body").innerHTML = visible
-    .map(({ p, seq, e }) => { const who = p.name; return `<tr data-person="${p.id}">
+    .map(({ p, seq, e }) => { const who = displayName(p); return `<tr data-person="${p.id}">
         <td>${seq}</td>
         <td><input type="text" class="f-receipt" ${ariaLabelAttr(SHEET_LABELS.receipt, who)} value="${escapeHtml(e.receipt_no || "")}" inputmode="numeric" /></td>
-        <td><input type="text" class="f-name" ${ariaLabelAttr(SHEET_LABELS.name, who)} value="${escapeHtml(p.name)}" readonly /></td>
+        <td><input type="text" class="f-name" ${ariaLabelAttr(SHEET_LABELS.name, who)} value="${escapeHtml(displayName(p))}" readonly /></td>
         <td><input type="text" class="f-place" ${ariaLabelAttr(SHEET_LABELS.place, who)} value="${escapeHtml(p.place ?? "")}" readonly /></td>
         <td><input type="text" class="f-mobile" ${ariaLabelAttr(SHEET_LABELS.mobile, who)} value="${escapeHtml(formatMobile(p.mobile))}" readonly /></td>
         <td>

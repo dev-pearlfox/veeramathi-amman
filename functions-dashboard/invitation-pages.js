@@ -4,7 +4,7 @@
 // a page is 9 x 12 in, two pages side by side make one 18 x 12 in sheet.
 //
 // Page order (the same as the printed booklet): 1 cover, 2 invitation letter, 3 donors + appeal, then the long lists
-// (head-tax payers, donors) flowing over as many pages as they need, the gift-in-kind page, the expense list, and
+// (head-tax payers, donors) flowing over as many pages as they need, then one page (or more) per fund collection that has donations, the gift-in-kind page, the expense list, and
 // last the income/expense summary. Because the sheets are folded, the page count is rounded up to a multiple of 4
 // with blank pages after the lists, and the sheets pair pages like the PDF: 12|1, 2|11, 10|3, 4|9, 8|5, 6|7.
 //
@@ -152,6 +152,15 @@ function invDonorSection(f) {
     cols: invListCols(sum), cls: ["n", "r", "name", "amt"], rh: 0.2, fs: 9, rows, total: { label: "மொத்தம்", amount: money(sum) } };
 }
 
+// One fund collection of the function (funds.js): its donors, in a table with the fund's own title. buildInvitation flows each fund on
+// its own, so every fund starts on a fresh page. Money in a fund is not in the function's வரவு, but it is printed here.
+function invFundSection(f, fund) {
+  const rows = invIncomeRows(f, fundKindKey(fund.id)).map((r, i) => [i + 1, escapeHtml(r.receipt), escapeHtml(r.name), money(r.amount)]);
+  const sum = rows.reduce((t, r) => t + parseMoney(r[3]), 0);
+  return { title: `${invYearText(f)} ${escapeHtml(f.name)} - ${escapeHtml(fund.title)} நன்கொடை வழங்கியவர்கள்`, head: ["வ.<br>எண்", "இரசீது<br>எண்", "பெயர்", "தொகை"],
+    cols: invListCols(sum), cls: ["n", "r", "name", "amt"], rh: 0.2, fs: 9, rows, total: { label: "மொத்தம்", amount: money(sum) } };
+}
+
 function invExpenseSection(f) {
   const rows = invExpenseRows(f);
   const sum = rows.reduce((t, r) => t + parseMoney(r[1]), 0);
@@ -238,7 +247,8 @@ function buildInvitation(f) {
   blocks.push((no) => invCoverPage(no, f));
   blocks.push((no) => invLetterPage(no, f));
   blocks.push((no) => invDonorsPage(no, f));
-  invFlow([invPayerSection(f), invDonorSection(f)]).forEach((p) =>
+  const fundPages = fundCollections.filter((x) => x.function_id === f.id).flatMap((fund) => invFlow([invFundSection(f, fund)]));   // a fund with no donations has no page
+  [...invFlow([invPayerSection(f), invDonorSection(f)]), ...fundPages].forEach((p) =>
     blocks.push((no) => invPage(no, p.frags.map((frag) => invBlock(frag)).join(""))));
   const listEnd = blocks.length;
   blocks.push((no) => invGiftsPage(no, f));

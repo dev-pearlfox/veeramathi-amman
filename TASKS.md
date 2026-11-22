@@ -11,6 +11,10 @@ the owner can take. Items marked **(device)** need a real phone, tablet or lapto
 
 ## 1. Checks on real devices (device)
 
+- [ ] **P1** Donor Roll Nos. (D1, D2 ...) and no repeated name / mobile / Roll No. (new, 22 Nov): run `backups/donor-numbers-check.sql` in Supabase (must list nothing; if it lists repeats, fix those people first), then `backups/donor-numbers.sql` (numbers the existing donors D1.. in S.No. order, adds the rules). Undo: `donor-numbers-undo.sql`. Then on the Members page, Donors tab: add a donor (gets the next D number), try a repeated mobile / name (must be refused), check the wider table on a real screen. SQL not tested on a real database (no Postgres here).
+
+- [ ] **P1** Fund collections (new, 22 Nov): run `backups/fund-collections.sql` in Supabase once. Then Dashboard > Admin > Fund Collections: add "Land Purchase" to the 2027 function, check its tab on the Accounts page, type a donation, check the Dashboard tile, the Admin list (Rename, Delete only when empty) and the invitation page. Not tested on the real database or a real phone.
+
 Everything below was only tested in headless Chrome with a fake database.
 
 - [ ] **P1** Members page, two addresses: run `backups/add-postal-address.sql` in Supabase once (adds `people.postal_address`), then on a real
@@ -19,7 +23,7 @@ Everything below was only tested in headless Chrome with a fake database.
   `people.family_group`, splits the 82 members into the 8 family tables of the 2026 booklet: 15, 17, 9, 1, 4, 4, 7, 25, and restarts S.No. at 1 in each;
   Roll No. is unchanged; the old S.No. list is kept in `backup_people_family_groups`). Then check: the gap between tables on the Members page, the
   "Add to" picker (last table by default, "New table" at the end), adding to Others (no Roll No.), printing, the Accounts order, and the invitation
-  pages 4 to 6 against the printed 2026 booklet. Real phone: the one-row buttons + Print. Others are hidden on Accounts and the Dashboard for now (decided; a switch can be added later).
+  pages 4 to 6 against the printed 2026 booklet. Real phone: the one-row buttons + Print. Others are now on Accounts and the Dashboard (22 Nov): listed after the members, never counted as unpaid, on the invitation only if they paid. Check on the real data.
   (Tested only in headless Chrome with fake data so far. Moving a member between tables is not built.)
 - [ ] **P1** Filter clear (x) button: on a real phone, type in a column filter (Members, Accounts, Dashboard), confirm the orange / green border and the x
   show, tapping the x empties the box and the list refilters, and the dropdown filters (ஊர், தலைக்கட்டு வரி) do the same.
@@ -84,8 +88,8 @@ Everything below was only tested in headless Chrome with a fake database.
 
 ## 4. Done (recent)
 
-- [x] Members page: Decisions from the owner. Members are not movable between தலைக்கட்டு and Others; ஊர் renamed Member Origin, then Home Address; Others hidden on
-  Accounts and the Dashboard for now; Table 1 gets the same orange bar as the other tables (a caption, see HEART_LOGIC 9c).
+- [x] Members page: Decisions from the owner. Members are not movable between தலைக்கட்டு and Others; ஊர் renamed Member Origin, then Home Address; Others were hidden on
+  Accounts and the Dashboard at first (shown from 22 Nov, see above); Table 1 gets the same orange bar as the other tables (a caption, see HEART_LOGIC 9c).
 - [x] Others tab: no Roll No., birth date or Avoid column (narrower table); பெயர் may be empty for Others (`people.name` nullable, HEART_LOGIC 9b).
 - [x] Others import: `backups/others-import.sql` was run in Supabase (135 people from the address PDF; `people.name` may now be empty).
   Then `backups/merge-velmurugan.sql` was run: R. VELMURUGAN was listed twice (home and shop address), now ONE row (S.No. 51, shop address), so

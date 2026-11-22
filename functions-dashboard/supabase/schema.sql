@@ -19,6 +19,7 @@ postal_address jsonb,                    -- Postal Address, same shape, from the
   dob         date,                        -- date of birth (optional)
   member_no   int,                         -- S.No., set by the pages (highest + 1)
   roll_number int,                         -- permanent Roll No., starts at 1001, set by the pages
+  donor_no    int,                         -- a donor's (Others') Roll No. as a number, shown as D1, D2 ...; unique; existing databases: backups/donor-numbers.sql
   avoid       boolean not null default false,   -- no longer active (hidden from new function sheets)
   member_group text not null default 'thalaikattu',   -- the Members page list: 'thalaikattu' (has a Roll No.) or 'others' (no Roll No.); existing databases: backups/add-member-groups.sql
   family_group int,                        -- the family table (1, 2, 3 ...) a thalaikattu member sits in, as in the printed booklet; NULL for others
@@ -26,8 +27,13 @@ postal_address jsonb,                    -- Postal Address, same shape, from the
   constraint people_name_unique unique (name),   -- several empty names are allowed: NULLs never clash
   constraint people_has_a_name check (name is not null or name_en is not null),
   constraint people_member_group_check check (member_group in ('thalaikattu', 'others')),
-  constraint people_roll_number_unique unique (roll_number)
+  constraint people_donor_no_only_donors check (member_group = 'others' or donor_no is null),
+  constraint people_roll_number_unique unique (roll_number),
+  constraint people_donor_no_unique unique (donor_no)
 );
+-- No two people share a mobile number (last 10 digits; blank is fine), nor an English name when they have no Tamil name.
+create unique index if not exists people_mobile_unique on people ((right(regexp_replace(mobile, '\D', '', 'g'), 10))) where nullif(regexp_replace(coalesce(mobile, ''), '\D', '', 'g'), '') is not null;
+create unique index if not exists people_name_en_unique on people ((lower(btrim(name_en)))) where coalesce(btrim(name), '') = '' and coalesce(btrim(name_en), '') <> '';
 -- S.No. (member_no) restarts at 1 inside each family table, so it is unique only inside one (an Others member has no table: 0).
 create unique index if not exists people_family_no_unique on people (member_group, coalesce(family_group, 0), member_no);
 
@@ -100,6 +106,22 @@ create table if not exists materials (
   cost        numeric not null default 0,
   created_at  timestamptz not null default now()
 );
+
+-- ---------------------------------------------------------------- fund_collections (a named fund drive inside one function)
+-- The admin creates one on the Dashboard (Admin > Fund Collections), e.g. "Land Purchase" inside the 2027 function. It becomes a new
+-- tab on that function's Accounts page. Its donations are stored in income_entries with kind = 'fund:' || fund_collections.id, so no
+-- new entries table; the Dashboard keeps that money OUT of the function's வரவு and balance and shows it separately.
+create table if not exists fund_collections (
+  id          uuid primary key default gen_random_uuid(),
+  function_id uuid not null references functions(id) on delete cascade,
+  title       text not null,
+  created_at  timestamptz not null default now(),
+  constraint fund_collections_title_not_blank check (btrim(title) <> ''),
+  constraint fund_collections_title_unique unique (function_id, title)   -- one fund name per function
+);
+alter table fund_collections enable row level security;
+drop policy if exists "authenticated all fund_collections" on fund_collections;
+create policy "authenticated all fund_collections" on fund_collections for all to authenticated using (true) with check (true);
 
 -- ---------------------------------------------------------------- access rules (signed-in users only)
 alter table people          enable row level security;

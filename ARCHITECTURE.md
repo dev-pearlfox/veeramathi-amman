@@ -87,10 +87,12 @@ One file, `functions-dashboard/supabase/schema.sql`, safe to run again.
 | Table | Holds | Notes |
 |---|---|---|
 | `people` | Members | unique `name`, `(member_group, coalesce(family_group, 0), member_no)` (S.No. restarts in each family table); `family_group` int (the family table of a thalaikattu member, NULL for others), `roll_number` (only தலைக்கட்டு members have one); `member_group` `thalaikattu` / `others` (run `backups/add-member-groups.sql` on an existing database); `avoid` boolean; `address` jsonb (Home Address) and `postal_address` jsonb (Postal Address; run `backups/add-postal-address.sql` once on an existing database) |
+| `people` (extra) | Donors' Roll No. and the no-repeat rules | `donor_no` (D1, D2 ..., unique, donors only); unique mobile (last 10 digits), unique Tamil name, unique English name when there is no Tamil name; run `backups/donor-numbers-check.sql` then `backups/donor-numbers.sql` |
 | `functions` | Events | `name` + `year` unique; `santha_amount` default 1200 |
 | `ledger_entries` | Per member per function | unique `(function_id, person_id)`; `receipt_no`, `santha`, `santha_checked`, `donation`, `total`, `paid` (remark) |
 | `expense_entries` | செலவு lines | `name`, `amount >= 0`, `note` |
-| `income_entries` | Every extra வரவு line | `kind` (key from `income-categories.js`), `received_on`, `receipt_no`, `amount`, `name`, `note` |
+| `income_entries` | Every extra வரவு line, and every fund-collection donation | `kind` (key from `income-categories.js`, or `fund:<fund id>` for a fund collection), `received_on`, `receipt_no`, `amount`, `name`, `note` |
+| `fund_collections` | A named donation drive inside one function (e.g. Land Purchase in 2027), made in Dashboard Admin | `function_id`, `title`; one title per function. Becomes a tab on that function's Accounts page (table like நன்கொடை). Its money (`income_entries.kind = fund:<id>`) is NOT in the function's வரவு or balance: the Dashboard shows it apart (`fundSummaries` in `data.js`, tiles, Admin list) and the invitation prints it on its own page. Run `backups/fund-collections.sql` once |
 | `materials` | Nothing yet | The Dashboard reads it for a Materials tile and chart; nothing writes to it, so it stays empty. The invitation's gifts-in-kind page is wording in `invitation-text.js`, not this table |
 
 Deleting a function cascades to its lines.

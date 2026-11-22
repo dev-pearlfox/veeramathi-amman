@@ -18,6 +18,7 @@ function markSaved(functionId) {
 
 function renderAdmin() {
   renderInvitationCard();   // invitation.js
+  renderFundAdmin();        // funds.js
   $("functions-list").innerHTML = functionsList
     .slice()
     .sort((a, b) => b.year - a.year || a.name.localeCompare(b.name))

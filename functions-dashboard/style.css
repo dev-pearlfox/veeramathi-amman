@@ -164,6 +164,10 @@ th { color: var(--muted); font-weight: 600; }
 .santha-amount-save { padding: 6px 10px; min-height: 34px; font-size: 0.82rem; transition: transform 0.08s ease, opacity 0.15s ease; }
 .santha-amount-save:active:not(:disabled) { transform: scale(0.93); }   /* visible "pressed" reaction */
 .santha-amount-save:disabled { opacity: 0.6; cursor: progress; }
+.fund-title-cell { display: flex; align-items: center; gap: 6px; }   /* Admin > Fund Collections (funds.js) */
+.fund-title-input { min-width: 180px; min-height: 34px; padding: 6px 8px; }
+.fund-rename, .fund-delete { padding: 6px 10px; min-height: 34px; font-size: 0.82rem; }
+.fund-delete:disabled { opacity: 0.45; cursor: not-allowed; }
 .saved-label { color: var(--accent-2); font-weight: 700; font-size: 0.85rem; animation: saved-pop 0.25s ease; }
 @keyframes saved-pop { from { opacity: 0; transform: translateX(-4px); } to { opacity: 1; transform: none; } }
 

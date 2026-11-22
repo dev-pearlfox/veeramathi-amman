@@ -15,6 +15,9 @@ function renderOverview() {
     ? "Each function's row includes its முந்தைய இருப்பு, but this all-years வரவு leaves it out so the same money is not counted twice."
     : "";
   $("ov-material").textContent = money(materials.reduce((s, m) => s + Number(m.cost || 0), 0));
+  // Fund collections (funds.js) are not in வரவு: one tile each, apart, like the material cost.
+  $("ov-fund-tiles").innerHTML = fundSummaries(allFunctionIds()).map(({ fund, f, total }) =>
+    `<div class="tile"><div class="label">${escapeHtml(fund.title)} <small>(${f.year}, separate)</small></div><div class="value">${money(total)}</div></div>`).join("");
 
   renderOverviewCharts(all);
   renderCompare();   // compare.js
