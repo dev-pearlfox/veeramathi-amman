@@ -1087,7 +1087,7 @@ table.sheet thead tr.filter-row td {
 }
 
 /* ---------- Members page table widths — HEART LOGIC, do not change without asking ----------
-   S.No. 70px / Roll No. 76px / பெயர் 440px / English Name 210px / Member Origin 190px / Postal Address 190px /
+   S.No. 70px / Roll No. 76px / பெயர் 440px / English Name 210px / Home Address 190px / Postal Address 190px /
    Mobile Number 170px / பிறந்த தேதி 140px / Avoid 80px
    (= 1566px total, drawn 1567px wide because of the collapsed outer border. The header frame (.members-thead-wrap) and the
    pill row (.members-filter-card) are 1569px = that + 2px frame border, so the table fills the frame with no gap and no
@@ -1254,9 +1254,9 @@ body.is-compact .members-filter-card {
   margin-top: 0;
   margin-bottom: var(--pills-card-margin-collapse, 0px);
 }
-/* Nine columns, 1566px: S.No 70 + Roll 76 + பெயர் 440 + English Name 210 + Member Origin 190 + Postal Address 190 + Mobile 170
+/* Nine columns, 1566px: S.No 70 + Roll 76 + பெயர் 440 + English Name 210 + Home Address 190 + Postal Address 190 + Mobile 170
    + பிறந்த தேதி 140 + Avoid 80. பெயர் holds the whole family name ("husband - wife"). The English Name column was once removed
-   (its width went to பெயர்) and is back with the owner's permission, plus the new Postal Address column; Member Origin is the
+   (its width went to பெயர்) and is back with the owner's permission, plus the new Postal Address column; Home Address is the
    old ஊர் column renamed. */
 table.members-table th:nth-child(1), table.members-table td:nth-child(1) { width: 70px; }
 table.members-table th:nth-child(2), table.members-table td:nth-child(2) { width: 76px; }
@@ -1278,7 +1278,7 @@ body.group-others .members-filter-card { width: 1273px; }
 body.page-members.group-others main,
 body.page-members.group-others .sticky-top-inner { max-width: 1305px; }
 table.members-table td:nth-child(9) { text-align: center; }
-/* Text columns are left-aligned like the names (inputs are right-aligned by default): English Name (4th), Member Origin (5th),
+/* Text columns are left-aligned like the names (inputs are right-aligned by default): English Name (4th), Home Address (5th),
    Postal Address (6th), பிறந்த தேதி (8th, a date box). Also covers their filter and add-row boxes. */
 table.members-table td:nth-child(4) input, table.members-table td:nth-child(5) input,
 table.members-table td:nth-child(6) input, table.members-table td:nth-child(8) input { text-align: left; }

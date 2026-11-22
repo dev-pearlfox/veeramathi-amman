@@ -415,7 +415,7 @@ function renderSheet() {
 }
 
 // Column names for the row controls' accessible labels (same words as the table header in index.html).
-const SHEET_LABELS = { receipt: "இரசீது எண்", name: "பெயர்", place: "Member Origin", mobile: "மொபைல் எண்", santha: "தலைக்கட்டு வரி" };
+const SHEET_LABELS = { receipt: "இரசீது எண்", name: "பெயர்", place: "Home Address", mobile: "மொபைல் எண்", santha: "தலைக்கட்டு வரி" };
 
 function updateTotalsBanner(rows) {
   // Collected = what is ticked so far; / total = every head on this sheet paying the head tax; Need = the part still to collect

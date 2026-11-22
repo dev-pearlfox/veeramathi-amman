@@ -1,4 +1,4 @@
-/* Home icon in each Member Origin and Postal Address cell (members.js addressButton) and its address popup (member-address.js). */
+/* Home icon in each Home Address and Postal Address cell (members.js addressButton) and its address popup (member-address.js). */
 .addr-btn {
   flex: none; display: inline-flex; align-items: center; justify-content: center;
   width: 30px; height: 30px; padding: 0; margin-right: 2px;

@@ -47,7 +47,7 @@ the paper work with two small websites:
 
 ### 5.1 Accounts (`function-expenses/`)
 
-**Members page.** One list of house heads. Fields: Tamil name, English name, Member Origin (the old ஊர் place, with its own address popup), Postal Address (a second address popup), mobile,
+**Members page.** One list of house heads. Fields: Tamil name, English name, Home Address (the old ஊர் place, with its own address popup), Postal Address (a second address popup), mobile,
 date of birth, S.No., roll number (permanent, starts at 1001), Avoid flag. Column filters, print. A lock mode keeps
 accidental edits out. Every member is on every function's sheet, except those marked Avoid (unless they already
 have an entry for that function, so recorded money never disappears).

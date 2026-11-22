@@ -86,7 +86,7 @@ One file, `functions-dashboard/supabase/schema.sql`, safe to run again.
 
 | Table | Holds | Notes |
 |---|---|---|
-| `people` | Members | unique `name`, `(member_group, coalesce(family_group, 0), member_no)` (S.No. restarts in each family table); `family_group` int (the family table of a thalaikattu member, NULL for others), `roll_number` (only தலைக்கட்டு members have one); `member_group` `thalaikattu` / `others` (run `backups/add-member-groups.sql` on an existing database); `avoid` boolean; `address` jsonb (Member Origin) and `postal_address` jsonb (Postal Address; run `backups/add-postal-address.sql` once on an existing database) |
+| `people` | Members | unique `name`, `(member_group, coalesce(family_group, 0), member_no)` (S.No. restarts in each family table); `family_group` int (the family table of a thalaikattu member, NULL for others), `roll_number` (only தலைக்கட்டு members have one); `member_group` `thalaikattu` / `others` (run `backups/add-member-groups.sql` on an existing database); `avoid` boolean; `address` jsonb (Home Address) and `postal_address` jsonb (Postal Address; run `backups/add-postal-address.sql` once on an existing database) |
 | `functions` | Events | `name` + `year` unique; `santha_amount` default 1200 |
 | `ledger_entries` | Per member per function | unique `(function_id, person_id)`; `receipt_no`, `santha`, `santha_checked`, `donation`, `total`, `paid` (remark) |
 | `expense_entries` | செலவு lines | `name`, `amount >= 0`, `note` |

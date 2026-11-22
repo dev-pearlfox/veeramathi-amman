@@ -1,11 +1,11 @@
-// The home icon in the Member Origin cell and the one in the Postal Address cell (Members page) each open this popup: a labelled address form with
+// The home icon in the Home Address cell and the one in the Postal Address cell (Members page) each open this popup: a labelled address form with
 // Save and Cancel. It follows the page lock (body.master-locked, members.js): while the page is LOCKED (view mode) the
 // popup only shows the saved address, read-only, with a Close button; once the page is UNLOCKED (edit mode) it can be
 // typed in, pasted into and saved. Nothing is written until Save is clicked, so a stray tap cannot change anything. `people.address` is a jsonb object {door, street, area, town, country, state,
 // district, pincode} (functions-dashboard/supabase/schema.sql). members.js draws the icon (addressButton) and keeps the
 // saved object in allPeople; this file only handles the popup. Dropdown lists live in address-data.js.
 //
-// Two addresses per member share this one form: people.address (Member Origin, the ஊர் cell) and people.postal_address
+// Two addresses per member share this one form: people.address (Home Address, the ஊர் cell) and people.postal_address
 // (Postal Address). Each icon carries data-addr naming the column it edits (ADDR_KINDS below); the form is the same.
 //
 // Country / State / District are dropdowns where we have a list (see address-data.js) and a plain text box where we
@@ -27,9 +27,9 @@ const PASTE_ICON_SVG = '<svg viewBox="0 0 24 24" width="16" height="16" fill="no
 const ADDR_OTHER = "__other";   // the "Other…" option's value in the country dropdown
 
 // The two addresses a member has: the people column each icon edits, and the popup title for it. A new form starts from the
-// ஊர் text beside the icon for Member Origin (splitPlace), and at India / Tamil Nadu for Postal (see openAddressPopup).
+// ஊர் text beside the icon for Home Address (splitPlace), and at India / Tamil Nadu for Postal (see openAddressPopup).
 const ADDR_KINDS = {
-  address: { title: "Member Origin address" },
+  address: { title: "Home address" },
   postal_address: { title: "Postal address" },
 };
 
@@ -197,7 +197,7 @@ function openAddressPopup(button) {
   const saved = person[addrKind];
   addrPop.querySelector(".addr-pop-title").textContent = `${displayName(person)} - ${ADDR_KINDS[addrKind].title}`;
   const viewOnly = addrViewOnly();
-  // Edit mode, Member Origin: pre-filled from the ஊர் cell the icon sits in (what is on screen, even if just edited; see
+  // Edit mode, Home Address: pre-filled from the ஊர் cell the icon sits in (what is on screen, even if just edited; see
   // splitPlace). Postal Address: just India / Tamil Nadu. A saved address wins over these. They are only stored if
   // something else is typed. View mode: only what is really saved, never the guesses.
   const fromPlace = () => splitPlace(button.closest("td").querySelector(".cell-input")?.value ?? "");

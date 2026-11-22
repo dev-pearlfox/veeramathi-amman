@@ -125,7 +125,7 @@ function setStatus(message, isError) {
 // is the single source of truth. Rendered rows just have to match whatever the
 // current master state is at render time; setCellsLocked syncs later toggles.
 // Column names for the cells' accessible labels (same words as the table header in members.html).
-const MEMBER_LABELS = { name: "பெயர்", name_en: "English Name", place: "Member Origin", postal: "Postal Address", mobile: "Mobile Number", dob: "பிறந்த தேதி", avoid: "Avoid" };
+const MEMBER_LABELS = { name: "பெயர்", name_en: "English Name", place: "Home Address", postal: "Postal Address", mobile: "Mobile Number", dob: "பிறந்த தேதி", avoid: "Avoid" };
 
 function cell(p, field, value, extraAttrs, inputType = "text", before = "") {
   const locked = document.body.classList.contains("master-locked");
@@ -138,9 +138,9 @@ function cell(p, field, value, extraAttrs, inputType = "text", before = "") {
   </td>`;
 }
 
-// The home icon at the front of the Member Origin and Postal Address cells (an SVG so it is crisp and takes the CSS colour);
+// The home icon at the front of the Home Address and Postal Address cells (an SVG so it is crisp and takes the CSS colour);
 // its popup lives in member-address.js. Grey outline = no address yet, orange and filled = address saved. `field` is the
-// people column the icon edits: "address" (Member Origin) or "postal_address".
+// people column the icon edits: "address" (Home Address) or "postal_address".
 const HOME_ICON_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-6h4v6"/></svg>';
 const addressButton = (p, field) => {
   const label = field === "address" ? MEMBER_LABELS.place : MEMBER_LABELS.postal;

@@ -14,7 +14,7 @@ the owner can take. Items marked **(device)** need a real phone, tablet or lapto
 Everything below was only tested in headless Chrome with a fake database.
 
 - [ ] **P1** Members page, two addresses: run `backups/add-postal-address.sql` in Supabase once (adds `people.postal_address`), then on a real
-  phone and laptop check the nine columns (English Name, Member Origin, Postal Address), the two home icons, and the sideways scroll.
+  phone and laptop check the nine columns (English Name, Home Address, Postal Address), the two home icons, and the sideways scroll.
 - [ ] **P1** தலைக்கட்டு / Others buttons AND family tables: run `backups/add-member-groups.sql` in Supabase FIRST (adds `people.member_group` and
   `people.family_group`, splits the 82 members into the 8 family tables of the 2026 booklet: 15, 17, 9, 1, 4, 4, 7, 25, and restarts S.No. at 1 in each;
   Roll No. is unchanged; the old S.No. list is kept in `backup_people_family_groups`). Then check: the gap between tables on the Members page, the
@@ -84,7 +84,7 @@ Everything below was only tested in headless Chrome with a fake database.
 
 ## 4. Done (recent)
 
-- [x] Members page: Decisions from the owner. Members are not movable between தலைக்கட்டு and Others; ஊர் renamed Member Origin; Others hidden on
+- [x] Members page: Decisions from the owner. Members are not movable between தலைக்கட்டு and Others; ஊர் renamed Member Origin, then Home Address; Others hidden on
   Accounts and the Dashboard for now; Table 1 gets the same orange bar as the other tables (a caption, see HEART_LOGIC 9c).
 - [x] Others tab: no Roll No., birth date or Avoid column (narrower table); பெயர் may be empty for Others (`people.name` nullable, HEART_LOGIC 9b).
 - [x] Others import: `backups/others-import.sql` was run in Supabase (135 people from the address PDF; `people.name` may now be empty).
