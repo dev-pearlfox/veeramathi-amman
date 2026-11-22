@@ -43,14 +43,19 @@ const ADDR_COUNTRY_ALIASES = {
   "சவுதி அரேபியா": "Saudi Arabia", "சவுதி": "Saudi Arabia",
 };
 
-// Cities that may stand alone in the ஊர் cell (a lone name that is NOT listed here is taken as an Area). The value is the
-// state the popup preselects. Tamil Nadu cities use the default; the others are listed with their own state.
+// Cities and towns are different (the form has a City box and a Town box). A lone name in the ஊர் cell goes to City when it is
+// listed in ADDR_CITIES, to Town when it is listed in ADDR_TOWNS, and is taken as an Area (a neighbourhood) when it is in
+// neither. The value is the state the popup preselects: Tamil Nadu ones use the default, the others have their own state.
 const ADDR_CITIES = {
-  "சேலம்": ADDR_DEFAULT_STATE, "சங்ககிரி": ADDR_DEFAULT_STATE, "கரூர்": ADDR_DEFAULT_STATE, "சென்னை": ADDR_DEFAULT_STATE,
-  "உடுமலைப்பேட்டை": ADDR_DEFAULT_STATE, "கொண்டப்பநாயக்கன்பட்டி": ADDR_DEFAULT_STATE, "நாமக்கல்": ADDR_DEFAULT_STATE,
-  "கோவை": ADDR_DEFAULT_STATE, "தஞ்சாவூர்": ADDR_DEFAULT_STATE, "திண்டுக்கல்": ADDR_DEFAULT_STATE,
-  "ஓசூர்": ADDR_DEFAULT_STATE, "காஞ்சிபுரம்": ADDR_DEFAULT_STATE, "திருப்பூர்": ADDR_DEFAULT_STATE,
-  "பொள்ளாச்சி": ADDR_DEFAULT_STATE,
-  "பெங்களூர்": "Karnataka", "சண்டிகர்": "Punjab", "ராய்ப்பூர்": "Chhattisgarh",
-  "போபால்": "Madhya Pradesh",
+  "சேலம்": ADDR_DEFAULT_STATE, "கரூர்": ADDR_DEFAULT_STATE, "சென்னை": ADDR_DEFAULT_STATE, "கோவை": ADDR_DEFAULT_STATE,
+  "தஞ்சாவூர்": ADDR_DEFAULT_STATE, "திண்டுக்கல்": ADDR_DEFAULT_STATE, "ஓசூர்": ADDR_DEFAULT_STATE,
+  "காஞ்சிபுரம்": ADDR_DEFAULT_STATE, "திருப்பூர்": ADDR_DEFAULT_STATE, "ஈரோடு": ADDR_DEFAULT_STATE,
+  "திருச்சி": ADDR_DEFAULT_STATE, "கோயம்புத்தூர்": ADDR_DEFAULT_STATE,
+  "பெங்களூர்": "Karnataka", "சண்டிகர்": "Punjab", "ராய்ப்பூர்": "Chhattisgarh", "போபால்": "Madhya Pradesh",
 };
+const ADDR_TOWNS = {
+  "சங்ககிரி": ADDR_DEFAULT_STATE, "உடுமலைப்பேட்டை": ADDR_DEFAULT_STATE, "கொண்டப்பநாயக்கன்பட்டி": ADDR_DEFAULT_STATE,
+  "நாமக்கல்": ADDR_DEFAULT_STATE, "பொள்ளாச்சி": ADDR_DEFAULT_STATE, "ஓமலூர்": ADDR_DEFAULT_STATE,
+};
+// The place text shown beside the Postal Address icon: Town, City (whichever of the two are filled in).
+const addrPlaceText = (address) => [address?.town, address?.city].filter(Boolean).join(", ");

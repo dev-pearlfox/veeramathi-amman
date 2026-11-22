@@ -147,11 +147,11 @@ const addressButton = (p, field) => {
   return `<button type="button" class="addr-btn ${isAddressComplete(p[field]) ? "address-complete" : ""}" data-addr="${field}" title="${label}" aria-label="${label} of ${escapeHtml(displayName(p))}">${HOME_ICON_SVG}</button>`;
 };
 
-// Postal Address cell: the home icon plus the town of the saved postal address. The town is shown, never typed here (it is
+// Postal Address cell: the home icon plus the town and city of the saved postal address. The town is shown, never typed here (it is
 // not a .cell-input, so the lock and autosave code ignore it): the whole address is edited in the icon's popup.
 const postalCell = (p) => `<td>
     <div class="cell-flex">
-      ${addressButton(p, "postal_address")}<input type="text" class="postal-town" tabindex="-1" readonly ${ariaLabelAttr(MEMBER_LABELS.postal, displayName(p))} value="${escapeHtml(p.postal_address?.town ?? "")}" />
+      ${addressButton(p, "postal_address")}<input type="text" class="postal-town" tabindex="-1" readonly ${ariaLabelAttr(MEMBER_LABELS.postal, displayName(p))} value="${escapeHtml(addrPlaceText(p.postal_address))}" />
     </div>
   </td>`;
 

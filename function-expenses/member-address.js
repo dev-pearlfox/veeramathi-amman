@@ -17,7 +17,8 @@ const ADDRESS_FIELDS = [
   { key: "door", label: "கதவு எண் / Door No.", max: 40 },
   { key: "street", label: "தெரு / Street Name", max: 80 },
   { key: "area", label: "பகுதி / Area", max: 80 },
-  { key: "town", label: "ஊர் / Town / City", max: 60 },
+  { key: "town", label: "ஊர் / Town", max: 60 },
+  { key: "city", label: "நகரம் / City", max: 60 },
   { key: "district", label: "மாவட்டம் / District", max: 60, choice: true },   // sits under Town / City; its list still depends on Country + State (see addrChoices)
   { key: "country", label: "நாடு / Country", max: 60, choice: true },
   { key: "state", label: "மாநிலம் / State", max: 60, choice: true },
@@ -97,7 +98,9 @@ function applyAddressMode(viewOnly) {
 
 const hasAddress = (address) => !!address && Object.values(address).some(Boolean);
 // The icon turns orange only when every box of the address is filled in; a part-filled address keeps the plain icon.
-const isAddressComplete = (address) => !!address && ADDRESS_FIELDS.every((f) => !!address[f.key]);
+// Town and City count as one: a place is usually one or the other, so either is enough.
+const isAddressComplete = (address) =>
+  !!address && (!!address.town || !!address.city) && ADDRESS_FIELDS.every((f) => f.key === "town" || f.key === "city" || !!address[f.key]);
 
 // The current value of a field: the dropdown's pick when it is showing one, otherwise what is typed.
 function addrValue(key) {
@@ -158,19 +161,21 @@ const addrCountryOf = (text) => {
   return ADDR_COUNTRY_ALIASES[key] ?? ADDR_COUNTRIES.find((c) => c.toLowerCase() === key) ?? null;
 };
 
-// The ஊர் cell reads "Area, Town" (e.g. "குகை, சேலம்"): the first part is the area and anything after the first comma is
-// the town. A lone name is an area ("கன்னங்குறிச்சி") unless it is a known city in ADDR_CITIES ("ஈரோடு" is not, "சங்ககிரி"
-// is), which is the town and sets the state. If the last part names a country ("துபாய்", "USA") that is the country
+// The ஊர் cell reads "Area, City" (e.g. "குகை, சேலம்"): the first part is the area and what follows is the city when the last
+// part is a known city in ADDR_CITIES, otherwise the town. A lone name is an area ("கன்னங்குறிச்சி") unless it is a known city
+// (ADDR_CITIES, goes to City) or a known town (ADDR_TOWNS, goes to Town); that also sets the state. If the last part names a country ("துபாய்", "USA") that is the country
 // instead, with the state left blank. With no country named the state is the city's, else Tamil Nadu.
 function splitPlace(place) {
   const parts = place.split(",").map((s) => s.trim()).filter(Boolean);
   const country = addrCountryOf(parts[parts.length - 1]);
   if (country) parts.pop();
   let [area = "", ...rest] = parts;
-  if (!rest.length && ADDR_CITIES[area]) [area, rest] = ["", [area]];
+  if (!rest.length && (ADDR_CITIES[area] || ADDR_TOWNS[area])) [area, rest] = ["", [area]];
+  const last = rest[rest.length - 1];
+  const isCity = !!ADDR_CITIES[last];
   const india = !country || country === ADDR_INDIA;
-  const state = india ? (ADDR_CITIES[rest[rest.length - 1]] ?? ADDR_DEFAULT_STATE) : "";
-  return { country: country ?? ADDR_INDIA, state, area, town: rest.join(", ") };
+  const state = india ? (ADDR_CITIES[last] ?? ADDR_TOWNS[last] ?? ADDR_DEFAULT_STATE) : "";
+  return { country: country ?? ADDR_INDIA, state, area, town: (isCity ? rest.slice(0, -1) : rest).join(", "), city: isCity ? last : "" };
 }
 
 function closeAddressPopup() {
@@ -242,7 +247,7 @@ async function saveAddress() {
     if (icon) {
       icon.classList.toggle("address-complete", isAddressComplete(address));
       const town = icon.closest("td").querySelector(".postal-town");   // only the Postal cell has one: its town text follows the form
-      if (town) town.value = address?.town ?? "";
+      if (town) town.value = addrPlaceText(address);
     }
     setStatus(isDraft ? "Postal address kept. It is saved when you add the member." : "Saved.", false);
   }
