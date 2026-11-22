@@ -328,11 +328,13 @@ function prefillNewMemberRow() {
 
 // New row starts locked (only பெயர்/Name enterable) until a name is typed —
 // same pattern as the main Ledger Sheet's new row (see updateNewRowLock in app.js).
+// The Others list needs no பெயர் (people.name may be empty there), so its row is open from the start; addNewMember then asks for
+// a பெயர் or an English Name.
 // Master lock (see setMasterLocked below) further disables the name
 // field too, so nothing in this row is editable while the page is locked.
 function updateNewMemberLock() {
   const masterLocked = document.body.classList.contains("master-locked");
-  const hasName = $("new-m-name").value.trim().length > 0;
+  const hasName = activeGroup === "others" || $("new-m-name").value.trim().length > 0;
   $("new-m-name").disabled = masterLocked;
   $("new-m-name-en").disabled = masterLocked || !hasName;
   $("new-m-place").disabled = masterLocked || !hasName;
@@ -474,9 +476,15 @@ function rejectNewMember(message) {
 
 async function addNewMember() {
   const name = $("new-m-name").value.trim();
-  if (!name) return;   // an empty row is not an error: a click anywhere lands here too
+  const nameEn = $("new-m-name-en").value.trim();
+  if (!name && !(activeGroup === "others" && nameEn)) {
+    // An empty row is not an error: a click anywhere lands here too. Other boxes filled but no name at all is one (Others only).
+    const typedSomething = activeGroup === "others" && ["new-m-place", "new-m-mobile", "new-m-dob"].some((id) => $(id).value.trim());
+    if (typedSomething) rejectNewMember("A member needs a name: type the பெயர் or the English Name.");
+    return;
+  }
 
-  const dup = allPeople.find((p) => (p.name ?? "").trim().toLowerCase() === name.toLowerCase());
+  const dup = name && allPeople.find((p) => (p.name ?? "").trim().toLowerCase() === name.toLowerCase());
   if (dup) {
     rejectNewMember(`"${name}" already exists in ${GROUP_LABELS[memberGroupOf(dup)]} (${dup.family_group ? `table ${dup.family_group}, ` : ""}S.No. ${dup.member_no ?? "-"}) — find them there instead of re-adding.`);
     return;
@@ -490,7 +498,7 @@ async function addNewMember() {
     return;
   }
 
-  const { data: person, error } = await insertPersonRaceSafe(client, { name, name_en: $("new-m-name-en").value.trim(), place: $("new-m-place").value.trim(), mobile, dob: $("new-m-dob").value || null, postal_address: newMemberDraft.postal_address, ...newMemberGroupFields() });
+  const { data: person, error } = await insertPersonRaceSafe(client, { name: name || null, name_en: nameEn, place: $("new-m-place").value.trim(), mobile, dob: $("new-m-dob").value || null, postal_address: newMemberDraft.postal_address, ...newMemberGroupFields() });
   if (error) {
     rejectNewMember("Error adding member: " + error.message);
     return;
