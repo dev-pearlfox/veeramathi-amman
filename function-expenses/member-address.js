@@ -97,10 +97,11 @@ function applyAddressMode(viewOnly) {
 }
 
 const hasAddress = (address) => !!address && Object.values(address).some(Boolean);
-// The icon turns orange only when every box of the address is filled in; a part-filled address keeps the plain icon.
-// Town and City count as one: a place is usually one or the other, so either is enough.
+// The icon turns orange only when every box of the address is filled in, except Town, which is optional (not every place has one).
+// A part-filled address keeps the plain icon.
+const OPTIONAL_ADDRESS_FIELDS = ["town"];
 const isAddressComplete = (address) =>
-  !!address && (!!address.town || !!address.city) && ADDRESS_FIELDS.every((f) => f.key === "town" || f.key === "city" || !!address[f.key]);
+  !!address && ADDRESS_FIELDS.every((f) => OPTIONAL_ADDRESS_FIELDS.includes(f.key) || !!address[f.key]);
 
 // The current value of a field: the dropdown's pick when it is showing one, otherwise what is typed.
 function addrValue(key) {
