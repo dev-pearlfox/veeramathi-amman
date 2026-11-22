@@ -51,7 +51,7 @@ const ADDR_CITIES = {
   "தஞ்சாவூர்": ADDR_DEFAULT_STATE, "திண்டுக்கல்": ADDR_DEFAULT_STATE, "ஓசூர்": ADDR_DEFAULT_STATE,
   "காஞ்சிபுரம்": ADDR_DEFAULT_STATE, "திருப்பூர்": ADDR_DEFAULT_STATE, "ஈரோடு": ADDR_DEFAULT_STATE,
   "திருச்சி": ADDR_DEFAULT_STATE, "கோயம்புத்தூர்": ADDR_DEFAULT_STATE,
-  "பெங்களூர்": "Karnataka", "சண்டிகர்": "Punjab", "ராய்ப்பூர்": "Chhattisgarh", "போபால்": "Madhya Pradesh",
+  "பெங்களூர்": "Karnataka", "சண்டிகர்": "Chandigarh", "ராய்ப்பூர்": "Chhattisgarh", "போபால்": "Madhya Pradesh",
 };
 const ADDR_TOWNS = {
   "சங்ககிரி": ADDR_DEFAULT_STATE, "உடுமலைப்பேட்டை": ADDR_DEFAULT_STATE, "கொண்டப்பநாயக்கன்பட்டி": ADDR_DEFAULT_STATE,
