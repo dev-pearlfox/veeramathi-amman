@@ -87,9 +87,12 @@ Everything below was only tested in headless Chrome with a fake database.
 - [x] Members page: Decisions from the owner. Members are not movable between தலைக்கட்டு and Others; ஊர் renamed Member Origin; Others hidden on
   Accounts and the Dashboard for now; Table 1 gets the same orange bar as the other tables (a caption, see HEART_LOGIC 9c).
 - [x] Others tab: no Roll No., birth date or Avoid column (narrower table); பெயர் may be empty for Others (`people.name` nullable, HEART_LOGIC 9b).
-- [ ] **P1** Run `backups/others-import.sql` once in Supabase (adds the 135 people from the address PDF to Others; it also lets `people.name` be empty).
-  Then on a real device check the Others tab (S.No. 1 to 135, English Name only for 62 of them) and proofread the Tamil names; the review file is
-  `backups/others-import-preview.csv`. The undo file is `backups/others-import-undo.sql`. (`backups/` is not in git: it holds personal data.)
+- [x] Others import: `backups/others-import.sql` was run in Supabase (135 people from the address PDF; `people.name` may now be empty).
+  Then `backups/merge-velmurugan.sql` was run: R. VELMURUGAN was listed twice (home and shop address), now ONE row (S.No. 51, shop address), so
+  Others has **134** people and S.No. 38 is a gap. Kept as they are on purpose (owner's decision): CLEANCHEM and JAYASHREE EARTH MOVERS stay in Others,
+  "M. PRABHAKARAN, M SENTHIL" stays one row, AMUTHA RAJ (S.No. 17) and ராஜி - அமுதா (S.No. 103) stay two rows. `backups/` is not in git (personal data).
+- [ ] **P1** Proofread the Tamil names and addresses of the Others people (read by eye from the PDF; review file `backups/others-import-preview.csv`),
+  and check the Others tab on a real phone. The undo file for the import is `backups/others-import-undo.sql`.
 
 - [x] Receipt box, WhatsApp / Print / Save image / SMS (`01593ca`).
 - [x] Receipt numbering ("Next 107" pill after செலவு), receipt folder, receipt file names (`4962390`).
