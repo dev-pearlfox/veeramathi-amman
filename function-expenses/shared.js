@@ -115,14 +115,9 @@ function computeNextDonorNo(peopleList) {
 }
 const rollText = (p) => p.roll_number ?? (p.donor_no ? DONOR_PREFIX + p.donor_no : "");   // what the Roll No. column shows
 
-// Who already owns a mobile number / a name? (The database refuses repeats too: people_mobile_unique, people_name_unique,
-// people_name_en_unique in backups/donor-numbers.sql. These checks only give a friendlier, earlier message.) exceptId = the
-// person being edited. Mobile numbers are compared by their last 10 digits; a blank number never clashes.
-const mobileDigits = (m) => String(m ?? "").replace(/\D/g, "").slice(-10);
-function findMobileOwner(peopleList, mobile, exceptId = null) {
-  const digits = mobileDigits(mobile);
-  return digits ? peopleList.find((p) => p.id !== exceptId && mobileDigits(p.mobile) === digits) : undefined;
-}
+// Who already owns a name? (The database refuses repeats too: people_name_unique, people_name_en_unique in backups/donor-numbers.sql.
+// This check only gives a friendlier, earlier message.) exceptId = the person being edited. A mobile number MAY be shared (owner's
+// decision, 22 Nov: relatives often use one phone), so there is no mobile check.
 // A Tamil name must be unique. A person with NO Tamil name (a donor with only an English name) is matched by the English name
 // against others who also have no Tamil name.
 function findNameOwner(peopleList, name, nameEn, exceptId = null) {
@@ -134,7 +129,6 @@ function findNameOwner(peopleList, name, nameEn, exceptId = null) {
 // The database's refusal, in plain words (it names the rule that was broken).
 function personSaveError(error) {
   const msg = error.message || "";
-  if (/people_mobile_unique/.test(msg)) return "That mobile number already belongs to another member.";
   if (/people_name(_en)?_unique/.test(msg)) return "That name already belongs to another member.";
   return "Error: " + msg;
 }

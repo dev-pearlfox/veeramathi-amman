@@ -497,12 +497,6 @@ async function addNewMember() {
     $("new-m-mobile").focus();
     return;
   }
-  const mobileOwner = findMobileOwner(allPeople, mobile);
-  if (mobileOwner) {
-    rejectNewMember(`That mobile number already belongs to ${displayName(mobileOwner)} (${GROUP_LABELS[memberGroupOf(mobileOwner)]}, ${rollText(mobileOwner) || `S.No. ${mobileOwner.member_no ?? "-"}`}).`);
-    $("new-m-mobile").focus();
-    return;
-  }
 
   const { data: person, error } = await insertPersonRaceSafe(client, { name: name || null, name_en: nameEn, place: $("new-m-place").value.trim(), mobile, dob: $("new-m-dob").value || null, postal_address: newMemberDraft.postal_address, ...newMemberGroupFields() });
   if (error) {
@@ -632,12 +626,6 @@ async function commitCellNow(input) {
     if (problem) {
       setStatus(problem, true);
       input.value = formatMobile(person.mobile);   // put the old number back
-      return;
-    }
-    const owner = value !== (person.mobile ?? "") ? findMobileOwner(allPeople, value, personId) : undefined;
-    if (owner) {
-      setStatus(`That mobile number already belongs to ${displayName(owner)} (${rollText(owner) || `S.No. ${owner.member_no ?? "-"}`}).`, true);
-      input.value = formatMobile(person.mobile);
       return;
     }
   }

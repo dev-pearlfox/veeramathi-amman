@@ -31,8 +31,7 @@ postal_address jsonb,                    -- Postal Address, same shape, from the
   constraint people_roll_number_unique unique (roll_number),
   constraint people_donor_no_unique unique (donor_no)
 );
--- No two people share a mobile number (last 10 digits; blank is fine), nor an English name when they have no Tamil name.
-create unique index if not exists people_mobile_unique on people ((right(regexp_replace(mobile, '\D', '', 'g'), 10))) where nullif(regexp_replace(coalesce(mobile, ''), '\D', '', 'g'), '') is not null;
+-- No two people share an English name when they have no Tamil name. (A mobile number MAY be shared: owner's decision, 22 Nov.)
 create unique index if not exists people_name_en_unique on people ((lower(btrim(name_en)))) where coalesce(btrim(name), '') = '' and coalesce(btrim(name_en), '') <> '';
 -- S.No. (member_no) restarts at 1 inside each family table, so it is unique only inside one (an Others member has no table: 0).
 create unique index if not exists people_family_no_unique on people (member_group, coalesce(family_group, 0), member_no);

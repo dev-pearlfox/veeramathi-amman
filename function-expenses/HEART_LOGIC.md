@@ -107,9 +107,9 @@ shrink (item on `syncPillsCardCollapse`) still applies to that card. The
 Roll Number (see shared.js) is given ONLY to தலைக்கட்டு members; an Others member (shown as **Donors**) is inserted with `roll_number: null`, which
 `insertPersonRaceSafe` keeps as null (only a MISSING `roll_number` key means "give the next one"). A donor has a Roll No. of its own, **D1, D2 ...**:
 the number `people.donor_no` (unique; `backups/donor-numbers.sql`), shown with a "D" by `rollText()` (shared.js) and given by `insertPersonRaceSafe`
-(highest + 1, retried only when a NUMBER collided). No two people may share a name, a mobile number (last 10 digits; blank is fine) or a Roll
-No.: the database refuses it (`people_name_unique`, `people_name_en_unique` for a person with no Tamil name, `people_mobile_unique`,
-`people_donor_no_unique`) and members.js checks first for a friendlier message (`findMobileOwner`, `findNameOwner`, `personSaveError`). S.No. is counted inside each list
+(highest + 1, retried only when a NUMBER collided). No two people may share a name or a Roll No.: the database refuses it (`people_name_unique`, `people_name_en_unique` for a person with
+no Tamil name, `people_donor_no_unique`) and members.js checks names first for a friendlier message (`findNameOwner`, `personSaveError`).
+**A mobile number MAY be shared** (owner's decision, 22 Nov: relatives use one phone; 7 numbers already repeat); there is no rule on it. S.No. is counted inside each list
 (`computeNextMemberNo(list, group, family)`). A row without `member_group` (a database that has not run `backups/add-member-groups.sql` yet) counts as தலைக்கட்டு. Roll Number stays
 off every function's Ledger Sheet. **Others are on the Accounts page and the Dashboard too** (owner's decision, 22 Nov): they are listed
 after the தலைக்கட்டு members so a payment can be recorded, but only a தலைக்கட்டு member OWES the head tax. A தலைக்கட்டு member

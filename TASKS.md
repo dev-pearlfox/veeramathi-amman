@@ -11,7 +11,7 @@ the owner can take. Items marked **(device)** need a real phone, tablet or lapto
 
 ## 1. Checks on real devices (device)
 
-- [ ] **P1** Donor Roll Nos. (D1, D2 ...) and no repeated name / mobile / Roll No. (new, 22 Nov): run `backups/donor-numbers-check.sql` in Supabase (must list nothing; if it lists repeats, fix those people first), then `backups/donor-numbers.sql` (numbers the existing donors D1.. in S.No. order, adds the rules). Undo: `donor-numbers-undo.sql`. Then on the Members page, Donors tab: add a donor (gets the next D number), try a repeated mobile / name (must be refused), check the wider table on a real screen. SQL not tested on a real database (no Postgres here).
+- [ ] **P1** Donor Roll Nos. (D1, D2 ...) and no repeated name / Roll No. (new, 22 Nov; a mobile number MAY be shared): run `backups/donor-numbers-check.sql` in Supabase (must list nothing; if it lists repeats, fix those people first), then `backups/donor-numbers.sql` (numbers the existing donors D1.. in S.No. order, adds the rules). Undo: `donor-numbers-undo.sql`. Then on the Members page, Donors tab: add a donor (gets the next D number), try a repeated name (must be refused), check the wider table on a real screen. SQL not tested on a real database (no Postgres here).
 
 - [ ] **P1** Fund collections (new, 22 Nov): run `backups/fund-collections.sql` in Supabase once. Then Dashboard > Admin > Fund Collections: add "Land Purchase" to the 2027 function, check its tab on the Accounts page, type a donation, check the Dashboard tile, the Admin list (Rename, Delete only when empty) and the invitation page. Not tested on the real database or a real phone.
 
